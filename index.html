@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=75</script>
+<script>window.GAME_CODE=76</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -543,7 +543,7 @@ CPS.forEach(C=>{C.side=sideDrop(C.z,1)<sideDrop(C.z,-1)?1:-1;C.e=roadEraw(C.z);}
    start of the stage. */
 const CONTW=3.5,STAGE_LEN=3000,NSTAGE=50,ELEMS=[],STAGES=[],CARW=2.9,CARW_MIN=2.95,BEAMC=0.94;
 const EL_NAME={park:tr_('پارکینگ مرگ'),ledge:tr_('لبهٔ پرتگاه'),volcano:tr_('پل آتشفشان'),beams:tr_('دو تیر روی اقیانوس'),cont:tr_('شهر کانتینرها'),ridge:tr_('تیغهٔ کوه'),jump:tr_('پرش از روی دره'),ice:tr_('لبهٔ یخی'),dunes:tr_('تپه‌های شنی'),stairs:tr_('پله‌های سنگی'),planks:tr_('پل چوبی شکسته'),logs:tr_('کنده‌های درخت'),mud:tr_('باتلاق'),tunnel:tr_('تونل تاریک')};
-const PIT_T={volcano:1,beams:1,jump:1,planks:1};
+const PIT_T={volcano:1,beams:1,jump:1,planks:1,stairs:1,logs:1};
 function stageOf(z){return clamp(Math.floor(z/STAGE_LEN),0,NSTAGE-1);}
 (function(){
   const TODS=[0.29,0.42,0.55,0.7,0.02,0.37,0.62,0.76,0.48,0.9];
@@ -553,7 +553,7 @@ function stageOf(z){return clamp(Math.floor(z/STAGE_LEN),0,NSTAGE-1);}
       ['stairs','cont','park','dunes','volcano','jump'],['ice','tunnel','ridge','planks','stairs','ledge'],['logs','mud','tunnel','ledge','planks','ridge'],['beams','dunes','cont','park','volcano','planks']];
     const ALL=['park','ledge','volcano','beams','cont','ridge','jump','ice','dunes','stairs','planks','logs','mud','tunnel'];
     const prev=STAGES.length?STAGES[STAGES.length-1].els.map(E=>E.type):[],prev2=STAGES.length>1?STAGES[STAGES.length-2].els.map(E=>E.type):[];
-    const n=Math.min(7,4+Math.floor(d*3+r()));
+    const n=Math.min(7,5+Math.floor(r()*2.6));
     // every stage different: the challenges of the last two stages are pushed back, the land's own ones come forward
     const recent=t=>{let p=0;const W=[3,2,1.3,0.8,0.4];for(let i=1;i<=5&&STAGES.length-i>=0;i++)if(STAGES[STAGES.length-i].els.some(E=>E.type===t))p+=W[i-1];return p;};
     const used=t=>STAGES.reduce((a,S2)=>a+(S2.els.some(E=>E.type===t)?1:0),0);
@@ -580,11 +580,11 @@ function stageOf(z){return clamp(Math.floor(z/STAGE_LEN),0,NSTAGE-1);}
       if(t==='volcano'){E.hw=(CARW+0.3+0.5*(1-E.d))/2;E.amp=E.d>0.3?1.2+2.4*E.d:0;E.Rc=E.L/2-7;}
       if(t==='beams'){E.bw=0.64+0.25*(1-E.d);E.amp=E.d*3.2;E.und=0.4+E.d*1.4;}
       if(t==='jump'){E.rampS=14;E.rampL=20;E.rampH=3.2;E.gap0=E.rampS+E.rampL;E.gapW=10+5*E.d;}
-      if(t==='dunes'){E.A=0.5+0.85*E.d;E.lam=26-4*E.d;}
-      if(t==='stairs'){const N=4+Math.floor(4*E.d),T=4.4-1.2*E.d,rs=0.2+0.1*E.d;E.N=N;E.T=T;E.rs=rs;E.hw=2.7;E.L=12+2*N*T+14+10;E.z1=E.z0+E.L;E.eB=roadEraw(E.z1);}
+      if(t==='dunes'){E.cw=4.2+0.6*(1-E.d);E.A=0.5+0.85*E.d;E.lam=26-4*E.d;}
+      if(t==='stairs'){const N=5+Math.floor(4*E.d),T=3.6-0.9*E.d,rs=0.2+0.1*E.d;E.N=N;E.T=T;E.rs=rs;E.hw=2.3+0.3*(1-E.d);E.L=12+2*N*T+14+10;E.z1=E.z0+E.L;E.eB=roadEraw(E.z1);}
       if(t==='planks'){E.hw=2.8;const R2=mulberry32(E.seed),H=[];let q=6;while(q<E.L-6){q+=4+R2()*(7-3*E.d);if(q>E.L-6)break;if(R2()<0.35){const g=0.22+R2()*0.16;H.push({s0:q,s1:q+g,a:-9,b:9});q+=g;}else{const sd=R2()<0.5?-1:1,l=1.4+R2()*(0.8+1.2*E.d);const lh=H.filter(h=>h.a>-8||h.b<8).pop();if(lh&&((lh.a>0)!==(sd>0))&&q<lh.s1+12)q=lh.s1+12;if(lh&&q<lh.s1+6)q=lh.s1+6;if(q+l>E.L-6)break;H.push({s0:q,s1:q+l,a:sd>0?0.9-0.45*E.d:-9,b:sd>0?9:-0.9+0.45*E.d});q+=l;}}E.holes=H;E.sag=0.3+0.8*E.d;}
-      if(t==='logs'){const R2=mulberry32(E.seed),G=[];let q=8;while(q<E.L-8){G.push({s:q,r:0.2+0.06*E.d+R2()*0.05,tilt:(R2()-0.5)*0.5*E.d});q+=7.5-1.2*E.d+R2()*4;}E.logs=G;}
-      if(t==='mud'){E.dep=0.45+0.2*E.d;}
+      if(t==='logs'){E.hw=2.05+0.4*(1-E.d);const R2=mulberry32(E.seed),G=[];let q=8;while(q<E.L-8){G.push({s:q,r:0.2+0.06*E.d+R2()*0.05,tilt:(R2()-0.5)*0.5*E.d});q+=7.5-1.2*E.d+R2()*4;}E.logs=G;}
+      if(t==='mud'){E.dep=0.55+0.25*E.d;}
       if(t==='tunnel'){E.w=CARW+0.5+1.3*(1-E.d);}
       if(t==='cont'){const R2=mulberry32(E.seed),C=[];let s=22,lat=0,tier=1,since=2;E.rampIn=[4,22];
         while(s<E.L-34){const gap=0.12+R2()*(0.15+0.3*E.d),sh=E.d>0.2&&R2()<0.65?(R2()<0.5?-1:1)*(0.1+R2()*0.32*E.d):0;lat=clamp(lat+sh,-2,2);
@@ -620,10 +620,9 @@ function elemHf(E,x,z,d,ad,h,e){const t=E.type;
   if(t==='cont'){if(z<E.z0-10||z>E.z1+10)return h;const k=sstep(E.z0-14,E.z0-2,z)*sstep(E.z1+14,E.z1+2,z)*sstep(18,10,ad);return lerp(h,elemLineY(E,z)-0.03,k);}
   // sand dunes: whoops across the way, higher and closer together the further you go
   if(t==='dunes'){if(z<E.z0-20||z>E.z1+20)return h;const k=sstep(E.z0-20,E.z0,z)*sstep(E.z1+20,E.z1,z),s=z-E.z0,wv=0.5-0.5*Math.cos(s/E.lam*Math.PI*2+0.4*Math.sin(s*0.05+E.ph)),
-      side=1-0.25*Math.sin(d*0.35+s*0.03),hh=e+E.A*wv*side*sstep(0,30,s)*sstep(E.L,E.L-30,s);return lerp(h,hh,k*sstep(22,10,ad));}
+      side=1-0.25*Math.sin(d*0.35+s*0.03),hh=e+E.A*wv*side*sstep(0,30,s)*sstep(E.L,E.L-30,s),fall=ad>E.cw?Math.min(11,(ad-E.cw)*1.6)*sstep(0,25,s)*sstep(E.L,E.L-25,s):0;return lerp(h,hh-fall,k*sstep(30,16,ad));}
   // the ground under steps, the wooden bridge and the logs is level with them
-  if(t==='stairs'||t==='logs'){if(z<E.z0-16||z>E.z1+16)return h;const k=sstep(E.z0-16,E.z0-3,z)*sstep(E.z1+16,E.z1+3,z)*sstep(16,9,ad);return lerp(h,elemLineY(E,z)-0.02,k);}
-  if(t==='planks'){if(z<E.z0-16||z>E.z1+16)return h;const ln=elemLineY(E,z);if(z<E.z0+1.5||z>E.z1-1.5){const k=sstep(E.z0-16,E.z0-4,z)*sstep(E.z1+16,E.z1+4,z)*sstep(14,7,ad);return lerp(h,ln-0.02,k);}
+  if(t==='planks'||t==='stairs'||t==='logs'){if(z<E.z0-16||z>E.z1+16)return h;const ln=elemLineY(E,z);if(z<E.z0+1.5||z>E.z1-1.5){const k=sstep(E.z0-16,E.z0-4,z)*sstep(E.z1+16,E.z1+4,z)*sstep(14,7,ad);return lerp(h,ln-0.02,k);}
     const k=sstep(E.z0+1.5,E.z0+4,z)*sstep(E.z1-1.5,E.z1-4,z)*sstep(60,20,ad);return lerp(ln-0.02,Math.min(h,ln-24-6*vnoise(x*0.05,z*0.05)),k);}
   // the swamp: the way sinks into soft wet ground with puddles
   if(t==='mud'){if(z<E.z0-15||z>E.z1+15)return h;const k=sstep(E.z0-15,E.z0+5,z)*sstep(E.z1+15,E.z1-5,z)*sstep(14,6,ad),pud=sstep(0.55,0.85,vnoise(x*0.12+E.ph,z*0.12));return lerp(h,e-E.dep*0.5-E.dep*pud+0.12*Math.sin(d*2.4)*(1-pud),k);}
@@ -639,9 +638,9 @@ function elemPath(E,s){return E.amp?E.amp*Math.sin(s/E.L*Math.PI*(E.type==='beam
 // what the wheels stand on over the pits and on the containers
 function stairLevel(E,s){const a=12,T=E.T,N=E.N,up=a+N*T,top=up+14,dn=top+N*T;if(s<a||s>dn)return 0;if(s<up)return Math.ceil((s-a)/T)*E.rs;if(s<top)return N*E.rs;return Math.ceil((dn-s)/T)*E.rs;}
 function elemDeck(E,x,z,solid){if(z<E.z0-1||z>E.z1+1)return -1e9;const s=z-E.z0,lat=lateral(x,z),t=E.type;
-  if(t==='stairs'){if(Math.abs(lat)>E.hw)return -1e9;const lv=stairLevel(E,s);return lv>0?elemLineY(E,z)+lv:-1e9;}
+  if(t==='stairs'){if(Math.abs(lat)>E.hw)return -1e9;return elemLineY(E,z)+stairLevel(E,s);}
   if(t==='planks'){if(Math.abs(lat)>E.hw)return -1e9;const dk=elemLineY(E,z)+0.12-E.sag*Math.sin(Math.PI*clamp(s/E.L,0,1));if(!solid)for(const H of E.holes)if(s>H.s0&&s<H.s1&&lat>H.a&&lat<H.b)return H.a<-8&&H.b>8?dk-0.06:-1e9;return dk;}
-  if(t==='logs'){if(Math.abs(lat)>4.4)return -1e9;let best=-1e9;for(const G of E.logs){const ds=s-(G.s+G.tilt*lat);if(Math.abs(ds)<G.r){const y=Math.sqrt(G.r*G.r-ds*ds)-G.r*0.25;if(y>best)best=y;}}return best>0?elemLineY(E,z)+best:-1e9;}
+  if(t==='logs'){if(Math.abs(lat)>E.hw)return -1e9;let best=0;for(const G of E.logs){const ds=s-(G.s+G.tilt*lat);if(Math.abs(ds)<G.r){const y=Math.sqrt(G.r*G.r-ds*ds)-G.r*0.25;if(y>best)best=y;}}return elemLineY(E,z)+best;}
   if(t==='volcano'){const c=elemPath(E,s);return Math.abs(lat-c)<E.hw?elemLineY(E,z)+0.18:-1e9;}
   if(t==='beams'){const c=elemPath(E,s),y=elemLineY(E,z)+0.15+E.und*Math.sin(s/E.L*Math.PI)*Math.sin(s*0.09+E.ph)*0.5;for(const o of [-BEAMC,BEAMC])if(Math.abs(lat-c-o)<E.bw/2)return y;return -1e9;}
   if(t==='jump'){if(s>=E.rampS&&s<=E.gap0&&Math.abs(lat)<3.2)return roadE(E.z0+E.rampS)+(s-E.rampS)/E.rampL*E.rampH+0.05;return -1e9;}
@@ -4002,6 +4001,10 @@ function elemBuild(E){const g=new THREE.Group();const head=z=>Math.atan2(roadDX(
     const rIn=E.rampIn,c0=E.cont[0],zi=E.z0+(rIn[0]+rIn[1])/2;B.add(toXZx(c0.lat,zi),elemLineY(E,zi)+H/2,zi,CONTW+0.1,0.14,Math.hypot(rIn[1]-rIn[0],H),head(zi),-Math.atan(H/(rIn[1]-rIn[0])),0,'#8a8f94',1);
     const rO=E.rampOut,cl=E.cont[E.cont.length-1],zo=E.z0+(rO[0]+rO[1])/2;B.add(toXZx(cl.lat,zo),elemLineY(E,zo)+H*cl.tier/2,zo,CONTW+0.1,0.14,Math.hypot(rO[1]-rO[0],H*cl.tier),head(zo),Math.atan(H*cl.tier/(rO[1]-rO[0])),0,'#8a8f94',1);
     g.add(B.mesh(contMat));}
+  if(E.type==='stairs'||E.type==='logs'){const B=boxMaker(),R=mulberry32(E.seed+7),st=E.type==='stairs';
+    for(let s=0;s<=E.L;s+=1){const z=E.z0+s,y=elemLineY(E,z);B.add(roadX(z),y-0.6,z,E.hw*2,1.2,1.04,head(z),0,0,st?'#8a8174':'#6e5640',0.8+R()*0.25);
+      if(s%9===0)for(const sd of [-1,1])B.add(toXZx(sd*(E.hw-0.35),z),y-15,z,0.8,28,0.8,head(z),0,0,st?'#6f675c':'#4a3c30',0.85);}
+    g.add(B.mesh(st?elStoneMat:elWoodMat));}
   if(E.type==='stairs'){const B=boxMaker(),R=mulberry32(E.seed);
     for(let s=10;s<=E.L-8;s+=1){const lv=stairLevel(E,s+0.5);if(lv<=0)continue;const z=E.z0+s+0.5,y=elemLineY(E,z);
       B.add(roadX(z),y+lv/2,z,E.hw*2,lv,1.02,head(z),0,0,R()<0.2?'#8d8579':'#a39a8c',0.85+R()*0.25);}
@@ -4016,7 +4019,7 @@ function elemBuild(E){const g=new THREE.Group();const head=z=>Math.atan2(roadDX(
     for(const sd of [-1,1])for(let s=0;s<E.L;s+=3){const z=E.z0+s+1.5,y=elemDeck(E,roadX(z),z,true);B.add(toXZx(sd*(E.hw+0.1),z),y+0.95,z,0.06,0.06,3.02,head(z),0,0,'#c9a15a',1);}
     g.add(B.mesh(elWoodMat));}
   if(E.type==='logs'){const im=new THREE.InstancedMesh(G.log,VMAT.log,E.logs.length),up=new THREE.Vector3(0,1,0),dir=new THREE.Vector3();
-    E.logs.forEach((Gl,i)=>{const z=E.z0+Gl.s,hd=head(z),a=hd+Math.PI/2-Math.atan(Gl.tilt);dir.set(Math.sin(a),0,Math.cos(a));dummy.position.set(roadX(z),elemLineY(E,z)-Gl.r*0.25,z);dummy.quaternion.setFromUnitVectors(up,dir);dummy.scale.set(Gl.r,9,Gl.r);dummy.updateMatrix();im.setMatrixAt(i,dummy.matrix);});
+    E.logs.forEach((Gl,i)=>{const z=E.z0+Gl.s,hd=head(z),a=hd+Math.PI/2-Math.atan(Gl.tilt);dir.set(Math.sin(a),0,Math.cos(a));dummy.position.set(roadX(z),elemLineY(E,z)-Gl.r*0.25,z);dummy.quaternion.setFromUnitVectors(up,dir);dummy.scale.set(Gl.r,E.hw*2+0.4,Gl.r);dummy.updateMatrix();im.setMatrixAt(i,dummy.matrix);});
     im.castShadow=true;im.receiveShadow=true;g.add(im);}
   if(E.type==='mud'){const R=mulberry32(E.seed);for(let s=6;s<E.L-6;s+=5+R()*6){const z=E.z0+s,lat=(R()*2-1)*3.5,x=toXZx(lat,z);if(vnoise(x*0.12+E.ph,z*0.12)<0.55)continue;
       const m=new THREE.Mesh(new THREE.CircleGeometry(1.4+R()*1.8,14),streamMat);m.rotation.x=-Math.PI/2;m.scale.y=0.6+R()*0.5;m.position.set(x,Hf(x,z)+E.dep*0.55,z);g.add(m);}}
@@ -4076,6 +4079,8 @@ function elemFail(E){const lat=lateral(S.x,S.z),s=S.z-E.z0,t=E.type;
   if(t==='beams'){if(S.y<elemLineY(E,S.z)-3)return tr_('در اقیانوس افتادی!');if(Math.abs(lat)>9)return tr_('از مسیر بیرون رفتی!');}
   if(t==='jump'){if(S.y<roadE(S.z)-5)return tr_('در دره افتادی!');if(Math.abs(lat)>12)return tr_('از مسیر بیرون رفتی!');}
   if(t==='planks'){if(S.y<elemLineY(E,S.z)-4)return tr_('از پل افتادی!');if(Math.abs(lat)>12)return tr_('از مسیر بیرون رفتی!');}
+  if(t==='stairs'||t==='logs'){if(S.y<elemLineY(E,S.z)-4)return tr_('افتادی!');if(Math.abs(lat)>12)return tr_('از مسیر بیرون رفتی!');}
+  if(t==='dunes'&&s>25&&s<E.L-25&&Math.abs(lat)>E.cw+1&&S.y<Hf(toXZx(0,S.z),S.z)-2.5)return tr_('افتادی!');
   if(t==='cont'){if(s>E.rampIn[1]&&s<E.rampOut[0]&&S.y<elemLineY(E,S.z)+2.59-1.5)return tr_('از روی کانتینرها افتادی!');if(Math.abs(lat)>10)return tr_('از مسیر بیرون رفتی!');}
   if((t==='ledge'||t==='ice'||t==='ridge')&&S.y<roadE(S.z)-6)return tr_('از پرتگاه افتادی!');
   return null;}
