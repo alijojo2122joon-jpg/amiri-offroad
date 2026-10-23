@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Amiri Offroad">
-<script>window.GAME_CODE=74</script>
+<script>window.GAME_CODE=75</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -4185,16 +4185,19 @@ const PIT_T={volcano:1,beams:1,jump:1,planks:1};
 function stageOf(z){return clamp(Math.floor(z/STAGE_LEN),0,NSTAGE-1);}
 (function(){
   const TODS=[0.29,0.42,0.55,0.7,0.02,0.37,0.62,0.76,0.48,0.9];
-  for(let k=0;k<NSTAGE;k++){const r=mulberry32(1000+k*77),d=Math.min(1,0.12+Math.pow(k/(NSTAGE-1),0.6)),z0=k*STAGE_LEN,zone=zoneOf(z0+1500);
+  for(let k=0;k<NSTAGE;k++){const r=mulberry32(1000+k*77),d=1,z0=k*STAGE_LEN,zone=zoneOf(z0+1500);
     // which challenges: always several, more of them and harder as you go
     const LP=[['park','logs','mud','stairs','planks','cont'],['mud','planks','logs','beams','park','dunes'],['logs','mud','tunnel','planks','ridge','park'],['ledge','ridge','jump','dunes','cont','tunnel'],
       ['stairs','cont','park','dunes','volcano','jump'],['ice','tunnel','ridge','planks','stairs','ledge'],['logs','mud','tunnel','ledge','planks','ridge'],['beams','dunes','cont','park','volcano','planks']];
-    const pool=LP[zone].slice(),prev=STAGES.length?STAGES[STAGES.length-1].els.map(E=>E.type):[];
-    const n=Math.min(6,3+Math.floor(d*3.4+r()*0.9)),types=[];
-    // new ones first: the challenges of the stage before come last
-    const fresh=pool.filter(t=>!prev.includes(t)),old=pool.filter(t=>prev.includes(t));
-    const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
-    const order=shuf(fresh).concat(shuf(old));for(let i=0;i<n&&i<order.length;i++)types.push(order[i]);shuf(types);
+    const ALL=['park','ledge','volcano','beams','cont','ridge','jump','ice','dunes','stairs','planks','logs','mud','tunnel'];
+    const prev=STAGES.length?STAGES[STAGES.length-1].els.map(E=>E.type):[],prev2=STAGES.length>1?STAGES[STAGES.length-2].els.map(E=>E.type):[];
+    const n=Math.min(7,4+Math.floor(d*3+r()));
+    // every stage different: the challenges of the last two stages are pushed back, the land's own ones come forward
+    const recent=t=>{let p=0;const W=[3,2,1.3,0.8,0.4];for(let i=1;i<=5&&STAGES.length-i>=0;i++)if(STAGES[STAGES.length-i].els.some(E=>E.type===t))p+=W[i-1];return p;};
+    const used=t=>STAGES.reduce((a,S2)=>a+(S2.els.some(E=>E.type===t)?1:0),0);
+    const sc=ALL.map(t=>[t,(LP[zone].includes(t)?1.2:0)-recent(t)-used(t)*0.08+r()*1.4]).sort((a,b)=>b[1]-a[1]);
+    const types=sc.slice(0,n).map(x=>x[0]);
+    const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};shuf(types);
     if(k===0)types.splice(0,types.length,'park','ledge','cont','beams');
     const lenOf=t=>t==='dunes'?240+200*d:t==='stairs'?150:t==='planks'?110+110*d:t==='logs'?150+130*d:t==='mud'?170+150*d:t==='tunnel'?200+200*d:t==='park'?160+170*d:t==='ledge'||t==='ice'?300+300*d:t==='volcano'?140+130*d:t==='beams'?90+150*d:t==='cont'?180+120*d:t==='ridge'?260+260*d:110+18*d;
     let L=types.map(lenOf);const room=STAGE_LEN-360,tot=L.reduce((a,b)=>a+b,0);if(tot>room*0.85){const f=room*0.85/tot;L=L.map(v=>v*f);}
@@ -4210,20 +4213,20 @@ function stageOf(z){return clamp(Math.floor(z/STAGE_LEN),0,NSTAGE-1);}
       const E={type:t,k,z0:zz,z1:zz+Lz,L:Lz,d:Math.min(1,d+r()*0.08),side:r()<0.5?1:-1,zc:zz+Lz/2,ph:r()*6.28,seed:Math.floor(r()*1e9)};
       E.eA=roadEraw(E.z0);E.eB=roadEraw(E.z1);
       // the narrowest a way ever gets is the width of a car (about 2.9 m with its mirrors) and a hand's breadth more
-      if(t==='park'){E.W=CARW_MIN+0.4+0.45*(1-E.d);E.A=1.2+1.2*E.d;E.lam=46-6*E.d;}
-      if(t==='ledge'||t==='ice'){E.w=CARW+0.65+1.0*(1-E.d);}if(t==='ridge'){E.w=CARW+1.7+1.8*(1-E.d);}
-      if(t==='volcano'){E.hw=(CARW+0.5+0.3*(1-E.d))/2;E.amp=E.d>0.3?1.2+2.4*E.d:0;E.Rc=E.L/2-7;}
-      if(t==='beams'){E.bw=0.7+0.2*(1-E.d);E.amp=E.d*3.2;E.und=0.4+E.d*1.4;}
-      if(t==='jump'){E.rampS=14;E.rampL=20;E.rampH=3.2;E.gap0=E.rampS+E.rampL;E.gapW=9+4*E.d;}
-      if(t==='dunes'){E.A=0.5+0.7*E.d;E.lam=26-4*E.d;}
+      if(t==='park'){E.W=CARW_MIN+0.4+0.45*(1-E.d);E.A=1.2+1.4*E.d;E.lam=46-6*E.d;}
+      if(t==='ledge'||t==='ice'){E.w=CARW+0.45+1.0*(1-E.d);}if(t==='ridge'){E.w=CARW+1.25+1.8*(1-E.d);}
+      if(t==='volcano'){E.hw=(CARW+0.3+0.5*(1-E.d))/2;E.amp=E.d>0.3?1.2+2.4*E.d:0;E.Rc=E.L/2-7;}
+      if(t==='beams'){E.bw=0.64+0.25*(1-E.d);E.amp=E.d*3.2;E.und=0.4+E.d*1.4;}
+      if(t==='jump'){E.rampS=14;E.rampL=20;E.rampH=3.2;E.gap0=E.rampS+E.rampL;E.gapW=10+5*E.d;}
+      if(t==='dunes'){E.A=0.5+0.85*E.d;E.lam=26-4*E.d;}
       if(t==='stairs'){const N=4+Math.floor(4*E.d),T=4.4-1.2*E.d,rs=0.2+0.1*E.d;E.N=N;E.T=T;E.rs=rs;E.hw=2.7;E.L=12+2*N*T+14+10;E.z1=E.z0+E.L;E.eB=roadEraw(E.z1);}
       if(t==='planks'){E.hw=2.8;const R2=mulberry32(E.seed),H=[];let q=6;while(q<E.L-6){q+=4+R2()*(7-3*E.d);if(q>E.L-6)break;if(R2()<0.35){const g=0.22+R2()*0.16;H.push({s0:q,s1:q+g,a:-9,b:9});q+=g;}else{const sd=R2()<0.5?-1:1,l=1.4+R2()*(0.8+1.2*E.d);const lh=H.filter(h=>h.a>-8||h.b<8).pop();if(lh&&((lh.a>0)!==(sd>0))&&q<lh.s1+12)q=lh.s1+12;if(lh&&q<lh.s1+6)q=lh.s1+6;if(q+l>E.L-6)break;H.push({s0:q,s1:q+l,a:sd>0?0.9-0.45*E.d:-9,b:sd>0?9:-0.9+0.45*E.d});q+=l;}}E.holes=H;E.sag=0.3+0.8*E.d;}
       if(t==='logs'){const R2=mulberry32(E.seed),G=[];let q=8;while(q<E.L-8){G.push({s:q,r:0.2+0.06*E.d+R2()*0.05,tilt:(R2()-0.5)*0.5*E.d});q+=7.5-1.2*E.d+R2()*4;}E.logs=G;}
-      if(t==='mud'){E.dep=0.4+0.2*E.d;}
-      if(t==='tunnel'){E.w=CARW+0.8+1.3*(1-E.d);}
+      if(t==='mud'){E.dep=0.45+0.2*E.d;}
+      if(t==='tunnel'){E.w=CARW+0.5+1.3*(1-E.d);}
       if(t==='cont'){const R2=mulberry32(E.seed),C=[];let s=22,lat=0,tier=1,since=2;E.rampIn=[4,22];
-        while(s<E.L-34){const gap=0.1+R2()*(0.12+0.28*E.d),sh=E.d>0.2&&R2()<0.6?(R2()<0.5?-1:1)*(0.1+R2()*0.28*E.d):0;lat=clamp(lat+sh,-2,2);
-          since++;if(since>=2){if(tier===1&&E.d>0.35&&R2()<0.25&&s>40&&s<E.L-80){tier=2;since=0;}else if(tier===2&&R2()<0.35){tier=1;since=0;}}
+        while(s<E.L-34){const gap=0.12+R2()*(0.15+0.3*E.d),sh=E.d>0.2&&R2()<0.65?(R2()<0.5?-1:1)*(0.1+R2()*0.32*E.d):0;lat=clamp(lat+sh,-2,2);
+          since++;if(since>=2){if(tier===1&&E.d>0.35&&R2()<0.4&&s>40&&s<E.L-80){tier=2;since=0;}else if(tier===2&&R2()<0.35){tier=1;since=0;}}
           C.push({s0:s,s1:s+12.2,lat,tier});s+=12.2+gap;}
         E.cont=C;E.rampOut=[s,s+18];E.z1=E.z0+s+20;E.L=E.z1-E.z0;E.eB=roadEraw(E.z1);}
       ELEMS.push(E);els.push(E);z=E.z1+gapTot/gs*gw[i];});
@@ -4501,7 +4504,7 @@ const sun=new THREE.DirectionalLight(0xffd9a6,1.05);
 sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
 Object.assign(sun.shadow.camera,{left:-45,right:45,top:45,bottom:-45,near:10,far:400});sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.03;
 sun.shadow.bias=-0.0006;sun.shadow.normalBias=0.04;scene.add(sun);scene.add(sun.target);
-function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setPixelRatio(Math.min((window.devicePixelRatio||1)*((window.visualViewport&&visualViewport.scale)||1),QV([0.8,1.05,1.4,2])*PERF.ps));renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();try{S.vOff=-1;}catch(e){}}
+function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setPixelRatio(Math.min((window.devicePixelRatio||1)*((window.visualViewport&&visualViewport.scale)||1),QV([0.72,0.98,1.3,2])*PERF.ps));renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();try{S.vOff=-1;}catch(e){}}
 window.addEventListener('resize',resize);
 const timeU={value:0},windU={value:1},snowU={value:0},wetU={value:0},snowDU={value:0},snowCU={value:new THREE.Vector3(0,0,20)};
 const matCache={};
@@ -4564,7 +4567,7 @@ const groundTex=(function(){const S=512,d=new Uint8Array(S*S*4);
     d[o]=Math.round(clamp(g,0,1)*255);d[o+1]=Math.round(clamp(rk,0,1)*255);d[o+2]=Math.round(clamp(pb,0,1)*255);d[o+3]=Math.round(clamp(mac,0,1)*255);}
   const t=new THREE.DataTexture(d,S,S,THREE.RGBAFormat);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.anisotropy=8;t.needsUpdate=true;return t;})();
 const groundU={value:groundTex},detailOn={value:1};
-const terrainMat=new THREE.MeshPhongMaterial({vertexColors:true,map:detailTex,bumpMap:detailTex,bumpScale:0.9,specular:0x0c0c0c,shininess:6,side:THREE.DoubleSide});
+const terrainMat=new THREE.MeshPhongMaterial({vertexColors:true,map:detailTex,bumpMap:PERF.lvl>=2?detailTex:null,bumpScale:0.9,specular:0x0c0c0c,shininess:6,side:THREE.DoubleSide});
 terrainMat.onBeforeCompile=sh=>{sh.uniforms.uSnow=snowU;sh.uniforms.uSnowD=snowDU;sh.uniforms.uSnowC=snowCU;sh.uniforms.uWet=wetU;sh.uniforms.uGround=groundU;sh.uniforms.uDetail=detailOn;
   // lying snow is a real layer over the whole land: the ground is raised by its depth on all but steep faces; round the
   // car the deformable snow (with the tyre ruts) takes over, so the land under it stays down
@@ -4608,7 +4611,7 @@ function groundColor(x,z,h,ny,ad,out){
 const TILE=256,LODRES=[72,24,8];
 const tiles=new Map(),treeCache=new Map();
 const tColTmp=new THREE.Color();
-function tileLod(ix,iz,pix,piz){const d=Math.max(Math.abs(ix-pix),Math.abs(iz-piz));return d<=1?0:d<=4?1:d<=QV([4,5,6,8])?2:-1;}
+function tileLod(ix,iz,pix,piz){const d=Math.max(Math.abs(ix-pix),Math.abs(iz-piz));return d<=1?0:d<=4?1:d<=QV([8,9,10,12])?2:-1;}
 function buildTileGeo(ix,iz,lod){
   const res=LODRES[lod],step=TILE/res,x0=ix*TILE,z0=iz*TILE,n=res+1,ext=n+2,hg=new Float32Array(ext*ext);
   HFM=lod===0;for(let j=0;j<ext;j++){const z=z0+(j-1)*step;for(let i=0;i<ext;i++)hg[j*ext+i]=Hf(x0+(i-1)*step,z);}HFM=false;
@@ -4726,7 +4729,7 @@ const VMAT={signPost:new THREE.MeshPhongMaterial({color:'#9aa0a6',specular:0x666
   pine:swayMat({vertexColors:true,map:TEX.needle,alphaTest:0.4,side:THREE.DoubleSide},{k:0.012,base:2.6}),leaf:swayMat({vertexColors:true,map:TEX.leaf,alphaTest:0.42,side:THREE.DoubleSide},{k:0.02,base:3}),birch:swayMat({vertexColors:true,map:TEX.birch,alphaTest:0.42,side:THREE.DoubleSide},{k:0.03,base:3}),dead:new THREE.MeshLambertMaterial({vertexColors:true}),palm:swayMat({vertexColors:true},{k:0.03,base:3}),
   pineLo:new THREE.MeshLambertMaterial({vertexColors:true,map:TEX.needle,alphaTest:0.4,side:THREE.DoubleSide}),leafLo:new THREE.MeshLambertMaterial({vertexColors:true,map:TEX.leaf,alphaTest:0.42,side:THREE.DoubleSide}),birchLo:new THREE.MeshLambertMaterial({vertexColors:true,map:TEX.birch,alphaTest:0.42,side:THREE.DoubleSide}),deadLo:new THREE.MeshLambertMaterial({vertexColors:true}),palmLo:new THREE.MeshLambertMaterial({vertexColors:true}),
   bush:swayMat({vertexColors:true},{k:0.05,base:0.2}),grass:swayMat({vertexColors:true,side:THREE.DoubleSide},{k:0.32,base:0}),flower:swayMat({vertexColors:true,side:THREE.DoubleSide},{k:0.25,base:0}),fern:swayMat({vertexColors:true,side:THREE.DoubleSide},{k:0.12,base:0}),
-  rock:new THREE.MeshPhongMaterial({vertexColors:true,flatShading:true,map:detailTex,bumpMap:detailTex,bumpScale:1.4,shininess:8,specular:0x151515}),stone:new THREE.MeshPhongMaterial({vertexColors:true,flatShading:true,map:detailTex,bumpMap:detailTex,bumpScale:1.4,shininess:8,specular:0x151515}),log:new THREE.MeshLambertMaterial({vertexColors:true}),post:new THREE.MeshLambertMaterial({vertexColors:true})
+  rock:new THREE.MeshPhongMaterial({vertexColors:true,flatShading:true,map:detailTex,bumpMap:PERF.lvl>=2?detailTex:null,bumpScale:1.4,shininess:8,specular:0x151515}),stone:new THREE.MeshPhongMaterial({vertexColors:true,flatShading:true,map:detailTex,bumpMap:PERF.lvl>=2?detailTex:null,bumpScale:1.4,shininess:8,specular:0x151515}),log:new THREE.MeshLambertMaterial({vertexColors:true}),post:new THREE.MeshLambertMaterial({vertexColors:true})
 };
 const DEPTHM=new Map();function depthMatFor(m){let d=DEPTHM.get(m.map);if(!d){d=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,map:m.map,alphaTest:m.alphaTest,side:THREE.DoubleSide});DEPTHM.set(m.map,d);}return d;}
 const TREEKIND={bamiyan:[['poplar',0.72,1.6,2.4],['leaf',0.28,1.7,2.5]],leaf:[['leaf',0.85,2.2,3.4],['birch',0.15,2.0,2.8]],giant:[['pine',0.6,3.2,4.6],['leaf',0.4,2.8,4.0]],dead:[['dead',0.8,1.3,2.3],['pine',0.2,1.6,2.4]],birch:[['birch',0.7,2.0,3.0],['pine',0.3,2.0,3.2]],pine:[['pine',1,2.2,3.6]],palm:[['palm',0.7,1.4,2.1],['leaf',0.3,2.0,3.0]]};
@@ -4786,7 +4789,7 @@ function scanTiles(force){
   const pix=Math.floor(S.x/TILE),piz=Math.floor(S.z/TILE);
   if(!force&&pix===pTile[0]&&piz===pTile[1])return;pTile=[pix,piz];
   const want=new Map();
-  for(let iz=piz-8;iz<=piz+8;iz++)for(let ix=pix-8;ix<=pix+8;ix++)if(tileLod(ix,iz,pix,piz)>=0){if(!tileWanted(ix,iz))continue;want.set(ix+','+iz,tileLod(ix,iz,pix,piz));}
+  for(let iz=piz-12;iz<=piz+12;iz++)for(let ix=pix-12;ix<=pix+12;ix++)if(tileLod(ix,iz,pix,piz)>=0){if(!tileWanted(ix,iz))continue;want.set(ix+','+iz,tileLod(ix,iz,pix,piz));}
   for(const [k,T] of tiles){if(!want.has(k)){disposeTile(T);tiles.delete(k);}}
   tileQueue=[];
   for(const [k,lod] of want){const T=tiles.get(k);if(!T||T.lod!==lod){const [ix,iz]=k.split(',').map(Number);tileQueue.push({ix,iz,lod,d:Math.max(Math.abs(ix-pix),Math.abs(iz-piz))});}}
@@ -4807,13 +4810,13 @@ function nearObst(x,z){const out=[roadObst,cabObst];const ix=Math.floor(x/TILE),
 const GP=64,grass=new Map();let grassT=0;
 function updateGrass(dt,force){
   grassT-=dt;if(grassT>0&&!force)return;grassT=0.35;
-  const R0=QV([60,100,135,170]),gx=Math.floor(camera.position.x/GP),gz=Math.floor(camera.position.z/GP),need=new Set();
+  const R0=QV([45,85,130,170]),gx=Math.floor(camera.position.x/GP),gz=Math.floor(camera.position.z/GP),need=new Set();
   for(let j=-3;j<=3;j++)for(let i=-3;i<=3;i++){const cx=(gx+i+0.5)*GP,cz=(gz+j+0.5)*GP;if(Math.hypot(cx-camera.position.x,cz-camera.position.z)<R0)need.add((gx+i)+','+(gz+j));}
   for(const [k,m] of grass)if(!need.has(k)){m.forEach(x=>{scene.remove(x);x.dispose&&x.dispose();});grass.delete(k);}
   let built=0;
   for(const k of need){if(grass.has(k))continue;if(built++>1&&!force)break;
     const [ix,iz]=k.split(',').map(Number),R=mulberry32((ix*31337)^(iz*7919)^99),zc=iz*GP+GP/2,gr=tab(tGr,zc),kz=zoneOf(zc),fl=ZB[kz].flowers,A=[],F=[],PB=[],FE=[];
-    const N=Math.round(QV([260,480,800,1150])*gr);
+    const N=Math.round(QV([180,380,760,1150])*gr);
     for(let a=0;a<N*1.6&&A.length<N;a++){const x=ix*GP+R()*GP,z=iz*GP+R()*GP,ad=Math.abs(lateral(x,z));if(paveF(z)>0.01&&ad<AW+0.6&&(RUTD(ad)<0.4||asphF(z)>0.01))continue;const h=Hf(x,z);
       if(h>SNL(z)-15)continue;if(h<waterAt(x,z)+0.2)continue;if(Math.abs(Hf(x+1.5,z)-h)>1.3)continue;
       const m=vnoise(x*0.03,z*0.03);if(m<0.3&&R()>0.3)continue;
@@ -6737,7 +6740,7 @@ function updateEnv(dt){
   if(WX.flash>0){cTmp.set('#dfe6ff');cTop.lerp(cTmp,WX.flash*0.6);cMid.lerp(cTmp,WX.flash*0.6);cHor.lerp(cTmp,WX.flash*0.5);}
   skyU.top.value.copy(cTop);skyU.mid.value.copy(cMid);skyU.hor.value.copy(cHor);skyU.sunVis.value=dayF*(1-wa*0.9)*(1-vis*0.85);
   scene.fog.color.copy(cHor);scene.background.copy(cHor);
-  scene.fog.near=lerp(lerp(190,12,Math.min(1,wa)),2,vis);scene.fog.far=QV([0.6,0.72,0.85,1])*lerp(lerp(1500,lerp(190,170,snowA/(wa||1)),Math.min(1,wa)),sandA>fogA?95:80,vis);
+  scene.fog.near=lerp(lerp(190,12,Math.min(1,wa)),2,vis);scene.fog.far=QV([0.85,0.9,1,1.1])*lerp(lerp(2200,lerp(190,170,snowA/(wa||1)),Math.min(1,wa)),sandA>fogA?95:80,vis);
   starMat.opacity=(1-dayF)*(1-Math.min(1,wa))*(1-vis)*0.9;
   moon.position.copy(SUNDIR).multiplyScalar(-4500);moon.material.opacity=sstep(0.6,0.1,dayF)*(1-wa*0.8);
   if(el>-0.06){sun.position.copy(SUNDIR);sun.color.set('#fff3dc').lerp(cTmp.set('#ffae66'),warm);sun.intensity=dayF*1.05*(1-Math.min(1,wa)*0.6)*(1-vis*0.65)*(FILMIC?1.5:1);if(sandA>0)sun.color.lerp(cTmp.set('#e0a060'),sandA*0.7);}
@@ -7737,7 +7740,7 @@ let cabT=0;const FPSC={n:0,t:0};
 const TR={cars:[],pool:[],lastZ:-1e9,built:0,voices:null};
 
 const TR_PAINT=['#f1f1ef','#e9e9e6','#c9ccce','#9ea3a8','#2b2d30','#7a1f22','#28466b','#d8d2c4','#5b6b52','#f1efe9'];
-const LANE=1.95,TR_N=()=>NPCV.length?QV([4,7,10,14]):0;
+const LANE=1.95,TR_N=()=>NPCV.length?QV([3,6,10,14]):0;
 function trKind(){return Math.floor(Math.random()*NPCV.length);}
 function trModel(){
   const vi=trKind(),spec=Object.assign({},NPCV[vi],{lite:true,noInt:true}),cu={paint:NPCV[vi].fixedPaint?'#f1f1ef':pick(TR_PAINT),rim:null,bar:0,snork:0,rack:0,flag:0,roof:0,crate:0,tire:1};
