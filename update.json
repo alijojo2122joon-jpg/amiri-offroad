@@ -1,20 +1,32 @@
 {
- "code": 88,
+ "code": 89,
  "minApk": 71,
  "apkUrl": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/AmiriOffroad.apk",
  "files": [
   {
    "path": "index.html",
    "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html",
-   "sha256": "780c1d781d72b20f3230aad42388a82a925f5b6f898c291fe7a8ff42c9652fda",
-   "size": 707692
+   "sha256": "14eed5de66b66b2083faeada5144f008de0eebcc37fcfb25229caa525eafb273",
+   "size": 711436
   },
   {
    "path": "snd/r_snow.ogg",
    "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/r_snow.ogg",
    "sha256": "341cfecd1b960e9d9ce934bbe11a6d87b8533ca555d3b67a3ea32b565c909ca9",
    "size": 54052
+  },
+  {
+   "path": "models/punto.glb",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/punto.glb",
+   "sha256": "a8c5ed80386173d228bfcc3fded28704a83d09d778056c979c0cf84045f7c828",
+   "size": 1863536
+  },
+  {
+   "path": "models/gmc.glb",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/gmc.glb",
+   "sha256": "cb461650e310f0ddf4f45605a0b7b45b78fe5e958b00b6a6efb8b29c1ff22f8a",
+   "size": 1756904
   }
  ],
- "apkSize": 18275523
+ "apkSize": 20507799
 }
