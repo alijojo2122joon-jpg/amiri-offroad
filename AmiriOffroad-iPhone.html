@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Amiri Offroad">
-<script>window.GAME_CODE=85</script>
+<script>window.GAME_CODE=86</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -5307,7 +5307,7 @@ function carMats(spec,cu){
   const refl=(color,r,sh,o)=>PH(color,Object.assign({envMap:carEnv,reflectivity:r,combine:THREE.MixOperation,specular:0x9a9a9a,shininess:sh},o||{}));
   return {paint:refl(cu.paint||spec.paint,0.2,90),roof:refl(cu.roof===2?'#f4efe6':(cu.paint||spec.paint),0.2,90),
     trim:spec.trim?refl(spec.trim,0.55,110):PH('#25292d',{shininess:12}),glassOp:0,dark:PH('#202326',{shininess:14,specular:0x222222}),
-    chrome:refl('#e8e8e8',0.8,140),glass:refl('#dfe8ee',0.06,150,{transparent:true,opacity:0.05,depthWrite:false}),rubber:PH('#161616',{shininess:4,specular:0x111111}),
+    chrome:refl('#e8e8e8',0.8,140),glass:frostify(refl('#dfe8ee',0.06,150,{transparent:true,opacity:0.05,depthWrite:false})),rubber:PH('#161616',{shininess:4,specular:0x111111}),
     rim:refl(cu.rim||spec.trim||'#c9c2b5',0.45,110),bed:PH('#33373c',{shininess:10}),seat:PH(spec.seat||'#3a3530',{shininess:6}),intUp:PH(spec.intUp||'#3a3d41',{shininess:10,specular:0x1a1a1a}),intLo:PH(spec.intLo||'#a9a395',{shininess:12,specular:0x1c1c1c}),intAcc:refl(spec.intAcc||'#8d9094',0.25,70),
     plate:PH('#f2f0e8',{shininess:20}),red:refl('#b8322a',0.25,80),lens:refl('#f4f1ea',0.6,160,{transparent:true,opacity:0.85}),
     head:headM,tail:tailM,amber:amberM,roofL:roofLM};
@@ -5455,13 +5455,46 @@ function modelParts(name){if(MPC[name])return MPC[name];const sc=MODELS[name];if
 // badges dropped, the four wheels (and calipers) found by name and place so they can spin and steer, and the cabin,
 // steering wheel, windscreen and lamps located for the driver's view and the lights
 const MPT={},TMAT=new Map();
+/* ---------- Frost on the windows ----------
+   In the cold, ice crystals grow on every window from its edges inwards (on the windscreen, the side and back windows,
+   whatever shape each car's glass has), feathery and uneven, fixed to the glass itself. How far from the edge each point
+   of a pane is, is worked out once from that pane's own outline. The wipers do not clear it: it is on the glass, not water. */
+const frostU={value:0};window.__frost=frostU;
+function frostify(m){if(m.userData.frost)return m;m.userData.frost=true;m.customProgramCacheKey=()=>'frost1';
+  m.onBeforeCompile=sh=>{sh.uniforms.uFrost=frostU;
+    sh.vertexShader='attribute float aEdge;varying float vEdge;varying vec3 vFp;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdge=aEdge;vFp=position;');
+    sh.fragmentShader='uniform float uFrost;varying float vEdge;varying vec3 vFp;\nfloat fh(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat fn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(fh(i),fh(i+vec3(1,0,0)),f.x),mix(fh(i+vec3(0,1,0)),fh(i+vec3(1,1,0)),f.x),f.y),mix(mix(fh(i+vec3(0,0,1)),fh(i+vec3(1,0,1)),f.x),mix(fh(i+vec3(0,1,1)),fh(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
+      +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nif(uFrost>0.001){float n=fn(vFp*9.0)*0.5+fn(vFp*23.0)*0.3+fn(vFp*61.0)*0.2;float reach=uFrost*0.42;float f=smoothstep(reach,reach-0.22,vEdge+(n-0.5)*0.3);float vein=smoothstep(0.55,0.75,fn(vFp*38.0+n*3.0));f*=0.72+0.28*vein;gl_FragColor=vec4(mix(gl_FragColor.rgb,vec3(0.86,0.92,0.97),f),max(gl_FragColor.a,f*0.9));}');};
+  return m;}
+// how far each vertex of a pane lies from that pane's edge (0 at the edge, 1 in the middle)
+function frostPrep(root){const done=new Set();root.traverse(o=>{if(!o.isMesh||!o.material||!o.material.userData||!o.material.userData.frost)return;const g=o.geometry;if(!g||done.has(g)||g.attributes.aEdge)return;done.add(g);
+  const P=g.attributes.position,n=P.count,idx=g.index?g.index.array:null,tri=idx?idx.length/3:n/3,key=i=>Math.round(P.getX(i)*500)+'_'+Math.round(P.getY(i)*500)+'_'+Math.round(P.getZ(i)*500);
+  const wid=new Int32Array(n),km=new Map();let nw=0;for(let i=0;i<n;i++){const k=key(i);let w=km.get(k);if(w===undefined){w=nw++;km.set(k,w);}wid[i]=w;}
+  // connected panes over welded vertices
+  const par=new Int32Array(nw).map((_,i)=>i),find=a=>{while(par[a]!==a){par[a]=par[par[a]];a=par[a];}return a;},un=(a,b)=>{a=find(a);b=find(b);if(a!==b)par[a]=b;};
+  const V=t=>idx?idx[t]:t,ec=new Map();
+  for(let t=0;t<tri;t++){const a=wid[V(t*3)],b=wid[V(t*3+1)],c=wid[V(t*3+2)];un(a,b);un(b,c);for(const [x,y] of [[a,b],[b,c],[c,a]]){const k=x<y?x+'_'+y:y+'_'+x;ec.set(k,(ec.get(k)||0)+1);}}
+  const wp=new Float32Array(nw*3);for(let i=0;i<n;i++){wp[wid[i]*3]=P.getX(i);wp[wid[i]*3+1]=P.getY(i);wp[wid[i]*3+2]=P.getZ(i);}
+  const comp=new Map();for(let w=0;w<nw;w++){const r=find(w);if(!comp.has(r))comp.set(r,{ws:[],edges:[]});comp.get(r).ws.push(w);}
+  for(const [k,c] of ec)if(c===1){const [a,b]=k.split('_').map(Number);comp.get(find(a)).edges.push(a,b);}
+  const out=new Float32Array(nw);
+  for(const C of comp.values()){const ws=C.ws,E=C.edges;
+    if(E.length){let mx=1e-4;const d=new Float32Array(ws.length);ws.forEach((w,q)=>{const px=wp[w*3],py=wp[w*3+1],pz=wp[w*3+2];let best=1e9;
+        for(let e=0;e<E.length;e+=2){const a=E[e]*3,b=E[e+1]*3,ax=wp[a],ay=wp[a+1],az=wp[a+2],vx=wp[b]-ax,vy=wp[b+1]-ay,vz=wp[b+2]-az,l2=vx*vx+vy*vy+vz*vz||1e-9;let t=((px-ax)*vx+(py-ay)*vy+(pz-az)*vz)/l2;t=t<0?0:t>1?1:t;
+          const dx=px-ax-vx*t,dy=py-ay-vy*t,dz=pz-az-vz*t,dd=dx*dx+dy*dy+dz*dz;if(dd<best)best=dd;}d[q]=Math.sqrt(best);if(d[q]>mx)mx=d[q];});
+      ws.forEach((w,q)=>{out[w]=d[q]/mx;});}
+    else{// a closed slab of glass: measure to the sides of its box, across its two widest directions
+      let mn=[1e9,1e9,1e9],mxx=[-1e9,-1e9,-1e9];for(const w of ws)for(let a=0;a<3;a++){mn[a]=Math.min(mn[a],wp[w*3+a]);mxx[a]=Math.max(mxx[a],wp[w*3+a]);}
+      const ext=[0,1,2].map(a=>mxx[a]-mn[a]),ax=[0,1,2].sort((p,q)=>ext[q]-ext[p]).slice(0,2);
+      for(const w of ws){let m=1e9;for(const a of ax)m=Math.min(m,(wp[w*3+a]-mn[a])/(ext[a]/2||1),(mxx[a]-wp[w*3+a])/(ext[a]/2||1));out[w]=clamp(m,0,1);}}}
+  const A=new Float32Array(n);for(let i=0;i<n;i++)A[i]=out[wid[i]];g.setAttribute('aEdge',new THREE.BufferAttribute(A,1));});}
 function texMat(m,name){if(TMAT.has(m.uuid))return TMAT.get(m.uuid);
   const map=m.map||null;if(map){map.encoding=FILMIC?THREE.sRGBEncoding:THREE.LinearEncoding;map.anisotropy=4;}
   const glass=m.transparent||/glass|transp/i.test(name);
   // glass is nearly clear (a 2-3% tint) so you see the road through it, with only a faint reflection
   const o=new THREE.MeshPhongMaterial({color:glass?new THREE.Color('#dfe8ee'):m.color?m.color.clone():new THREE.Color('#fff'),map:glass?null:map,shininess:glass?120:(1-(m.roughness||0.6))*60+8,specular:glass?0x777777:0x222222,
     transparent:glass,opacity:glass?0.05:1,depthWrite:!glass,side:THREE.DoubleSide,alphaTest:glass?0:(m.alphaTest||0)});
-  if(glass){o.envMap=carEnv;o.reflectivity=0.06;o.combine=THREE.MixOperation;}
+  if(glass){o.envMap=carEnv;o.reflectivity=0.06;o.combine=THREE.MixOperation;frostify(o);}
   TMAT.set(m.uuid,o);return o;}
 function modelPartsT(name){if(MPT[name])return MPT[name];const sc=MODELS[name];if(!sc)return null;sc.scale.setScalar(CARSC);sc.updateMatrixWorld(true);
   const items=[];sc.traverse(o=>{if(!o.isMesh)return;let nm=(o.userData.name||o.name||'')+' '+((o.parent&&(o.parent.userData.name||o.parent.name))||'');
@@ -6002,6 +6035,7 @@ function buildVehicle(spec,cu,st){
       const inv=new THREE.Matrix4().copy(body.matrixWorld).invert(),o=new THREE.Vector3(0,y,sd*(bl+6)).applyMatrix4(body.matrixWorld),d=new THREE.Vector3(0,0,-sd).transformDirection(body.matrixWorld);
       rc.set(o,d);rc.far=12;const h=rc.intersectObjects(meshes,false)[0];const z=h?h.point.clone().applyMatrix4(inv).z+sd*0.02:sd*(bl+0.04);
       const m=new THREE.Mesh(new THREE.PlaneGeometry(0.5,0.12),pm);m.position.set(0,y,z);if(sd<0)m.rotation.y=Math.PI;body.add(m);}}
+  frostPrep(g);
   return {beamMat,dashP:[INT.dash[1]+lift,INT.dash[2],INT.dash[3]],wip,hull,ws,trk,susp,cloth,fpp:[INT.head[0],INT.head[1]+lift,INT.head[2]],swheel:swIn,bodyPts,bodyBot,g,body,wheels,ant:antSegs,hood:[hood[0],hood[1]+lift,hood[2]],camK:T.camK,phys,mats,spot,glows,rack:has('rack'),eng:spec.eng,type,wb:maxU*2};
 }
 
@@ -6841,6 +6875,7 @@ function updateEnv(dt){
   const snowTarget=snowA>0.3?1:0;snowU.value+=snowTarget>snowU.value?(1-snowU.value)*dt*0.12*snowA:-dt*(S.y>SNL(S.z)-40?0.0005:0.0028);snowU.value=clamp(snowU.value,0,1);
   trkMat.color.copy(TRK_DIRT).lerp(TRK_SNOW,clamp(snowU.value*1.4,0,1));trkMat.opacity=lerp(0.26,0.6,clamp(snowU.value*1.4,0,1));
   carSnowStep(dt,snowA,rainA);
+  {const cold=snowA>0.2||snowyAt(S.x,S.y,S.z);frostU.value=clamp(frostU.value+(cold?dt/70:-dt/110),0,1);}
   wetU.value+=(rainA-wetU.value)*dt*0.1;windU.value=1+wa*1.5+(zoneOf(S.z)===4?0.8:0);
   cTop.copy(CN.top).lerp(CD.top,dayF);cMid.copy(CN.mid).lerp(CD.mid,dayF);cHor.copy(CN.hor).lerp(CD.hor,dayF).lerp(CDUSK,warm*0.75);
   if(zoneOf(S.z)===3)cHor.lerp(CCANYON,dayF*0.35);
@@ -7293,9 +7328,9 @@ function updateWindscreen(dt,env){
   const show=S.mode==='play'&&S.cam===4&&!S.modal&&!S.portrait&&placeWipers();
   if(show!==WS.shown){WS.shown=show;WS.fog.style.display=WS.wipe.style.display='none';WS.fx.clearRect(0,0,192,108);}
   if(!show&&V&&V.wip)V.wip.forEach(w=>{w.pv.visible=false;});
-  // the wipers work in rain and hail, all through a sandstorm, and for the first few seconds when snow starts to fall
+  // the wipers work in rain and hail, all through a sandstorm, and all the time while it snows
   if(env.snowA>0.05){if(!WS.snowAt)WS.snowAt=performance.now();}else WS.snowAt=0;
-  const snowStart=WS.snowAt&&performance.now()-WS.snowAt<9000?Math.max(0.35,env.snowA):0;
+  const snowStart=env.snowA>0.05?Math.max(0.35,env.snowA):0;
   const wet=Math.max(env.rainA,env.hailA||0,(env.sandA||0)*0.7,snowStart);
   // wipers run while it rains or snows (faster in heavy weather) and finish their stroke before parking
   // the wipers sweep once (over and back, about a second) and then rest: a long pause in light rain, a short one in a downpour
