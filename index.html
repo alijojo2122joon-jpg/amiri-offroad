@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=76</script>
+<script>window.GAME_CODE=77</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -2384,10 +2384,13 @@ function pedal(id,key){
   el.addEventListener('pointerup',off);el.addEventListener('pointercancel',off);el.addEventListener('lostpointercapture',off);el.addEventListener('contextmenu',e=>e.preventDefault());
 }
 pedal('bG','gas');pedal('bB','brake');
+// like a real car: two full turns of the wheel from straight ahead to full lock; let go and it turns back by itself
+// only while the car rolls (faster when you drive faster), standing still it stays where you left it
+const WLOCK=Math.PI*4;
 const wheelEl=$('wheel'),wheelImg=$('wheelImg');let wAng=0,wHeld=false,wLast=0;
 function wAngle(e){const r=wheelEl.getBoundingClientRect();return Math.atan2(e.clientY-(r.top+r.height/2),e.clientX-(r.left+r.width/2));}
 wheelEl.addEventListener('pointerdown',e=>{e.preventDefault();try{wheelEl.setPointerCapture(e.pointerId);}catch(_){}wHeld=true;wLast=wAngle(e);});
-wheelEl.addEventListener('pointermove',e=>{if(!wHeld)return;const a=wAngle(e);let d=a-wLast;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;wAng=clamp(wAng+d,-2.4,2.4);wLast=a;});
+wheelEl.addEventListener('pointermove',e=>{if(!wHeld)return;const a=wAngle(e);let d=a-wLast;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;wAng=clamp(wAng+d,-WLOCK,WLOCK);wLast=a;});
 const wOff=()=>{wHeld=false;};
 wheelEl.addEventListener('pointerup',wOff);wheelEl.addEventListener('pointercancel',wOff);wheelEl.addEventListener('lostpointercapture',wOff);
 const hornEl=$('hornBtn');
@@ -2992,7 +2995,7 @@ function stall(msg){if(!S.engineOn)return;S.engineOn=false;SFX.stall();toast(msg
 function physics(dt){
   HREF=S.y;HSOLID=false;
   S.surfT-=dt;if(S.surfT<=0){S.surfT=0.1;S.surf=surfaceAt(S.x,S.z);if(S.surf==='water'&&S.y>waterAt(S.x,S.z)+0.8)S.surf='wood';}
-  const keySt=(K.left?1:0)-(K.right?1:0),target=clamp(keySt+clamp(-wAng/2.4*SET.sens,-1,1),-1,1);
+  const keySt=(K.left?1:0)-(K.right?1:0),target=clamp(keySt+clamp(-wAng/WLOCK*SET.sens,-1,1),-1,1);
   S.steer+=(target-S.steer)*Math.min(1,dt*(keySt?5:12));
   if(S.crank>0){S.crank-=dt;if(S.crank<=0){if(S.crankOk){S.engineOn=true;S.rpm=1400;SFX.start();toast(tr_('موتور روشن شد'));}else{tone(70,0.2,0.04,'sawtooth',45);toast(S.crankWet?tr_('موتور در آب روشن نمی‌شود'):tr_('روشن نشد؛ دوباره کلید را بزن'));}}}
   const engineOk=S.engineOn,gas=Math.max(K.gas?1:0,PD.gas),brk=Math.max(K.brake?1:0,PD.brake);
@@ -3043,7 +3046,7 @@ blob.rotation.x=-Math.PI/2;blobG.add(blob);scene.add(blobG);
 function renderVehicle(dt){
   {const gh=Hd(S.x,S.z);blobG.position.set(S.x,gh+0.05,S.z);blobG.rotation.set(-S.pitch,S.th,S.roll,'YXZ');const bp=V.bodyPts[0];blob.scale.set(bp[1]*2.6,bp[0]*2.5,1);blob.material.opacity=0.6*clamp(1-(S.y-gh)/2.5,0,1);}
   V.g.position.set(S.x,S.y,S.z);V.g.rotation.set(-S.pitch,S.th,S.roll,'YXZ');
-  wheelRot+=(S.fwd||0)*dt;if(V.trk)V.trk(wheelRot);if(V.swheel)V.swheel.rotation.z=-(S.steer||0)*2.4;const c0=V.phys.c0,top=V.phys.cmax-c0,nW=V.wheels.length,p=ST.p;
+  wheelRot+=(S.fwd||0)*dt;if(V.trk)V.trk(wheelRot);if(V.swheel)V.swheel.rotation.z=-(S.steer||0)*WLOCK;const c0=V.phys.c0,top=V.phys.cmax-c0,nW=V.wheels.length,p=ST.p;
   if(V.susp)for(const A of V.susp){const a=A.L.pivot.position,b=A.R.pivot.position,mx=(a.x+b.x)/2,my=(a.y+b.y)/2,len=Math.abs(a.x-b.x)-0.35;
     A.axle.position.set(mx,my,a.z);A.axle.scale.set(len,1,1);A.axle.rotation.z=Math.atan2(a.y-b.y,a.x-b.x);A.diff.position.set(mx*0.4,my,a.z);
     for(const H of A.sh){const p=H.w.pivot.position,bx=Math.sign(H.w.w)*(Math.abs(p.x)-0.32),by=p.y+0.05,dx=H.top.x-bx,dy=H.top.y-by,dz=H.top.z-p.z,l=Math.max(0.2,Math.hypot(dx,dy,dz));
@@ -3114,7 +3117,7 @@ function updateEnv(dt){
   fires.forEach(f=>{const fl=0.85+0.15*Math.sin(tn*11+f.ph)*Math.sin(tn*7.3);if(f.flame)f.flame.scale.set(fl,0.9+0.25*Math.sin(tn*9+f.ph),fl);f.fglow.material.opacity=(f.lamp?night*0.9:0.35+night*0.6)*fl;});
   if(V){V.spot.intensity=S.lightsOn?(V.rack?3.0:2.3):0;
     // indicators while turning hard at low speed, hazards when stalled or stuck, reverse lights in reverse
-    S.blink+=dt;const blinkOn=(S.blink%0.8)<0.4,haz=S.mode==='play'&&S.engineOn&&S.sink>0.24,turn=Math.abs(wAng)>0.9&&Math.abs(S.v)<12?Math.sign(-wAng):0;
+    S.blink+=dt;const blinkOn=(S.blink%0.8)<0.4,haz=S.mode==='play'&&S.engineOn&&S.sink>0.24,turn=Math.abs(wAng)>WLOCK*0.37&&Math.abs(S.v)<12?Math.sign(-wAng):0;
     if(S.mode==='play'&&(haz||turn)&&Math.floor(S.blink/0.4)!==S.lastTick){S.lastTick=Math.floor(S.blink/0.4);SFX.tick();}
     V.glows.forEach(gl=>{let o=0;if(gl.k==='head')o=S.lightsOn?0.3+night*0.6:0;else if(gl.k==='tail')o=S.brk>0?0.9:S.lightsOn?0.35+night*0.4:0;
       else if(gl.k==='amb')o=blinkOn&&(haz||turn===gl.side)?0.95:0;else if(gl.k==='rev')o=S.gear===-1?0.85:0;gl.s.material.opacity=o;});
@@ -3473,7 +3476,7 @@ $('onName').addEventListener('input',e=>{SET.name=e.target.value.replace(/[\u000
 $('reqOk').addEventListener('click',netAccept);$('reqNo').addEventListener('click',netReject);
 $('ropeBtn').addEventListener('click',ropeToggle);
 window.addEventListener('pagehide',()=>{if(NET.on&&NET.peers.size)tx({t:'bye'});});
-window.__net={NET,ROPE,S,place:placeAt};window.__ride={on:()=>rideOn(nearPeer()),off:()=>rideOff(),R:RIDE,near:()=>!!rideNear()};window.__netGoTo=id=>netGoTo(id);window.__wheel=v=>{wAng=v;wHeld=true;};window.__nearObst=(x,z)=>nearObst(x,z);window.__parkC=(E,s)=>parkC(E,s);setTimeout(()=>{window.__ST={STAGES,ELEMS,STG,restartStage,parkCars,elemDeck,elemLineY,stageFrame,elemFail,elemPath};},0);window.__snd=window.__snd;window.__SNDB=()=>SND.buf;window.__WS=()=>WS;window.__physics=dt=>physics(dt);window.__K=K;window.__W={SPURS,spurZ,RIVERS,TRAILS,BRIDGES,LAKES,rainbow,Hf,Hd,toXZx,rivZ,trailOff,deckH,waterAt};window.__roadX=roadX;window.__roadDX=roadDX;window.__surf=surfaceAt;window.__zone=z=>ZB[zoneOf(z)].n;window.__wx=()=>WX;window.__ws=()=>V&&V.ws;window.__scan=(z0,z1)=>{const bad=[];let worst=0;for(let z=z0;z<z1;z+=1){const x=roadX(z),dx=roadDX(z),l=Math.sqrt(1+dx*dx);const g=Math.abs(Hf(roadX(z+2),z+2)-Hf(roadX(z-2),z-2))/4;const c=Math.abs(Hf(x+1.3/l,z)-Hf(x-1.3/l,z))/2.6;const m=Math.max(g,c*0.8);if(m>worst)worst=m;if(m>0.42)bad.push([Math.round(z),+g.toFixed(2),+c.toFixed(2),inGorge(z)]);}return {worst:+worst.toFixed(2),n:bad.length,bad:bad.filter((b,i)=>i===0||b[0]-bad[i-1][0]>6).slice(0,40)};};window.__applyVeh=()=>applyVehicle();window.__V=()=>V;window.__phys=(n,dt)=>{for(let i=0;i<n;i++)physics(dt);};window.__build=(o,cu)=>buildVehicle(Object.assign({},VEH[0],o),Object.assign({},cust(0),cu||{}),null);window.__specs=()=>VEH.concat(NPCV);window.__roofDbg=g=>{const MP=modelPartsT(g)||modelParts(g),pts=carPts(MP),B=MP.box,o=[];for(let z=B.min.z;z<=B.max.z;z+=0.1)o.push([+z.toFixed(1),...[-0.3,0,0.3].map(x=>+topAt(pts,x,z,0.07).toFixed(2))]);return [B.max.y,o];};window.__wsAll=()=>VEH.map((v,i)=>{const q=buildVehicle(v,cust(i),null).ws;return [v.n,q&&[q.y,q.z,q.ty,q.tz,q.hw].map(n=>+n.toFixed(2))];});window.__trRaw=()=>TR.cars;window.__trStep=(n,dt)=>{for(let i=0;i<n;i++)trafficStep(dt,true);};window.__tr=()=>TR.cars.map(q=>({s:Math.round(q.s),v:+q.v.toFixed(1),dir:q.dir,off:+q.off.toFixed(2),crash:q.crash,park:q.park}));window.__snowOff=()=>{snowU.value=0;};window.__snowOn=()=>{snowU.value=1;};window.__setSnow=v=>{snowU.value=v;WX.hold=v;};window.__snw=()=>{let n=0;for(const v of SNW.rut)if(v>0.5)n++;return [n,SNW.depth,SNW.mesh.visible,SNW.gx,SNW.gz];};window.__camOv=null;window.__aud=()=>({loops:Object.keys(SND.loops||{}),eng:SND.engType,bufs:Object.keys(SND.buf).length,state:AU.ac&&AU.ac.state});
+window.__net={NET,ROPE,S,place:placeAt};window.__ride={on:()=>rideOn(nearPeer()),off:()=>rideOff(),R:RIDE,near:()=>!!rideNear()};window.__netGoTo=id=>netGoTo(id);window.__wheel=v=>{wAng=v/2.4*WLOCK;wHeld=true;};window.__nearObst=(x,z)=>nearObst(x,z);window.__parkC=(E,s)=>parkC(E,s);setTimeout(()=>{window.__ST={STAGES,ELEMS,STG,restartStage,parkCars,elemDeck,elemLineY,stageFrame,elemFail,elemPath};},0);window.__snd=window.__snd;window.__SNDB=()=>SND.buf;window.__WS=()=>WS;window.__physics=dt=>physics(dt);window.__K=K;window.__W={SPURS,spurZ,RIVERS,TRAILS,BRIDGES,LAKES,rainbow,Hf,Hd,toXZx,rivZ,trailOff,deckH,waterAt};window.__roadX=roadX;window.__roadDX=roadDX;window.__surf=surfaceAt;window.__zone=z=>ZB[zoneOf(z)].n;window.__wx=()=>WX;window.__ws=()=>V&&V.ws;window.__scan=(z0,z1)=>{const bad=[];let worst=0;for(let z=z0;z<z1;z+=1){const x=roadX(z),dx=roadDX(z),l=Math.sqrt(1+dx*dx);const g=Math.abs(Hf(roadX(z+2),z+2)-Hf(roadX(z-2),z-2))/4;const c=Math.abs(Hf(x+1.3/l,z)-Hf(x-1.3/l,z))/2.6;const m=Math.max(g,c*0.8);if(m>worst)worst=m;if(m>0.42)bad.push([Math.round(z),+g.toFixed(2),+c.toFixed(2),inGorge(z)]);}return {worst:+worst.toFixed(2),n:bad.length,bad:bad.filter((b,i)=>i===0||b[0]-bad[i-1][0]>6).slice(0,40)};};window.__applyVeh=()=>applyVehicle();window.__V=()=>V;window.__phys=(n,dt)=>{for(let i=0;i<n;i++)physics(dt);};window.__build=(o,cu)=>buildVehicle(Object.assign({},VEH[0],o),Object.assign({},cust(0),cu||{}),null);window.__specs=()=>VEH.concat(NPCV);window.__roofDbg=g=>{const MP=modelPartsT(g)||modelParts(g),pts=carPts(MP),B=MP.box,o=[];for(let z=B.min.z;z<=B.max.z;z+=0.1)o.push([+z.toFixed(1),...[-0.3,0,0.3].map(x=>+topAt(pts,x,z,0.07).toFixed(2))]);return [B.max.y,o];};window.__wsAll=()=>VEH.map((v,i)=>{const q=buildVehicle(v,cust(i),null).ws;return [v.n,q&&[q.y,q.z,q.ty,q.tz,q.hw].map(n=>+n.toFixed(2))];});window.__trRaw=()=>TR.cars;window.__trStep=(n,dt)=>{for(let i=0;i<n;i++)trafficStep(dt,true);};window.__tr=()=>TR.cars.map(q=>({s:Math.round(q.s),v:+q.v.toFixed(1),dir:q.dir,off:+q.off.toFixed(2),crash:q.crash,park:q.park}));window.__snowOff=()=>{snowU.value=0;};window.__snowOn=()=>{snowU.value=1;};window.__setSnow=v=>{snowU.value=v;WX.hold=v;};window.__snw=()=>{let n=0;for(const v of SNW.rut)if(v>0.5)n++;return [n,SNW.depth,SNW.mesh.visible,SNW.gx,SNW.gz];};window.__camOv=null;window.__aud=()=>({loops:Object.keys(SND.loops||{}),eng:SND.engType,bufs:Object.keys(SND.buf).length,state:AU.ac&&AU.ac.state});
 
 /* Windscreen in the driver's view: it mists up in rain and snow, drops land on it, and the wipers sweep it clear */
 const WS={fog:$('wsFog'),wipe:$('wsWipe'),t:0,run:0,shown:false,pa:[0,0],pt:[],pm:[]};
@@ -4284,7 +4287,7 @@ const portraitMQ=window.matchMedia('(orientation: portrait)');
 function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.offset.y=(performance.now()/1000*0.007)%1;
   const rawDt=clock.getDelta(),dt=Math.min(rawDt,0.05);timeU.value+=dt;perfStep(rawDt);if(SET.fps){FPSC.n++;FPSC.t+=rawDt;if(FPSC.t>0.5){$('fpsTag').textContent='FPS '+Math.round(FPSC.n/FPSC.t)+tr_(' · کیفیت ')+QL();FPSC.n=0;FPSC.t=0;}}
   S.portrait=portraitMQ.matches;const playing=S.mode==='play'&&!S.modal&&!S.portrait;
-  if(!wHeld)wAng*=Math.exp(-dt*7);wheelImg.style.transform='rotate('+wAng+'rad)';
+  if(!wHeld){const ret=S.mode==='play'?Math.min(6,Math.abs(S.v||0)*0.32):7;wAng*=Math.exp(-dt*ret);if(Math.abs(wAng)<0.01)wAng=0;}wheelImg.style.transform='rotate('+wAng+'rad)';
   if(playing&&dt>0.0005){if(RIDE.pid)rideStep(dt);else{physics(dt);addTracks();if(FREE)freeFrame(dt);else stageFrame(dt);}}else{S.gas=0;if(S.mode!=='play')S.rpm+=(850-S.rpm)*Math.min(1,dt*3);}
   scanT-=dt;if(scanT<=0){scanT=0.25;scanTiles(false);updateRoad(false);}
   processTiles(5);updateGrass(dt);
