@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=94</script>
+<script>window.GAME_CODE=95</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -138,7 +138,9 @@ html.ltr body *{direction:ltr!important}html.ltr .mbtn{text-align:left}
 #map .card{width:min(760px,100%);grid-template-columns:auto 1fr;align-items:start}
 #bigmap{width:min(74vh,380px);height:min(74vh,380px);border-radius:14px;display:block;background:#2b3a44;cursor:grab}
 .bmWrap{position:relative}.bmBtns{position:absolute;top:8px;left:8px;display:grid;gap:6px}.bmBtns .ib{width:34px;height:34px;font:800 18px var(--body)}.bmBtns #bmAll{font-size:11px}
-.camps{display:grid;gap:6px;max-height:min(46vh,260px);overflow:auto}
+.camps{display:grid;gap:6px;max-height:min(46vh,260px);overflow:auto;-webkit-overflow-scrolling:touch}
+/* lists and cards scroll with a finger even when it starts on a button in them */
+.camps,.camps *,.card,.card *{touch-action:pan-y}.card canvas{touch-action:none}
 .camp{font:600 13px var(--body);border:1px solid #e0d5c2;background:#fff;color:var(--ink);border-radius:10px;padding:8px 10px;text-align:right;display:flex;justify-content:space-between;gap:8px}
 .camp[disabled]{opacity:.45}
 .camp small{color:#7b6a55}
@@ -3322,8 +3324,11 @@ let FSNOWQ=null;
 function fsnowQ(){if(FSNOWQ===null){const R=mulberry32(901),v=[];for(let i=0;i<500;i++){const a=R()*6.283,r=Math.sqrt(R())*FR;v.push(vnoise((FX+Math.cos(a)*r)*0.0007,(FZ+Math.sin(a)*r)*0.0007));}v.sort((a,b)=>a-b);FSNOWQ=v[Math.floor(v.length*0.3)];}return FSNOWQ;}
 function snowCountry(){if(FREE)return vnoise(S.x*0.0007,S.z*0.0007)>fsnowQ();
   const u=((S.z/7500+0.37)%1+1)%1;return u<0.7;}
+function snowHours(){const h=S.tod*24,day=Math.floor(clockHours()/24),R=mulberry32(7717+day),ds=7+R()*9,ns=19+R()*9,in2=(a)=>{const d=((h-a)%24+24)%24;return d<2;};return in2(ds)||in2(ns%24);}
+function mountainAt(){return FREE?S.y>FSNOWH:(zoneOf(S.z)===5||S.y>SNL(S.z)-40);}
 function envWx(){const k=zoneOf(S.z),was=WX.target;
-  if(snowCountry())return 'snow';
+  if(mountainAt())return 'snow';
+  if(snowCountry())return snowHours()?'snow':'clear';
   if(FREE){const h=S.y,sn=was==='snow'?h>FSNOWH-20:h>FSNOWH;if(sn)return 'snow';if(h>70&&vnoise(S.x*0.0011+3.1,S.z*0.0011+1.7)>0.6)return 'sand';return 'rain';}
   if(k===5||S.y>SNL(S.z)-(was==='snow'?60:40))return 'snow';
   if(k===3||k===4)return vnoise(S.z*0.0008,7.3)>0.48?'sand':'clear';
@@ -3345,7 +3350,7 @@ function updateEnv(dt){
   // thunderstorms in heavy rain and hail, and now and then thundersnow in a heavy snowfall
   if(rainA>0.6||hailA>0.6||snowA>0.6){WX.ltTimer-=dt;if(WX.ltTimer<=0){WX.flash=1;SFX.thunder(0.6+Math.random()*1.8);WX.ltTimer=snowA>0.6?18+Math.random()*30:8+Math.random()*16;}}
   WX.flash=Math.max(0,WX.flash-dt*5);
-  const snowTarget=snowA>0.3?1:0;snowU.value+=snowTarget>snowU.value?(1-snowU.value)*dt*0.12*snowA:-dt*(S.y>SNL(S.z)-40?0.0005:0.0028);snowU.value=clamp(snowU.value,0,1);
+  const snowTarget=snowA>0.3?1:0;snowU.value+=snowTarget>snowU.value?(1-snowU.value)*dt*0.12*snowA:-dt*(snowyAt(S.x,S.y,S.z)?0:S.y>SNL(S.z)-40?0.0005:0.0028);snowU.value=clamp(snowU.value,0,1);
   trkMat.color.copy(TRK_DIRT).lerp(TRK_SNOW,clamp(snowU.value*1.4,0,1));trkMat.opacity=lerp(0.26,0.6,clamp(snowU.value*1.4,0,1));
   carSnowStep(dt,snowA,rainA);
   {const cold=snowA>0.2||snowyAt(S.x,S.y,S.z);frostU.value=clamp(frostU.value+(cold?dt/70:-dt/110),0,1);frostLU.value=(0.05+0.95*dayF)*(1-0.45*Math.min(1,wa));}
