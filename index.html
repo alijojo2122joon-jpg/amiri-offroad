@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=96</script>
+<script>window.GAME_CODE=95</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1605,20 +1605,20 @@ const VEH=[
   maxV:46,acc:13,grip:1.18,eng:'f6',price:0,int:{head:[0.37,1.0,-0.28],dash:[0,0.67,0.5,1.34],wh:[0.37,0.84,0.18]}},
  // off-road cars from Daniel Zhabotinsky's low-poly series on Sketchfab (CC-BY 4.0)
  {n:tr_('لایت‌بادی بلند ۸۵'),d:tr_('وانت آفرود بلندشده با لاستیک‌های درشت و سپر محافظ؛ برای سنگلاخ و شیب تند. مدل سه‌بعدی: Daniel Zhabotinsky.'),type:'glb',tex:1,noInt:1,glb:'lifted85',paint:'#2f4b3a',
-  maxV:37,acc:11.5,grip:1.3,eng:'d4r',price:0,T:{k:19,travel:0.36,hcg:0.85,camK:1.15}},
+  maxV:37,acc:11.5,grip:1.3,eng:'v8r',price:0,T:{k:19,travel:0.36,hcg:0.85,camK:1.15}},
  {n:tr_('بوکارو ۶۷'),d:tr_('شاسی‌بلند کلاسیک چهارچرخ‌محرک، کوتاه و چابک؛ از هر گذرگاه تنگی رد می‌شود. مدل سه‌بعدی: Daniel Zhabotinsky.'),type:'glb',tex:1,noInt:1,glb:'bokaroo',paint:'#c7a25a',
-  maxV:33,acc:10.5,grip:1.24,eng:'d4r',price:0,T:{k:21,travel:0.32,hcg:0.78,camK:1.05}},
+  maxV:33,acc:10.5,grip:1.24,eng:'v8r',price:0,T:{k:21,travel:0.32,hcg:0.78,camK:1.05}},
  {n:tr_('کانکر ۸۹'),d:tr_('وانت محکم کاری با موتور هشت‌سیلندر؛ برای جاده‌های خاکی بلند. مدل سه‌بعدی: Daniel Zhabotinsky.'),type:'glb',tex:1,noInt:1,glb:'conquer',paint:'#8a2b25',
-  maxV:40,acc:11,grip:1.12,eng:'d4r',price:0,T:{k:22,travel:0.28,hcg:0.72,camK:1.05}},
+  maxV:40,acc:11,grip:1.12,eng:'v8r',price:0,T:{k:22,travel:0.28,hcg:0.72,camK:1.05}},
  {n:tr_('لایت‌بادی خدماتی ۹۰'),d:tr_('وانت خدماتی سنگین با جعبه‌ابزار؛ آرام اما پرزور. مدل سه‌بعدی: Daniel Zhabotinsky.'),type:'glb',tex:1,noInt:1,glb:'utility90',paint:'#e8e4da',
-  maxV:35,acc:9.5,grip:1.1,eng:'d4r',price:0,T:{k:23,travel:0.26,hcg:0.8,camK:1.12}},
+  maxV:35,acc:9.5,grip:1.1,eng:'v8r',price:0,T:{k:23,travel:0.26,hcg:0.8,camK:1.12}},
  {n:tr_('فیات پونتو جی‌تی ۹۵'),d:tr_('هاچبک کوچک و سبک دههٔ نود؛ چابک در پیچ‌ها، ولی پایین و برای سنگلاخ ظریف. مدل سه‌بعدی: Karol Miklas.'),type:'glb',tex:1,noInt:1,glb:'punto',paint:'#c9302c',
-  maxV:38,acc:10.5,grip:1.05,eng:'p4r',price:0,cabinFix:1,T:{k:18,travel:0.2,hcg:0.6,camK:0.95}},
+  maxV:38,acc:10.5,grip:1.05,eng:'i4',price:0,cabinFix:1,T:{k:18,travel:0.2,hcg:0.6,camK:0.95}},
  {n:tr_('خانهٔ سیار جی‌ام‌سی'),d:tr_('خانهٔ سیار بلند با سه محور؛ سنگین و آرام، ولی همه چیز با خودت داری. مدل سه‌بعدی: Karol Miklas.'),type:'glb',tex:1,noInt:1,glb:'gmc',paint:'#d8cdb4',
-  maxV:30,acc:8,grip:1.0,eng:'d4r',price:0,cabinFix:1,noSnork:1,T:{k:26,travel:0.24,hcg:1.05,camK:1.45}}
+  maxV:30,acc:8,grip:1.0,eng:'v8r',price:0,cabinFix:1,noSnork:1,T:{k:26,travel:0.24,hcg:1.05,camK:1.45}}
 ];
 // cars of the traffic (same series)
-const NPCV=['shvan','shvan_amb','doutrive','elalamo','kiri','fh_cop','lct3000','negotiator','phoenix','fh_sw','fh_lt'].map(g=>({n:g,type:'glb',tex:1,noInt:1,glb:g,paint:'#c9ccce',maxV:30,acc:9,grip:1,eng:'d4r',
+const NPCV=['shvan','shvan_amb','doutrive','elalamo','kiri','fh_cop','lct3000','negotiator','phoenix','fh_sw','fh_lt'].map(g=>({n:g,type:'glb',tex:1,noInt:1,glb:g,paint:'#c9ccce',maxV:30,acc:9,grip:1,eng:'v8r',
   T:{k:22,travel:0.24,hcg:0.7,camK:1.05},fixedPaint:/amb|cop/.test(g)}));
 const UPS=[{k:'e',n:tr_('موتور'),d:tr_('شتاب و سرعت بیشتر'),base:8000},{k:'s',n:tr_('تعلیق'),d:tr_('کورس بلندتر، فرود نرم‌تر'),base:7000},{k:'t',n:tr_('لاستیک'),d:tr_('چسبندگی بیشتر همه‌جا'),base:6000},{k:'b',n:tr_('ترمز'),d:tr_('ترمز قوی‌تر'),base:5000}];
 // country flags drawn on a canvas (simplified emblems)
@@ -1904,7 +1904,7 @@ let CABM=null;function cabinMats(){if(CABM)return CABM;const PH=(c,o)=>new THREE
 function cabinParts(body,box,glass,head){const K=CARSC,[hx,ey,hz]=head;const gb=new THREE.Box3();glass.forEach(g=>{g.computeBoundingBox();gb.union(g.boundingBox);});
   const front=gb.max.z,floorY=Math.max(box.min.y+0.25*K,ey-1.25*K),zMin=box.min.z+0.25*K,xIn=box.max.x-0.12*K,M=cabinMats(),buck={};
   const keep=[];
-  for(const B of body){const m=B.mat;if(!B.geo||(m&&(m.transparent||m.map||(m.userData&&m.userData.frost)))){keep.push(B);continue;}
+  for(const B of body){const m=B.mat;if(!B.geo||(m&&(m.transparent||(m.userData&&m.userData.frost)))){keep.push(B);continue;}
     const P=B.geo.attributes.position,Nn=B.geo.attributes.normal,U=B.geo.attributes.uv,n=P.count,tri=n/3,key=new Map(),vid=new Int32Array(n);let nv=0;
     for(let i=0;i<n;i++){const k=Math.round(P.getX(i)*400)+'_'+Math.round(P.getY(i)*400)+'_'+Math.round(P.getZ(i)*400);let v=key.get(k);if(v===undefined){v=nv++;key.set(k,v);}vid[i]=v;}
     const par=new Int32Array(nv).map((_,i)=>i),f=a=>{while(par[a]!==a){par[a]=par[par[a]];a=par[a];}return a;};
@@ -2472,7 +2472,7 @@ function buildVehicle(spec,cu,st){
     for(const bx of [ws.hw*0.55,-ws.hw*0.15]){const pv=new THREE.Group();pv.position.set(bx,ws.y+0.01,ws.z+0.01);pv.quaternion.setFromRotationMatrix(M);pv.position.addScaledVector(new THREE.Vector3(0,zx[1],zx[2]),-0.025);
       const rot=new THREE.Group();pv.add(rot);const arm=new THREE.Mesh(new THREE.BoxGeometry(L*0.62,0.014,0.012).translate(L*0.31,0,0),wm);rot.add(arm);
       const blade=new THREE.Mesh(new THREE.BoxGeometry(L*0.9,0.01,0.022).translate(L*0.1+L*0.45,0,-0.006),wm);rot.add(blade);
-      const hub=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.03,10).rotateX(Math.PI/2),wm);pv.add(hub);pv.visible=false;body.add(pv);wip.push({pv,rot,L,bx,hw:ws.hw});}}
+      const hub=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.03,10).rotateX(Math.PI/2),wm);pv.add(hub);pv.visible=false;body.add(pv);wip.push({pv,rot,L});}}
   // the licence plate the player wrote, on the front and the back
   if(cu&&cu.plate){const pm=plateMat(cu.plate),y=bodyBot+0.4,rc=new THREE.Raycaster(),hits=[];body.updateMatrixWorld(true);const meshes=[];body.traverse(o=>{if(o.isMesh)meshes.push(o);});
     // the car's own number plates, if the model has them: the player's plate goes right over each of them
@@ -2486,11 +2486,7 @@ function buildVehicle(spec,cu,st){
       rc.set(o,d);rc.far=12;const h=rc.intersectObjects(meshes,false)[0];const z=h?h.point.clone().applyMatrix4(inv).z+sd*0.02:sd*(bl+0.04);
       const m=new THREE.Mesh(new THREE.PlaneGeometry(0.5,0.12),pm);m.position.set(0,y,z);if(sd<0)m.rotation.y=Math.PI;body.add(m);}}
   frostPrep(g);
-  // an instrument cluster behind the steering wheel, for the model cabins that come without dials
-  let gauge=null;if(spec.cabinFix&&MP&&MP.int){const K=CARSC,[hx,ey,hz]=MP.int.head,cv=document.createElement('canvas');cv.width=320;cv.height=128;
-    const tex=new THREE.CanvasTexture(cv);if(FILMIC)tex.encoding=THREE.sRGBEncoding;const m=new THREE.Mesh(new THREE.PlaneGeometry(0.36*K,0.144*K),new THREE.MeshBasicMaterial({map:tex,toneMapped:false}));
-    let gy=ey-0.17*K;if(MP.glass&&MP.glass.length){let lo=1e9;MP.glass.forEach(g=>{g.computeBoundingBox();lo=Math.min(lo,g.boundingBox.min.y);});gy=Math.min(gy,lo-0.07*K);}m.position.set(hx,gy+lift,hz+0.6*K);m.rotation.set(-0.5,Math.PI,0);body.add(m);gauge={cv,ctx:cv.getContext('2d'),tex,last:''};}
-  return {gauge,beamMat,dashP:[INT.dash[1]+lift,INT.dash[2],INT.dash[3]],wip,hull,ws,trk,susp,cloth,fpp:[INT.head[0],INT.head[1]+lift,INT.head[2]],swheel:swIn,bodyPts,bodyBot,g,body,wheels,ant:antSegs,hood:[hood[0],hood[1]+lift,hood[2]],camK:T.camK,phys,mats,spot,glows,rack:has('rack'),eng:spec.eng,type,wb:maxU*2};
+  return {beamMat,dashP:[INT.dash[1]+lift,INT.dash[2],INT.dash[3]],wip,hull,ws,trk,susp,cloth,fpp:[INT.head[0],INT.head[1]+lift,INT.head[2]],swheel:swIn,bodyPts,bodyBot,g,body,wheels,ant:antSegs,hood:[hood[0],hood[1]+lift,hood[2]],camK:T.camK,phys,mats,spot,glows,rack:has('rack'),eng:spec.eng,type,wb:maxU*2};
 }
 
 /* ---------- State ---------- */
@@ -2646,11 +2642,7 @@ const PADS=2048/44100;
 // takes over (with a fade that wide). Ferrari V8 idle and fast idle below, a 1972 911 flat-six at speed above.
 const REALENG={f6:{L:[['r_idle',1000],['r_fast',1560],['r_high',3400],['r_high2',4420]],B:[[1300,380],[2900,700],[4700,900]]},
   // the trucks' V8: the same recordings played slower and deeper
-  v8r:{L:[['r_idle',1200],['r_fast',1900],['r_high',4300],['r_high2',5600]],B:[[1400,420],[3000,800],[4900,1000]]},
-  // the trucks, vans and the motorhome: a Toyota Hilux turbo-diesel 4x4 recorded close (idle, part throttle, high revs)
-  d4r:{L:[['d4_idle',850],['d4_mid',1900],['d4_high',3300]],B:[[1300,600],[2700,900]]},
-  // the small hatchback: a petrol four (Citroen C4 at idle, Peugeot 308 under way)
-  p4r:{L:[['p4_idle',850],['p4_mid',2600],['p4_high',4600]],B:[[1500,700],[3600,1000]]}};
+  v8r:{L:[['r_idle',1200],['r_fast',1900],['r_high',4300],['r_high2',5600]],B:[[1400,420],[3000,800],[4900,1000]]}};
 const ENGRPM={i4:[800,1400,2200,3200,4400,5800],i6:[800,1400,2200,3200,4400,5800],v8:[750,1300,2100,3100,4300,5600],d6:[600,900,1300,1800,2400,3000]};
 // fixed animal places along the route: villages and livestock in the Bamiyan valley and lake land, birds in green lands,
 // ducks and frogs at the lakes, crows over dry lands, wolves in the high mountains, gulls at the coast
@@ -2658,10 +2650,9 @@ const SPOTS=[];(function(){const r=mulberry32(4711);for(let z=600;z<ROADLEN-300;
   const lake=LAKES.some(L=>Math.abs(L.z-z)<500);
   const kind=lake?'lake':(k<=1&&r()<0.55)?'village':b==='coast'?'coast':b==='danger'||b==='crow'?(k===5||k===4?'wolves':'crows'):'birds';
   SPOTS.push({z,k:kind,side:r()<0.5?1:-1,calls:2+Math.floor(r()*2),done:false});}})();
-const WOLFS=['wolf1','wolf2','wolf3','wolf4'];
 const LOOPS=['rain','rainroof','wind','forest','night','stream','gravel','road','skid','horn','crank','gulls','frogs','flock','r_gravel','r_gravin','r_roadin','r_windin','r_snow'];
-const SHOTS=['r_start','r_start2','r_startin','r_shift','r_door','r_hit1','r_hit2','r_hit3','r_hit4','r_hit5','r_hit6','r_crash','r_crashb','r_bump1','r_bump2','r_bump3','r_bump4','r_knock1','r_knock2','r_creak1','r_creak2','r_creak3','r_stone1','r_stone2','r_stone3','r_stone4','r_wiper','r_pop1','r_pop2','r_pop3','thunder1','thunder2','thunder3','thunder4','splash1','splash2','splash3','mud1','mud2','crow','tick','skidshot','thud1','thud2','crash1','crash2','shift',
-  'robin1','blackbird1','nightingale1','blackcap1','owl1','owlb1','owlb2','crowb1','duck1','sheep1','sheepb1','sheepc1','cow1','cowb1','donkey1','donkeyb1','dog1','dog2','dogb1','wolf1','wolf2','wolf3','wolf4'];
+const SHOTS=['r_start','r_shift','r_door','r_hit1','r_hit2','r_hit3','r_hit4','r_hit5','r_hit6','r_crash','r_crashb','r_bump1','r_bump2','r_bump3','r_bump4','r_knock1','r_knock2','r_creak1','r_creak2','r_creak3','r_stone1','r_stone2','r_stone3','r_stone4','r_wiper','r_pop1','r_pop2','r_pop3','thunder1','thunder2','thunder3','thunder4','splash1','splash2','splash3','mud1','mud2','crow','tick','skidshot','thud1','thud2','crash1','crash2','shift',
+  'robin1','blackbird1','nightingale1','blackcap1','owl1','owlb1','owlb2','crowb1','duck1','sheep1','sheepb1','sheepc1','cow1','cowb1','donkey1','donkeyb1','dog1','dog2','dogb1','wolf1'];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 function setT(p,v,tc){if(AU.ac)p.setTargetAtTime(v,AU.ac.currentTime,tc||0.08);}
 function initAudio(){
@@ -2756,8 +2747,7 @@ const SFX={
     if(s>3)playBuf('r_crash',Math.min(0.9,0.1+s*0.07),0.9+Math.random()*0.2,0,0.15);if(s>7)playBuf('r_crashb',Math.min(0.8,s*0.06),1,0,0.2);
     playBuf(pick(['r_knock1','r_knock2']),Math.min(0.6,0.15+s*0.05),0.9);},
   shift:()=>{AU.shiftDip=0.16;if(!playBuf('r_shift',S.cam===4?0.35:0.14,0.95+Math.random()*0.1))playBuf('shift',0.18,0.9+Math.random()*0.2);AU.popT=Math.random()<0.4?0.05:AU.popT;},
-  start:()=>{},
-  starter:()=>{if(!playBuf(S.cam===4?'r_startin':'r_start2',S.cam===4?0.8:0.75,1))playBuf('r_start',0.6,1);},
+  start:()=>playBuf('r_start',S.cam===4?0.5:0.65,1),
   door:()=>playBuf('r_door',0.45,0.97+Math.random()*0.06),
   stall:()=>{playBuf('thud2',0.3,0.7);},
   splash:s=>playBuf(pick(['splash1','splash2','splash3']),Math.min(0.9,0.3+s*0.09),0.9+Math.random()*0.2,0,0.15),
@@ -2771,9 +2761,6 @@ function updateAudio(dt,env){
   if(!L)return;
   const playing=S.mode==='play'&&!S.modal&&!S.portrait,running=playing&&S.engineOn,inCar=S.cam===4&&S.mode==='play';
   AU.load+=(S.gas-AU.load)*Math.min(1,dt*5);const ld=AU.load;AU.shiftDip=Math.max(0,AU.shiftDip-dt);
-  // wolves howl on snowy nights, a few times every game hour, near and far
-  if(playing&&env.snowA>0.3&&env.dayF<0.35){AU.wolfT=(AU.wolfT===undefined?8:AU.wolfT)-dt;if(AU.wolfT<=0){AU.wolfT=(DAYLEN/24)/(2+Math.random()*2)*(0.6+Math.random()*0.8);
-    const W=WOLFS.filter(n=>SND.buf[n]);if(W.length)playBuf(pick(W),(inCar?0.08:0.14)+Math.random()*0.18,0.94+Math.random()*0.12,(Math.random()-0.5)*1.6,0.4);}}
   // engine
   const E=SND.eng;
   if(E&&E.real){
@@ -2781,8 +2768,7 @@ function updateAudio(dt,env){
     // off throttle it goes hollow and quiet; in the cabin the body takes the top off and adds boom
     const r=clamp(S.rpm,300,7000),w=engWeights(SND.engType,r);
     E.layers.forEach((l,i)=>{l.g.gain.setTargetAtTime(w[i],t,0.06);l.s.playbackRate.setTargetAtTime(clamp(r/l.rpm,0.45,2.1),t,0.035);});
-    // silent when the engine is off (only the starter turning it over makes it sound)
-    const alive=playing&&(S.engineOn||S.crank>0)?clamp((S.rpm-150)/450,0,1):0,hi=clamp((r-1200)/4500,0,1);
+    const alive=playing?clamp((r-150)/450,0,1):0,hi=clamp((r-1200)/4500,0,1);
     E.out.gain.setTargetAtTime(alive*(0.24+0.22*ld+0.08*hi)*(AU.shiftDip>0?0.55:1)*(inCar?0.9:1),t,0.05);
     E.lp.frequency.setTargetAtTime(inCar?900+ld*900+r*0.15:1600+ld*7000+r*0.4,t,0.08);
     E.bite.gain.setTargetAtTime(inCar?0:ld*5-2,t,0.08);E.warm.gain.setTargetAtTime(inCar?6:2,t,0.2);E.rv.gain.setTargetAtTime(inCar?0.09:0.04,t,0.3);
@@ -2792,12 +2778,10 @@ function updateAudio(dt,env){
     if(AU.popN>0&&AU.popT<=0){AU.popN--;AU.popT=0.06+Math.random()*0.18;playBuf(pick(['r_pop1','r_pop2','r_pop3']),(inCar?0.12:0.22)*(0.5+Math.random()*0.6),0.85+Math.random()*0.35,(Math.random()-0.5)*0.3,0.08);}}
   else if(E){const r=clamp(S.rpm,300,6200),pts=E.layers.map(l=>l.rpm),w=xfade(pts,r);
     E.layers.forEach((l,i)=>{l.g.gain.setTargetAtTime(w[i],t,0.05);l.s.playbackRate.setTargetAtTime(clamp(r/l.rpm,0.5,1.8),t,0.04);});
-    const alive=playing&&(S.engineOn||S.crank>0)?clamp((S.rpm-150)/450,0,1):0;
+    const alive=playing?clamp((r-150)/450,0,1):0;
     E.out.gain.setTargetAtTime(alive*(0.2+0.16*ld)*(AU.shiftDip>0?0.6:1)*(inCar?0.85:1),t,0.06);
     E.lp.frequency.setTargetAtTime(500+ld*1500+r*0.22,t,0.1);}
-  // the starter: a successful start is one real recording (turn-over and catch); a failing one keeps turning over
-  if(playing&&S.crank>0&&!AU.cranking){AU.cranking=true;if(S.crankOk)SFX.starter();}if(S.crank<=0)AU.cranking=false;
-  setT(L.crank.g.gain,playing&&S.crank>0&&!S.crankOk?0.32:0,0.04);
+  setT(L.crank.g.gain,playing&&S.crank>0?0.32:0,0.04);
   // tyres: gravel loop shaped per surface, road rumble on asphalt, the stream when wading, squeal when sliding
   const sp=Math.abs(S.v||0),ground=playing&&!S.air,sf=S.surf,moving=ground&&sp>0.5,k=Math.pow(clamp(sp/16,0,1),0.8);
   let gv=0,gLp=9000,gRate=0.8+sp*0.02,road=0,wade=0;
@@ -2892,7 +2876,7 @@ function ignition(){
   if(S.engineOn){if(Math.abs(S.v)<2){S.engineOn=false;toast(tr_('موتور خاموش شد'));}return;}
   if(S.crank>0)return;
   const depth=waterAt(S.x,S.z)-Math.max(Hf(S.x,S.z),S.y-0.3),flood=cust(S.veh).snork===2?3.8:2.6;
-  S.crankOk=depth<flood-0.4&&Math.random()<(WX.type!=="clear"&&WX.amt>0.5?0.6:0.8);S.crank=S.crankOk?0.62:0.9+Math.random()*0.5;S.crankWet=depth>=flood-0.4;
+  S.crank=0.7+Math.random()*0.5;S.crankOk=depth<flood-0.4&&Math.random()<(WX.type!=='clear'&&WX.amt>0.5?0.6:0.8);S.crankWet=depth>=flood-0.4;
 }
 function toggleLow(){S.low=!S.low;$('lowBtn').classList.toggle('act',S.low);toast(S.low?tr_('دندهٔ کمکی درگیر شد: آرام اما پرزور (حدود ۸ کیلومتر)'):tr_('دندهٔ کمکی آزاد شد'));}
 function toggleDiff(){S.diff=!S.diff;$('diffBtn').classList.toggle('act',S.diff);toast(S.diff?tr_('قفل دیفرانسیل درگیر شد'):tr_('قفل دیفرانسیل آزاد شد'));}
@@ -3023,7 +3007,7 @@ function enterPlay(free){
   S.mode='play';if(!(NET.on&&NET.code!==NET.me&&NET.peers.size)){const fw=free===true||(free!==false&&FREE);setWorld(fw);if(fw)freeStart();else restartStage(S.stageCur||0,true);}S.camYaw=S.th;camPos.set(S.x-Math.sin(S.th)*9.5,S.y+4.2,S.z-Math.cos(S.th)*9.5);
   if(!AU.ac)initAudio();else audioWake();
   // get in: the door shuts, then the key turns
-  S.engineOn=false;S.crank=0;S.crankOk=true;S.zone=-1;SFX.door();setTimeout(()=>{if(S.mode==='play'&&!S.engineOn&&S.crank<=0){S.crank=0.62;S.crankOk=true;}},650);
+  S.engineOn=false;S.crank=0;S.crankOk=true;S.zone=-1;SFX.door();setTimeout(()=>{if(S.mode==='play'&&!S.engineOn&&S.crank<=0){S.crank=0.8;S.crankOk=true;}},650);
   try{const de=document.documentElement;if(de.requestFullscreen)de.requestFullscreen().then(()=>{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(()=>{});}).catch(()=>{});}catch(e){}
 }
 function toMenu(){if(NET.on)netLeave(true);closeModal();S.mode='menu';$('menu').hidden=false;$('hud').hidden=true;$('ctl').hidden=true;document.body.classList.remove('playing');hornOn(false);refreshMenu();save();}
@@ -3705,7 +3689,7 @@ function startSleep(forced){if(SLEEP.on)return;if(RIDE.pid)rideOff();SLEEP.on=tr
   document.body.classList.add('sleeping');$('sleepCard').hidden=false;$('sleepTxt').textContent=forced?tr_('راننده از خستگی همین‌جا خوابش برد…'):tr_('کمپ زدی؛ ۷ ساعت خواب…');
   $('eyes').classList.remove('shut');$('drowsy').style.opacity=0;SLEEP.tod0=S.tod;}
 function endSleep(){SLEEP.on=false;S.awake=0;SLEEP.nb=17;SLEEP.warned=false;if(SLEEP.tent)SLEEP.tent.visible=false;document.body.classList.remove('sleeping');$('sleepCard').hidden=true;
-  S.camYaw=S.th;camPos.set(S.x-Math.sin(S.th)*9,S.y+4,S.z-Math.cos(S.th)*9);S.crank=0.62;S.crankOk=true;save();
+  S.camYaw=S.th;camPos.set(S.x-Math.sin(S.th)*9,S.y+4,S.z-Math.cos(S.th)*9);S.crank=0.8;S.crankOk=true;save();
   toast(tr_('صبح بخیر! سرحال شدی · دنده را روی D بگذار و ادامه بده'));}
 function blinkEyes(d){const e=$('eyes');e.classList.add('shut');clearTimeout(SLEEP.bt);SLEEP.bt=setTimeout(()=>e.classList.remove('shut'),d*1000);}
 function sleepStep(dt,playing){
@@ -3798,14 +3782,6 @@ $('onName').addEventListener('input',e=>{SET.name=e.target.value.replace(/[\u000
 
 $('reqOk').addEventListener('click',netAccept);$('reqNo').addEventListener('click',netReject);
 $('ropeBtn').addEventListener('click',ropeToggle);
-// lists in the windows scroll by dragging a finger (done here, since the game turns the browser's own touch scrolling off)
-(function(){let D=null;
-  document.addEventListener('pointerdown',e=>{const el=e.target.closest&&e.target.closest('.camps,.gbody,#gBody,.card');if(!el||e.target.closest('canvas'))return;
-    let sc=e.target;while(sc&&sc!==document.body){const st=getComputedStyle(sc);if((st.overflowY==='auto'||st.overflowY==='scroll')&&sc.scrollHeight>sc.clientHeight+2)break;sc=sc.parentElement;}
-    if(!sc||sc===document.body)return;D={sc,y:e.clientY,top:sc.scrollTop,moved:false,id:e.pointerId};},true);
-  document.addEventListener('pointermove',e=>{if(!D||e.pointerId!==D.id)return;const dy=e.clientY-D.y;if(Math.abs(dy)>6)D.moved=true;if(D.moved)D.sc.scrollTop=D.top-dy;},true);
-  const end=e=>{if(!D||e.pointerId!==D.id)return;if(D.moved){const kill=ev=>{ev.stopPropagation();ev.preventDefault();window.removeEventListener('click',kill,true);};window.addEventListener('click',kill,true);setTimeout(()=>window.removeEventListener('click',kill,true),60);}D=null;};
-  document.addEventListener('pointerup',end,true);document.addEventListener('pointercancel',end,true);})();
 // the wipers' switch: on (they run whenever it rains or snows) or off
 $('wipBtn').addEventListener('click',()=>{WS.off=!WS.off;$('wipBtn').classList.toggle('act',!WS.off);SFX.shift();toast(WS.off?tr_('برف‌پاک‌کن خاموش'):tr_('برف‌پاک‌کن روشن'));});
 window.addEventListener('pagehide',()=>{if(NET.on&&NET.peers.size)tx({t:'bye'});});
@@ -3827,20 +3803,7 @@ function placeWipers(){if(!V||!V.ws)return false;V.g.updateMatrixWorld(true);cam
   const cp='polygon('+hull.map(q=>(q[0]*100).toFixed(2)+'% '+(q[1]*100).toFixed(2)+'%').join(',')+')';
   if(cp!==WS.clip){WS.clip=cp;WS.fog.style.clipPath=WS.wipe.style.clipPath=cp;WS.fog.style.webkitClipPath=WS.wipe.style.webkitClipPath=cp;}
   return true;}
-// the blade sweeps as far as the glass allows: its tip never goes past the windscreen's side
-function drawGauge(G){const kmh=Math.abs(S.v||0)*3.6,mx=Math.max(40,Math.ceil(ST.maxV*3.6/20)*20),rpm=S.rpm||0,gr=!S.engineOn?'-':S.sel==='D'?(S.gear>0?'D'+S.gear:'D'):S.sel,odo=(S.odo||0)/1000;
-  const key=Math.round(kmh)+'|'+Math.round(rpm/100)+'|'+gr+'|'+odo.toFixed(1)+'|'+(S.lightsOn?1:0);if(key===G.last)return;G.last=key;const x=G.ctx,W=320,H=128;
-  x.fillStyle='#0c0d0f';x.fillRect(0,0,W,H);const glow=S.lightsOn?'#ffb35a':'#e8e4da';
-  const dial=(cx,v,vmax,label,step)=>{const r=52;x.strokeStyle='#2a2c30';x.lineWidth=3;x.beginPath();x.arc(cx,70,r,Math.PI*0.75,Math.PI*2.25);x.stroke();
-    x.fillStyle=glow;x.font='bold 10px sans-serif';x.textAlign='center';x.textBaseline='middle';
-    for(let t=0;t<=vmax;t+=step){const a=Math.PI*0.75+(t/vmax)*Math.PI*1.5;x.strokeStyle=glow;x.lineWidth=2;x.beginPath();x.moveTo(cx+Math.cos(a)*(r-2),70+Math.sin(a)*(r-2));x.lineTo(cx+Math.cos(a)*(r-9),70+Math.sin(a)*(r-9));x.stroke();
-      x.fillText(String(label(t)),cx+Math.cos(a)*(r-19),70+Math.sin(a)*(r-19));}
-    const a=Math.PI*0.75+Math.min(1,v/vmax)*Math.PI*1.5;x.strokeStyle='#ff5a3c';x.lineWidth=3;x.beginPath();x.moveTo(cx,70);x.lineTo(cx+Math.cos(a)*(r-6),70+Math.sin(a)*(r-6));x.stroke();x.fillStyle='#333';x.beginPath();x.arc(cx,70,5,0,6.3);x.fill();};
-  dial(78,kmh,mx,t=>t,mx/4);dial(242,rpm,7000,t=>t/1000,1000);
-  x.fillStyle=glow;x.font='bold 11px monospace';x.textAlign='center';x.fillText('km/h',78,104);x.fillText('x1000',242,104);
-  x.fillStyle='#16181b';x.fillRect(128,52,64,40);x.fillStyle=glow;x.font='bold 20px sans-serif';x.fillText(gr,160,64);x.font='bold 11px monospace';x.fillText(odo.toFixed(1)+' km',160,84);
-  G.tex.needsUpdate=true;}
-function wiperAng(s,w){const a0=Math.PI-0.06;let a1=a0-Math.PI*0.86;if(w&&w.hw){const room=(w.hw*0.97-w.bx)/w.L;if(room<1)a1=Math.max(a1,Math.acos(Math.max(-1,room)));}return a0-(a0-a1)*s;}
+function wiperAng(s){return Math.PI-0.06-Math.PI*0.86*s;}
 function updateWindscreen(dt,env){
   const show=S.mode==='play'&&S.cam===4&&!S.modal&&!S.portrait&&placeWipers();
   if(show!==WS.shown){WS.shown=show;WS.fog.style.display=WS.wipe.style.display='none';WS.fx.clearRect(0,0,192,108);}
@@ -3858,7 +3821,7 @@ function updateWindscreen(dt,env){
   if(!show)return;
   // no mist or drops painted on the glass any more: only the wiper blades sweep across it
   const ph=WS.t%(SW+PAUSE),s=WS.run&&ph<SW?0.5-0.5*Math.cos(ph/SW*Math.PI*2):0;
-  if(V.wip)V.wip.forEach(w=>{w.pv.visible=true;w.rot.rotation.z=wiperAng(s,w);});
+  if(V.wip)V.wip.forEach(w=>{w.pv.visible=true;w.rot.rotation.z=wiperAng(s);});
   const ww=WS.wipe,x=WS.wx;x.clearRect(0,0,ww.width,ww.height);
 }
 
@@ -4681,7 +4644,6 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
   sun.position.multiplyScalar(220).add(tmpV.set(S.x,S.y,S.z));sun.target.position.set(S.x,S.y,S.z);sun.target.updateMatrixWorld();
   updateParticles(dt,env);updateWindscreen(dt,env);updateAudio(dt,env);
   if(S.mode==='play'){hudT-=dt;if(hudT<=0){hudT=0.1;
-    if(V.gauge&&S.cam===4)drawGauge(V.gauge);
     $('spd').textContent=fa(Math.abs(S.v)*(SET.units==='mph'?2.237:3.6));$('gear').textContent=!S.engineOn?'—':S.sel==='D'?(S.gear>0?'D'+fa(S.gear):'D'):S.sel;
     $('alt').textContent=fa(Math.max(0,S.y));$('coins').textContent=fa(S.coins);stageHUD();
     const hr=Math.floor(S.tod*24),mn=Math.floor((S.tod*24-hr)*60);
