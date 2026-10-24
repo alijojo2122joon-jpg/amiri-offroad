@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=92</script>
+<script>window.GAME_CODE=93</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -2553,7 +2553,7 @@ function carSnowWork(){const J=CSN.job;if(!J||J.done)return;const {body,L,W,NX,N
   if(J.k<J.H.length)return;J.done=true;const HR=J.H,H=HR.map((h,v)=>J.G[v]?null:h),P=[],UP=[],I=[],R=mulberry32(77);
   // a slab of snow up to 15 cm deep: its top follows the car's shape with a little lumpiness, and its open edges get sides
   // down to the paint, so it has real thickness; the depth grows as it keeps snowing (uniform below)
-  const nv=(NX+1)*(NZ+1),lump=[];for(let v=0;v<nv;v++)lump.push(R()*0.025);
+  const nv=(NX+1)*(NZ+1),lump=[];for(let v=0;v<nv;v++)lump.push(R()*0.012);
   for(let j=0;j<=NZ;j++)for(let i=0;i<=NX;i++){const v=j*(NX+1)+i;P.push(-W+2*W*i/NX,(H[v]===null?-99:H[v])+0.005+lump[v],-L+2*L*j/NZ);UP.push(1);}
   const ok=(a,b,c)=>H[a]!==null&&H[b]!==null&&H[c]!==null&&Math.max(H[a],H[b],H[c])-Math.min(H[a],H[b],H[c])<0.16;
   const tris=[],edge=new Map(),ek=(a,b)=>a<b?a+'_'+b:b+'_'+a;
@@ -2570,13 +2570,15 @@ function carSnowWork(){const J=CSN.job;if(!J||J.done)return;const {body,L,W,NX,N
   let mx=-1e9,mn=1e9;for(const h of HR)if(h!==null){mx=Math.max(mx,h);mn=Math.min(mn,h);}const rng=Math.max(0.5,mx-mn+0.2),D=new Uint8Array((NX+1)*(NZ+1)*4);
   for(let v=0;v<HR.length;v++){const h=HR[v];D[v*4]=h===null?0:Math.round(clamp((h-mn+0.1)/rng,0,1)*255);D[v*4+1]=h!==null&&h>mx-0.5?255:0;D[v*4+3]=255;}
   const tex=new THREE.DataTexture(D,NX+1,NZ+1,THREE.RGBAFormat);tex.magFilter=tex.minFilter=THREE.NearestFilter;tex.needsUpdate=true;
+  // small, low cars (sports cars, hatchbacks) carry only a thin layer: about 5 cm; tall ones up to 25 cm
+  J.Vc.snowMax=mx<1.95?0.05:0.24;
   J.Vc.snowRoof={tex,box:new THREE.Vector4(W*(NX+1)/NX,L*(NZ+1)/NZ,mn-0.1,rng)};}
 function carSnowStep(dt,snowA,rainA){if(!V||S.mode!=='play')return;
   const onSnow=S.surf==='snow'&&!S.air&&Math.abs(S.v||0)>0.5;
   CSN.top=clamp(CSN.top+(snowA>0.3?dt/110*snowA:-dt/(rainA>0.3?90:300)),0,1);
   CSN.low=clamp(CSN.low+(onSnow?dt*Math.min(1,Math.abs(S.v)/6)/25:-dt/(rainA>0.3?60:240))+(snowA>0.3?dt/400:0),0,1);
   if((CSN.top>0.01||CSN.low>0.01||VEH[S.veh].cabinFix)&&(!CSN.job||CSN.job.Vc!==V))carSnowStart(V);carSnowU.cabin.value=0;carSnowWork();
-  snowDepU.value=0.01+0.24*CSN.top;if(V.snowTop)V.snowTop.visible=CSN.top>0.02;
+  snowDepU.value=0.005+(V.snowMax||0.24)*CSN.top;if(V.snowTop)V.snowTop.visible=CSN.top>0.02;
   carSnowU.top.value=CSN.top;carSnowU.low.value=CSN.low;carSnowU.lowY.value=S.y+V.bodyBot-0.25;
   V.body.updateMatrixWorld();carSnowU.inv.value.copy(V.body.matrixWorld).invert();if(V.snowRoof){carSnowU.roof.value=V.snowRoof.tex;carSnowU.box.value.copy(V.snowRoof.box);carSnowU.floor.value=V.bodyBot+0.2;carSnowU.ready.value=1;}else carSnowU.ready.value=0;}
 
