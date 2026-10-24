@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=89</script>
+<script>window.GAME_CODE=90</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1834,7 +1834,7 @@ function frostify(m){if(m.userData.frost)return m;m.userData.frost=true;m.custom
   m.onBeforeCompile=sh=>{sh.uniforms.uFrost=frostU;sh.uniforms.uFL=frostLU;sh.uniforms.uWP1=wipeU.p1;sh.uniforms.uWP2=wipeU.p2;sh.uniforms.uWL=wipeU.len;
     sh.vertexShader='attribute float aEdge;varying float vEdge;varying vec3 vFp;varying vec3 vFw;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdge=aEdge;vFp=position;vFw=(modelMatrix*vec4(position,1.0)).xyz;');
     sh.fragmentShader='uniform float uFrost;uniform float uFL;uniform vec3 uWP1;uniform vec3 uWP2;uniform float uWL;varying float vEdge;varying vec3 vFp;varying vec3 vFw;\nfloat fh(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat fn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(fh(i),fh(i+vec3(1,0,0)),f.x),mix(fh(i+vec3(0,1,0)),fh(i+vec3(1,1,0)),f.x),f.y),mix(mix(fh(i+vec3(0,0,1)),fh(i+vec3(1,0,1)),f.x),mix(fh(i+vec3(0,1,1)),fh(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
-      +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nif(uFrost>0.001){float n=fn(vFp*9.0)*0.5+fn(vFp*23.0)*0.3+fn(vFp*61.0)*0.2;float reach=uFrost*0.42;float f=smoothstep(reach,reach-0.22,vEdge+(n-0.5)*0.3);float vein=smoothstep(0.55,0.75,fn(vFp*38.0+n*3.0));f*=0.72+0.28*vein;float wd=min(distance(vFw,uWP1),distance(vFw,uWP2));f*=smoothstep(uWL*0.92,uWL*1.04,wd);gl_FragColor=vec4(mix(gl_FragColor.rgb,vec3(0.86,0.92,0.97)*uFL,f),max(gl_FragColor.a,f*0.9));}');};
+      +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nif(uFrost>0.001){float n=fn(vFp*9.0)*0.5+fn(vFp*23.0)*0.3+fn(vFp*61.0)*0.2;float reach=uFrost*0.42;float f=smoothstep(reach,reach-0.22,vEdge+(n-0.5)*0.3);float vein=smoothstep(0.55,0.75,fn(vFp*38.0+n*3.0));f*=0.72+0.28*vein;float wd=min(distance(vFw,uWP1),distance(vFw,uWP2));f*=smoothstep(uWL*0.95,uWL*1.06,wd);gl_FragColor=vec4(mix(gl_FragColor.rgb,vec3(0.86,0.92,0.97)*uFL,f),max(gl_FragColor.a,f*0.9));}');};
   return m;}
 // how far each vertex of a pane lies from that pane's edge (0 at the edge, 1 in the middle)
 function frostPrep(root){const done=new Set();root.traverse(o=>{if(!o.isMesh||!o.material||!o.material.userData||!o.material.userData.frost)return;const g=o.geometry;if(!g||done.has(g)||g.attributes.aEdge)return;done.add(g);
@@ -3717,7 +3717,7 @@ function placeWipers(){if(!V||!V.ws)return false;V.g.updateMatrixWorld(true);cam
   const cp='polygon('+hull.map(q=>(q[0]*100).toFixed(2)+'% '+(q[1]*100).toFixed(2)+'%').join(',')+')';
   if(cp!==WS.clip){WS.clip=cp;WS.fog.style.clipPath=WS.wipe.style.clipPath=cp;WS.fog.style.webkitClipPath=WS.wipe.style.webkitClipPath=cp;}
   return true;}
-function wiperAng(s){return Math.PI-0.06-Math.PI*0.66*s;}
+function wiperAng(s){return Math.PI-0.06-Math.PI*0.86*s;}
 function updateWindscreen(dt,env){
   const show=S.mode==='play'&&S.cam===4&&!S.modal&&!S.portrait&&placeWipers();
   if(show!==WS.shown){WS.shown=show;WS.fog.style.display=WS.wipe.style.display='none';WS.fx.clearRect(0,0,192,108);}
