@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=91</script>
+<script>window.GAME_CODE=92</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1611,9 +1611,9 @@ const VEH=[
  {n:tr_('لایت‌بادی خدماتی ۹۰'),d:tr_('وانت خدماتی سنگین با جعبه‌ابزار؛ آرام اما پرزور. مدل سه‌بعدی: Daniel Zhabotinsky.'),type:'glb',tex:1,noInt:1,glb:'utility90',paint:'#e8e4da',
   maxV:35,acc:9.5,grip:1.1,eng:'v8r',price:0,T:{k:23,travel:0.26,hcg:0.8,camK:1.12}},
  {n:tr_('فیات پونتو جی‌تی ۹۵'),d:tr_('هاچبک کوچک و سبک دههٔ نود؛ چابک در پیچ‌ها، ولی پایین و برای سنگلاخ ظریف. مدل سه‌بعدی: Karol Miklas.'),type:'glb',tex:1,noInt:1,glb:'punto',paint:'#c9302c',
-  maxV:38,acc:10.5,grip:1.05,eng:'i4',price:0,T:{k:18,travel:0.2,hcg:0.6,camK:0.95}},
+  maxV:38,acc:10.5,grip:1.05,eng:'i4',price:0,cabinFix:1,T:{k:18,travel:0.2,hcg:0.6,camK:0.95}},
  {n:tr_('خانهٔ سیار جی‌ام‌سی'),d:tr_('خانهٔ سیار بلند با سه محور؛ سنگین و آرام، ولی همه چیز با خودت داری. مدل سه‌بعدی: Karol Miklas.'),type:'glb',tex:1,noInt:1,glb:'gmc',paint:'#d8cdb4',
-  maxV:30,acc:8,grip:1.0,eng:'v8r',price:0,T:{k:26,travel:0.24,hcg:1.05,camK:1.45}}
+  maxV:30,acc:8,grip:1.0,eng:'v8r',price:0,cabinFix:1,noSnork:1,T:{k:26,travel:0.24,hcg:1.05,camK:1.45}}
 ];
 // cars of the traffic (same series)
 const NPCV=['shvan','shvan_amb','doutrive','elalamo','kiri','fh_cop','lct3000','negotiator','phoenix','fh_sw','fh_lt'].map(g=>({n:g,type:'glb',tex:1,noInt:1,glb:g,paint:'#c9ccce',maxV:30,acc:9,grip:1,eng:'v8r',
@@ -1884,6 +1884,55 @@ function greyMap(map){try{const im=map.image;if(!im||!im.width)return map;const 
 const TOPROOFM=new THREE.MeshBasicMaterial({side:THREE.DoubleSide});
 function topRoof(items,x,z,maxY){let best=-1;const r=new THREE.Raycaster(new THREE.Vector3(x,maxY+1,z),new THREE.Vector3(0,-1,0));
   for(const it of items){if(it.m&&it.m.transparent)continue;const m=new THREE.Mesh(it.g,TOPROOFM);const h=r.intersectObject(m,false)[0];if(h&&h.point.y>best)best=h.point.y;}return best>0.5?best-0.04:maxY;}
+/* ---------- Cabins for models that come with a bare one ----------
+   The cabin's pieces are found by splitting its meshes into their separate parts and judging each part by where it
+   sits and how it is shaped (seen from the driver): the steering wheel in front of the driver, the dashboard across
+   the front, the seats, the floor, the door panels and the small knobs and dials. Each kind gets its own material:
+   leather wheel, grained dashboard, cloth seats, carpet, vinyl panels, metal knobs. */
+const MCABIN={punto:1,gmc:1};
+function noiseTex(base,amp,scale,lines,seed){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),R=mulberry32(seed||5);x.fillStyle=base;x.fillRect(0,0,128,128);
+  for(let y=0;y<128;y+=scale)for(let i=0;i<128;i+=scale){const v=(R()-0.5)*amp;x.fillStyle=v>0?'rgba(255,255,255,'+v/255+')':'rgba(0,0,0,'+(-v)/255+')';x.fillRect(i,y,scale,scale);}
+  if(lines)for(let k=0;k<128;k+=lines){x.fillStyle='rgba(0,0,0,0.12)';x.fillRect(0,k,128,1);}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(4,4);if(FILMIC)t.encoding=THREE.sRGBEncoding;return t;}
+let CABM=null;function cabinMats(){if(CABM)return CABM;const PH=(c,o)=>new THREE.MeshPhongMaterial(Object.assign({color:c,side:THREE.DoubleSide},o));
+  CABM={wheel:PH('#ffffff',{map:noiseTex('#1c1b1c',14,1,0,11),shininess:35,specular:0x333333}),dash:PH('#ffffff',{map:noiseTex('#36373a',22,2,0,12),shininess:10,specular:0x111111}),
+    seat:PH('#ffffff',{map:noiseTex('#7a6a58',40,2,8,13),shininess:4,specular:0x080808}),floor:PH('#ffffff',{map:noiseTex('#2a2826',30,1,0,14),shininess:2,specular:0x000000}),
+    panel:PH('#ffffff',{map:noiseTex('#b8ab95',18,2,0,15),shininess:14,specular:0x222222}),knob:PH('#9aa0a6',{shininess:90,specular:0x888888}),trim:PH('#ffffff',{map:noiseTex('#4b4744',18,2,0,16),shininess:8,specular:0x111111})};
+  return CABM;}
+function cabinParts(body,box,glass,head){const K=CARSC,[hx,ey,hz]=head;const gb=new THREE.Box3();glass.forEach(g=>{g.computeBoundingBox();gb.union(g.boundingBox);});
+  const front=gb.max.z,floorY=Math.max(box.min.y+0.25*K,ey-1.25*K),zMin=box.min.z+0.25*K,xIn=box.max.x-0.12*K,M=cabinMats(),buck={};
+  const keep=[];
+  for(const B of body){const m=B.mat;if(!B.geo||(m&&(m.transparent||(m.userData&&m.userData.frost)))){keep.push(B);continue;}
+    const P=B.geo.attributes.position,Nn=B.geo.attributes.normal,U=B.geo.attributes.uv,n=P.count,tri=n/3,key=new Map(),vid=new Int32Array(n);let nv=0;
+    for(let i=0;i<n;i++){const k=Math.round(P.getX(i)*400)+'_'+Math.round(P.getY(i)*400)+'_'+Math.round(P.getZ(i)*400);let v=key.get(k);if(v===undefined){v=nv++;key.set(k,v);}vid[i]=v;}
+    const par=new Int32Array(nv).map((_,i)=>i),f=a=>{while(par[a]!==a){par[a]=par[par[a]];a=par[a];}return a;};
+    for(let t=0;t<tri;t++){const a=f(vid[t*3]),b=f(vid[t*3+1]),c=f(vid[t*3+2]);par[a]=b;par[f(c)]=f(b);}
+    const comps=new Map();for(let t=0;t<tri;t++){const r=f(vid[t*3]);let C=comps.get(r);if(!C){C={t:[],min:[1e9,1e9,1e9],max:[-1e9,-1e9,-1e9],up:0};comps.set(r,C);}C.t.push(t);
+      for(let q=0;q<3;q++){const i=t*3+q,v=[P.getX(i),P.getY(i),P.getZ(i)];for(let a=0;a<3;a++){if(v[a]<C.min[a])C.min[a]=v[a];if(v[a]>C.max[a])C.max[a]=v[a];}}if(Nn)C.up+=Math.abs(Nn.getY(t*3));}
+    const rest=[];
+    for(const C of comps.values()){const cx=(C.min[0]+C.max[0])/2,cy=(C.min[1]+C.max[1])/2,cz=(C.min[2]+C.max[2])/2,dx=C.max[0]-C.min[0],dy=C.max[1]-C.min[1],dz=C.max[2]-C.min[2],md=Math.max(dx,dy,dz);
+      // a cabin part: inside the body, below the roof, above the floor pan, behind the windscreen's foot
+      const inCab=Math.abs(cx)<xIn&&cy>floorY-0.2*K&&cy<ey+0.15*K&&cz<front+0.05*K&&cz>zMin&&!!B.mat;
+      if(!inCab){rest.push(...C.t);continue;}
+      let k=null;
+      if(Math.hypot(cx-hx,(cy-(ey-0.42*K))*1.2,cz-(hz+0.48*K))<0.32*K&&md<0.62*K&&md>0.2*K)k='wheel';
+      else if(md<0.16*K)k='knob';
+      if(k){(buck[k]=buck[k]||[]).push(...C.t.map(t=>[B.geo,t]));continue;}
+      // a big piece (often the whole cabin is one): each face is judged on its own
+      for(const t of C.t){let x=0,y=0,z=0;for(let q=0;q<3;q++){const i=t*3+q;x+=P.getX(i);y+=P.getY(i);z+=P.getZ(i);}x/=3;y/=3;z/=3;const ny=Nn?Nn.getY(t*3):0,nx=Nn?Nn.getX(t*3):0;
+        let c;if(y>ey+0.02*K)c='trim';else if(ny>0.75&&y<floorY+0.18*K)c='floor';else if(Math.abs(x)>xIn-0.28*K&&Math.abs(nx)>0.6)c='panel';
+        else if(z>hz+0.28*K&&y>floorY+0.25*K)c='dash';else if(y<ey-0.12*K)c='seat';else c='trim';(buck[c]=buck[c]||[]).push([B.geo,t]);}}
+    if(rest.length===tri){keep.push(B);continue;}
+    if(rest.length)keep.push({mat:B.mat,gmap:B.gmap,geo:subGeo(B.geo,rest)});}
+  for(const k in buck){const L=buck[k],g=new THREE.BufferGeometry(),P=new Float32Array(L.length*9),N=new Float32Array(L.length*9),U=new Float32Array(L.length*6);
+    L.forEach(([G,t],j)=>{const p=G.attributes.position,nn=G.attributes.normal;for(let q=0;q<3;q++){const i=t*3+q;P[j*9+q*3]=p.getX(i);P[j*9+q*3+1]=p.getY(i);P[j*9+q*3+2]=p.getZ(i);
+      if(nn){N[j*9+q*3]=nn.getX(i);N[j*9+q*3+1]=nn.getY(i);N[j*9+q*3+2]=nn.getZ(i);}
+      // a box projection gives every part an even texture scale
+      const ax=Math.abs(nn?nn.getX(i):0),ay=Math.abs(nn?nn.getY(i):1);const u=ax>0.6?p.getZ(i):p.getX(i),v=ay>0.6?p.getZ(i):p.getY(i);U[j*6+q*2]=u*1.2;U[j*6+q*2+1]=v*1.2;}});
+    g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('normal',new THREE.BufferAttribute(N,3));g.setAttribute('uv',new THREE.BufferAttribute(U,2));keep.push({mat:M[k],geo:g,cabin:k});}
+  body.length=0;body.push(...keep);}
+function subGeo(G,tris){const g=new THREE.BufferGeometry();for(const a of ['position','normal','uv']){const A=G.attributes[a];if(!A)continue;const n=A.itemSize,v=new Float32Array(tris.length*3*n);
+    tris.forEach((t,j)=>{for(let q=0;q<3;q++)for(let c=0;c<n;c++)v[(j*3+q)*n+c]=A.array[(t*3+q)*n+c];});g.setAttribute(a,new THREE.BufferAttribute(v,n));}return g;}
 function modelPartsT(name){if(MPT[name])return MPT[name];const sc=MODELS[name];if(!sc)return null;sc.scale.setScalar(CARSC);sc.updateMatrixWorld(true);
   const items=[];sc.traverse(o=>{if(!o.isMesh)return;let nm=(o.userData.name||o.name||'')+' '+((o.parent&&(o.parent.userData.name||o.parent.name))||'');
     if(/badge|logo|emblem/i.test(nm))return;
@@ -1926,6 +1975,7 @@ function modelPartsT(name){if(MPT[name])return MPT[name];const sc=MODELS[name];i
   let headOv=null;if(!sw&&glass.length){const gb=new THREE.Box3();glass.forEach(g=>{g.computeBoundingBox();gb.union(g.boundingBox);});const K=CARSC,hx=Math.min(box.max.x*0.42,0.42*K),roof=topRoof(bodyIt,hx,gb.min.z-0.3*K,box.max.y);
     const ey=Math.min(roof-0.2*K,gb.max.y-0.04*K),hz=gb.min.z-0.52*K;swc=new THREE.Vector3(hx,ey-0.4*K,hz+0.5*K);headOv=[hx,ey,hz];}
   const plates=bodyIt.filter(it=>/numberplate|licen/i.test(it.nm+' '+(it.m&&it.m.name||''))).map(it=>it.g.boundingBox.clone());
+  if(MCABIN[name]&&headOv)cabinParts(body,box,glass,headOv);
   return MPT[name]={body,wheels,box,glass,plates,int:{head:headOv||[swc.x,swc.y+0.3,swc.z-0.45],dash:[0,swc.y-0.05,swc.z+0.25,box.max.x*1.6],wh:[swc.x,swc.y,swc.z]},
     lamp:hb?[hb.max.x*0.7,(hb.min.y+hb.max.y)/2,hb.max.z]:null,tail:tb?[tb.max.x*0.75,(tb.min.y+tb.max.y)/2,tb.min.z]:null};}
 function mergeUV(list){let n=0;list.forEach(g=>n+=g.attributes.position.count);const pos=new Float32Array(n*3),nor=new Float32Array(n*3),uv=new Float32Array(n*2);let o=0;
@@ -2317,7 +2367,7 @@ function buildVehicle(spec,cu,st){
       body.add(sp);}
     if(cu.bar===2){const fz=B.max.z,fh=Math.max(0.35,(MP.lamp?MP.lamp[1]:0.8)),fw=2*Math.max(0.5,sideAt(pts,fh*0.8,fz-0.25,1,0.15));
       fitPart(body,'acc_bullbar',0,Math.max(0.12,fh*0.45),fz+0.02,fw*0.92,fh*0.75,null);}
-    if(cu.snork===2){// up the right A-pillar from the front wing, flush with the body's side
+    if(cu.snork===2&&!spec.noSnork){// up the right A-pillar from the front wing, flush with the body's side
       const zA=(MP.glass&&MP.glass.length?(()=>{let z=-1e9;MP.glass.forEach(g=>{g.computeBoundingBox();z=Math.max(z,g.boundingBox.max.z);});return z;})():B.max.z*0.35)-0.05,
         yb=Math.max(0.5,topAt(pts,sideAt(pts,ry*0.55,zA,1,0.12)-0.1,zA+0.2,0.12)),xs=sideAt(pts,yb,zA,1,0.12)+0.03,top=ry+0.08;
       const pipe=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.065,top-yb+0.1,14),mats.dark);pipe.position.set(xs,(top+yb)/2,zA);pipe.rotation.x=-0.18;body.add(pipe);
@@ -2481,26 +2531,26 @@ const snowLowMat=new THREE.MeshLambertMaterial({color:'#f2f5f9',map:snowSplat,tr
 // snow painted onto the car's own surfaces: whatever faces up (bonnet edges, bumpers, the spare wheel, the steps) gets a
 // white crust while it snows, and everything low down (tyres, sills, wheel arches, bumpers) is caked with thrown-up snow
 // after driving through it. It lives in the car's materials (copies used only by your car), so it sticks exactly.
-const carSnowU={top:{value:0},low:{value:0},lowY:{value:0},inv:{value:new THREE.Matrix4()},roof:{value:null},box:{value:new THREE.Vector4(1,1,0,1)},ready:{value:0},floor:{value:0}};
+const carSnowU={top:{value:0},low:{value:0},lowY:{value:0},inv:{value:new THREE.Matrix4()},roof:{value:null},box:{value:new THREE.Vector4(1,1,0,1)},ready:{value:0},floor:{value:0},cabin:{value:0}};
 function carSnowPaint(Vc){const seen=new Map();Vc.g.traverse(o=>{if(!o.isMesh||!o.material||Array.isArray(o.material))return;const m=o.material;
   if(m===snowTopMat||m===snowLowMat||(m.userData&&m.userData.frost)||m.transparent||!(m.isMeshPhongMaterial||m.isMeshLambertMaterial||m.isMeshStandardMaterial))return;
   let c=seen.get(m);if(!c){c=m.clone();c.userData={carSnow:true};c.customProgramCacheKey=()=>'carsnow';
-    c.onBeforeCompile=sh=>{sh.uniforms.uSTop=carSnowU.top;sh.uniforms.uSLow=carSnowU.low;sh.uniforms.uSLowY=carSnowU.lowY;sh.uniforms.uSInv=carSnowU.inv;sh.uniforms.uSRoof=carSnowU.roof;sh.uniforms.uSBox=carSnowU.box;sh.uniforms.uSReady=carSnowU.ready;sh.uniforms.uSFloor=carSnowU.floor;
+    c.onBeforeCompile=sh=>{sh.uniforms.uSTop=carSnowU.top;sh.uniforms.uSLow=carSnowU.low;sh.uniforms.uSLowY=carSnowU.lowY;sh.uniforms.uSInv=carSnowU.inv;sh.uniforms.uSRoof=carSnowU.roof;sh.uniforms.uSBox=carSnowU.box;sh.uniforms.uSReady=carSnowU.ready;sh.uniforms.uSFloor=carSnowU.floor;sh.uniforms.uSCab=carSnowU.cabin;
       sh.vertexShader='varying vec3 vSWP;varying vec3 vSWN;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvSWP=(modelMatrix*vec4(transformed,1.0)).xyz;vSWN=normalize(mat3(modelMatrix)*objectNormal);');
-      sh.fragmentShader='uniform float uSTop;uniform float uSLow;uniform float uSLowY;uniform mat4 uSInv;uniform sampler2D uSRoof;uniform vec4 uSBox;uniform float uSReady;uniform float uSFloor;varying vec3 vSWP;varying vec3 vSWN;\nfloat sh3(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat sn3(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(sh3(i),sh3(i+vec3(1,0,0)),f.x),mix(sh3(i+vec3(0,1,0)),sh3(i+vec3(1,1,0)),f.x),f.y),mix(mix(sh3(i+vec3(0,0,1)),sh3(i+vec3(1,0,1)),f.x),mix(sh3(i+vec3(0,1,1)),sh3(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
-        +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nbool inside=false;if(uSReady>0.5){vec3 lp=(uSInv*vec4(vSWP,1.0)).xyz;vec2 uv=vec2((lp.x+uSBox.x)/(2.0*uSBox.x),(lp.z+uSBox.y)/(2.0*uSBox.y));if(uv.x>0.0&&uv.x<1.0&&uv.y>0.0&&uv.y<1.0){vec4 r=texture2D(uSRoof,uv);float hy=uSBox.z+r.r*uSBox.w;inside=abs(lp.x)<uSBox.x-0.34&&lp.y<hy-0.12&&lp.y>uSFloor;}}\nif(!inside&&uSTop+uSLow>0.01){float n=sn3(vSWP*6.0)*0.6+sn3(vSWP*19.0)*0.4;float up=smoothstep(0.42,0.75,normalize(vSWN).y)*smoothstep(0.0,0.4,uSTop)*smoothstep(0.25,0.55,n+uSTop*0.3);float lo=smoothstep(uSLowY+0.75,uSLowY+0.05,vSWP.y)*smoothstep(0.0,0.5,uSLow)*smoothstep(0.3,0.6,n+uSLow*0.35);float f=clamp(max(up,lo),0.0,1.0);gl_FragColor.rgb=mix(gl_FragColor.rgb,vec3(0.93,0.95,0.985)*(0.9+0.1*n),f);}');};
+      sh.fragmentShader='uniform float uSTop;uniform float uSLow;uniform float uSLowY;uniform mat4 uSInv;uniform sampler2D uSRoof;uniform vec4 uSBox;uniform float uSReady;uniform float uSFloor;uniform float uSCab;varying vec3 vSWP;varying vec3 vSWN;\nfloat sh3(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat sn3(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(sh3(i),sh3(i+vec3(1,0,0)),f.x),mix(sh3(i+vec3(0,1,0)),sh3(i+vec3(1,1,0)),f.x),f.y),mix(mix(sh3(i+vec3(0,0,1)),sh3(i+vec3(1,0,1)),f.x),mix(sh3(i+vec3(0,1,1)),sh3(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
+        +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nbool inside=false;vec3 slp=(uSInv*vec4(vSWP,1.0)).xyz;if(uSReady>0.5){vec3 lp=slp;vec2 uv=vec2((lp.x+uSBox.x)/(2.0*uSBox.x),(lp.z+uSBox.y)/(2.0*uSBox.y));if(uv.x>0.0&&uv.x<1.0&&uv.y>0.0&&uv.y<1.0){vec4 r=texture2D(uSRoof,uv);float hy=uSBox.z+r.r*uSBox.w;inside=abs(lp.x)<uSBox.x-0.34&&lp.y<hy-0.12&&lp.y>uSFloor;}}\nif(inside&&uSCab>0.5){float cn=sn3(slp*55.0)*0.5+sn3(slp*140.0)*0.5;float lum=dot(gl_FragColor.rgb,vec3(0.3,0.59,0.11));vec3 trim=mix(vec3(0.20,0.19,0.18),vec3(0.27,0.25,0.23),cn);vec3 cloth=mix(vec3(0.30,0.26,0.22),vec3(0.40,0.35,0.30),cn);float seat=smoothstep(0.55,0.85,normalize(vSWN).y);gl_FragColor.rgb=mix(gl_FragColor.rgb,mix(trim,cloth,seat)*(0.7+0.6*lum),smoothstep(0.25,0.05,lum));}\nif(!inside&&uSTop+uSLow>0.01){float n=sn3(slp*6.0)*0.6+sn3(slp*19.0)*0.4;float up=smoothstep(0.42,0.75,normalize(vSWN).y)*smoothstep(0.0,0.4,uSTop)*smoothstep(0.25,0.55,n+uSTop*0.3);float lo=smoothstep(uSLowY+0.75,uSLowY+0.05,vSWP.y)*smoothstep(0.0,0.5,uSLow)*smoothstep(0.3,0.6,n+uSLow*0.35);float f=clamp(max(up,lo),0.0,1.0);gl_FragColor.rgb=mix(gl_FragColor.rgb,vec3(0.93,0.95,0.985)*(0.9+0.1*n),f);}');};
     seen.set(m,c);}
   o.material=c;});}
 function carSnowStart(Vc){const body=Vc.body,bp=Vc.bodyPts[0],L=bp[0]+0.25,W=bp[1]+0.12,NX=12,NZ=24,targets=[];
   body.traverse(m=>{if(m.isMesh&&m.geometry&&m.material&&m.material!==snowTopMat&&m.material!==snowLowMat)targets.push(m);});
-  CSN.job={Vc,body,L,W,NX,NZ,targets,H:new Array((NX+1)*(NZ+1)).fill(null),k:0,rc:new THREE.Raycaster()};
+  CSN.job={Vc,body,L,W,NX,NZ,targets,H:new Array((NX+1)*(NZ+1)).fill(null),G:new Array((NX+1)*(NZ+1)).fill(false),k:0,rc:new THREE.Raycaster()};
   carSnowPaint(Vc);}
 function carSnowWork(){const J=CSN.job;if(!J||J.done)return;const {body,L,W,NX,NZ,rc}=J;body.updateMatrixWorld(true);
   const inv=new THREE.Matrix4().copy(body.matrixWorld).invert(),o=new THREE.Vector3(),d=new THREE.Vector3();
   for(let n=0;n<40&&J.k<J.H.length;n++,J.k++){const i=J.k%(NX+1),j=Math.floor(J.k/(NX+1)),x=-W+2*W*i/NX,z=-L+2*L*j/NZ;
     o.set(x,6,z);body.localToWorld(o);d.set(0,-1,0).transformDirection(body.matrixWorld);rc.set(o,d);rc.far=9;
-    const h=rc.intersectObjects(J.targets,false)[0];if(h){const q=h.point.clone().applyMatrix4(inv);J.H[J.k]=q.y;}}
-  if(J.k<J.H.length)return;J.done=true;const H=J.H,P=[],UP=[],I=[],R=mulberry32(77);
+    const h=rc.intersectObjects(J.targets,false)[0];if(h){const q=h.point.clone().applyMatrix4(inv);J.H[J.k]=q.y;const gm=h.object.material;J.G[J.k]=!!(gm&&(gm.transparent||(gm.userData&&gm.userData.frost)));}}
+  if(J.k<J.H.length)return;J.done=true;const HR=J.H,H=HR.map((h,v)=>J.G[v]?null:h),P=[],UP=[],I=[],R=mulberry32(77);
   // a slab of snow up to 15 cm deep: its top follows the car's shape with a little lumpiness, and its open edges get sides
   // down to the paint, so it has real thickness; the depth grows as it keeps snowing (uniform below)
   const nv=(NX+1)*(NZ+1),lump=[];for(let v=0;v<nv;v++)lump.push(R()*0.025);
@@ -2517,18 +2567,18 @@ function carSnowWork(){const J=CSN.job;if(!J||J.done)return;const {body,L,W,NX,N
   J.Vc.snowTop=top;
   // the roof map: for each spot of the car seen from above, the height of the first thing hit, and whether it is roof
   // (high up, near the car's top): anything below a roof is inside the cabin, and the cabin stays dry
-  let mx=-1e9,mn=1e9;for(const h of H)if(h!==null){mx=Math.max(mx,h);mn=Math.min(mn,h);}const rng=Math.max(0.5,mx-mn+0.2),D=new Uint8Array((NX+1)*(NZ+1)*4);
-  for(let v=0;v<H.length;v++){const h=H[v];D[v*4]=h===null?0:Math.round(clamp((h-mn+0.1)/rng,0,1)*255);D[v*4+1]=h!==null&&h>mx-0.5?255:0;D[v*4+3]=255;}
+  let mx=-1e9,mn=1e9;for(const h of HR)if(h!==null){mx=Math.max(mx,h);mn=Math.min(mn,h);}const rng=Math.max(0.5,mx-mn+0.2),D=new Uint8Array((NX+1)*(NZ+1)*4);
+  for(let v=0;v<HR.length;v++){const h=HR[v];D[v*4]=h===null?0:Math.round(clamp((h-mn+0.1)/rng,0,1)*255);D[v*4+1]=h!==null&&h>mx-0.5?255:0;D[v*4+3]=255;}
   const tex=new THREE.DataTexture(D,NX+1,NZ+1,THREE.RGBAFormat);tex.magFilter=tex.minFilter=THREE.NearestFilter;tex.needsUpdate=true;
   J.Vc.snowRoof={tex,box:new THREE.Vector4(W*(NX+1)/NX,L*(NZ+1)/NZ,mn-0.1,rng)};}
 function carSnowStep(dt,snowA,rainA){if(!V||S.mode!=='play')return;
   const onSnow=S.surf==='snow'&&!S.air&&Math.abs(S.v||0)>0.5;
   CSN.top=clamp(CSN.top+(snowA>0.3?dt/110*snowA:-dt/(rainA>0.3?90:300)),0,1);
   CSN.low=clamp(CSN.low+(onSnow?dt*Math.min(1,Math.abs(S.v)/6)/25:-dt/(rainA>0.3?60:240))+(snowA>0.3?dt/400:0),0,1);
-  if((CSN.top>0.01||CSN.low>0.01)&&(!CSN.job||CSN.job.Vc!==V))carSnowStart(V);carSnowWork();
+  if((CSN.top>0.01||CSN.low>0.01||VEH[S.veh].cabinFix)&&(!CSN.job||CSN.job.Vc!==V))carSnowStart(V);carSnowU.cabin.value=0;carSnowWork();
   snowDepU.value=0.01+0.24*CSN.top;if(V.snowTop)V.snowTop.visible=CSN.top>0.02;
   carSnowU.top.value=CSN.top;carSnowU.low.value=CSN.low;carSnowU.lowY.value=S.y+V.bodyBot-0.25;
-  if(V.snowRoof){carSnowU.roof.value=V.snowRoof.tex;carSnowU.box.value.copy(V.snowRoof.box);carSnowU.floor.value=V.bodyBot+0.2;V.body.updateMatrixWorld();carSnowU.inv.value.copy(V.body.matrixWorld).invert();carSnowU.ready.value=1;}else carSnowU.ready.value=0;}
+  V.body.updateMatrixWorld();carSnowU.inv.value.copy(V.body.matrixWorld).invert();if(V.snowRoof){carSnowU.roof.value=V.snowRoof.tex;carSnowU.box.value.copy(V.snowRoof.box);carSnowU.floor.value=V.bodyBot+0.2;carSnowU.ready.value=1;}else carSnowU.ready.value=0;}
 
 /* Tyre tracks */
 const TRK_DIRT=new THREE.Color('#2e2418'),TRK_SNOW=new THREE.Color('#7d8a99');
@@ -2872,7 +2922,7 @@ function renderGarage(){
     h+=tr_('<div class="sec">رنگ بدنه · ')+fa(PAINT_COST)+tr_(' سکه</div><div class="sws">')+PAINTS.map(c=>'<button class="swb'+(c===col?' on':'')+'" data-paint="'+c+'" style="background:'+c+tr_('" aria-label="رنگ بدنه"></button>')).join('')+'</div>';
     h+=tr_('<div class="sec">رنگ رینگ · ')+fa(RIM_COST)+tr_(' سکه</div><div class="sws">')+RIMS.map(c=>'<button class="swb'+(c===rim?' on':'')+'" data-rim="'+c+'" style="background:'+c+tr_('" aria-label="رنگ رینگ"></button>')).join('')+tr_('</div><div class="sec">لوازم</div>');
     h+=tr_('<div class="sec">پرچم کشور (رایگان)</div><div class="sws"><button class="gbtn')+(cu.flag?' off':'')+tr_('" data-flag="">بدون پرچم</button>')+FLAGS.map(([c,n])=>'<button class="flagb'+(cu.flag&&cu.flagC===c?' on':'')+'" data-flag="'+c+'" title="'+n+'" aria-label="'+n+'"><img src="'+(flagURLs[c]||(flagURLs[c]=flagURL(c)))+'" alt=""></button>').join('')+'</div>';
-    ACC.forEach(a=>{if(a.k==='roof'&&t.type==='glb')return;const st=cu[a.k];const btn=st===0?'<button class="gbtn" data-acc="'+a.k+'"'+(S.coins<a.price?' disabled':'')+'>'+fa(a.price)+tr_(' سکه</button>'):'<button class="gbtn'+(st===2?' off':'')+'" data-acc="'+a.k+'">'+(st===2?tr_('برداشتن'):tr_('نصب'))+'</button>';
+    ACC.forEach(a=>{if(a.k==='roof'&&t.type==='glb')return;if(a.k==='snork'&&t.noSnork)return;const st=cu[a.k];const btn=st===0?'<button class="gbtn" data-acc="'+a.k+'"'+(S.coins<a.price?' disabled':'')+'>'+fa(a.price)+tr_(' سکه</button>'):'<button class="gbtn'+(st===2?' off':'')+'" data-acc="'+a.k+'">'+(st===2?tr_('برداشتن'):tr_('نصب'))+'</button>';
       h+='<div class="acc"><div><b>'+a.n+'</b><small>'+a.d+'</small></div>'+btn+'</div>';});}
   else{const p=cu.tire;h+=tr_('<div class="tune"><div class="row"><b>باد لاستیک</b><span class="num">')+fa(p*100)+tr_('٪ ')+(p<0.75?tr_('(نیمه‌باد)'):p<0.92?tr_('(کمی کم)'):tr_('(پر)'))+'</span></div><input type="range" id="tireRange" min="0.55" max="1" step="0.05" value="'+p+'">'+
     tr_('<small>لاستیک نیمه‌باد روی گل، ماسه، برف و سنگ بهتر می‌چسبد و کمتر فرو می‌رود، و نرم‌تر روی دست‌انداز می‌رود؛ ولی روی جادهٔ خاکی سفت کندتر است و لاستیک زیر وزن پهن‌تر می‌شود. رایگان است.</small></div>');}
