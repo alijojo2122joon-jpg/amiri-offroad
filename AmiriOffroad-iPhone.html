@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Amiri Offroad">
-<script>window.GAME_CODE=100</script>
+<script>window.GAME_CODE=101</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -4520,7 +4520,7 @@ const sun=new THREE.DirectionalLight(0xffd9a6,1.05);
 sun.castShadow=false;
 Object.assign(sun.shadow.camera,{left:-45,right:45,top:45,bottom:-45,near:10,far:400});sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.03;
 sun.shadow.bias=-0.0006;sun.shadow.normalBias=0.04;scene.add(sun);scene.add(sun.target);
-function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setPixelRatio(Math.min((window.devicePixelRatio||1)*((window.visualViewport&&visualViewport.scale)||1),QV([1,1.1,1.35,2])));renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();try{S.vOff=-1;}catch(e){}}
+function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setPixelRatio(Math.min((window.devicePixelRatio||1)*((window.visualViewport&&visualViewport.scale)||1),QV([1,1.1,1.35,2])*PERF.ps));renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();try{S.vOff=-1;}catch(e){}}
 window.addEventListener('resize',resize);
 const timeU={value:0},windU={value:1},snowU={value:0},wetU={value:0},snowDU={value:0},snowCU={value:new THREE.Vector3(0,0,20)};
 const matCache={};
@@ -7953,13 +7953,42 @@ const lavaTex=(function(){const S2=128,c=document.createElement('canvas');c.widt
   for(let j=0;j<S2;j++)for(let i=0;i<S2;i++){const n=fbm(i/16,j/16,4),v=Math.pow(clamp((n-0.3)*1.9,0,1),1.4),o=(j*S2+i)*4;id.data[o]=255;id.data[o+1]=Math.round(60+170*v);id.data[o+2]=Math.round(10+60*v*v);id.data[o+3]=255;}
   x.putImageData(id,0,0);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(6,6);return t;})();
 const lavaMat=new THREE.MeshBasicMaterial({map:lavaTex,fog:false});
+// a lighter copy of a mesh for far away: nearby corners are merged into one (corners facing different ways are kept apart, so hard edges stay hard)
+const LODC=new Map();
+function lodGeo(geo,cell){const k=geo.uuid+'|'+cell;if(LODC.has(k))return LODC.get(k);
+  const P=geo.attributes.position,Nn=geo.attributes.normal,n=P.count,idx=geo.index,tc=idx?idx.count:n,rep=new Int32Array(n),map=new Map();
+  for(let i=0;i<n;i++){let key=Math.round(P.getX(i)/cell)+','+Math.round(P.getY(i)/cell)+','+Math.round(P.getZ(i)/cell);if(Nn){const q=cell<0.2?1.4:0.75;key+=','+Math.round(Nn.getX(i)*q)+Math.round(Nn.getY(i)*q)+Math.round(Nn.getZ(i)*q);}
+    let r=map.get(key);if(r===undefined){r=i;map.set(key,i);}rep[i]=r;}
+  const tri=[];for(let t=0;t<tc;t+=3){const a=rep[idx?idx.getX(t):t],b=rep[idx?idx.getX(t+1):t+1],c=rep[idx?idx.getX(t+2):t+2];if(a!==b&&b!==c&&a!==c)tri.push(a,b,c);}
+  const used=new Int32Array(n).fill(-1);let nv=0;for(const v of tri)if(used[v]<0)used[v]=nv++;
+  const g=new THREE.BufferGeometry(),GT=['getX','getY','getZ','getW'];
+  for(const name in geo.attributes){const A=geo.attributes[name],it=A.itemSize,arr=new Float32Array(nv*it);for(let i=0;i<n;i++){const u=used[i];if(u<0)continue;for(let j=0;j<it;j++)arr[u*it+j]=A[GT[j]](i);}g.setAttribute(name,new THREE.BufferAttribute(arr,it));}
+  const ix=new Uint32Array(tri.length);for(let i=0;i<tri.length;i++)ix[i]=used[tri[i]];g.setIndex(new THREE.BufferAttribute(ix,1));
+  if(!geo.boundingSphere)geo.computeBoundingSphere();g.boundingSphere=geo.boundingSphere.clone();LODC.set(k,g);return g;}
+const plFr=new THREE.Frustum(),plM=new THREE.Matrix4(),plS=new THREE.Sphere(),plC=new THREE.Color();
+function parkLodStep(){let fr=false;
+  for(const E of ELEMS){if(!E.g||!E.plod)continue;
+    if(!fr){camera.updateMatrixWorld();plM.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);plFr.setFromProjectionMatrix(plM);fr=true;}
+    const cx=camera.position.x,cz=camera.position.z;
+    for(const G2 of E.plod){let sig='';const pick=[];
+      for(const c of G2.list){plS.center.set(c.x,Hd(c.x,c.z)+0.8,c.z);plS.radius=Math.max(c.hz,c.hx)+0.8;let l=-1;
+        if(plFr.intersectsSphere(plS)){const d=Math.hypot(c.x-cx,c.z-cz);l=d<30?0:d<90?1:2;}pick.push(l);sig+=l+1;}
+      if(sig===G2.sig)continue;G2.sig=sig;
+      for(let li=0;li<3;li++){const ims=G2.lods[li];let k=0;
+        for(let ci=0;ci<G2.list.length;ci++){if(pick[ci]!==li)continue;const c=G2.list[ci];
+          for(let pi=0;pi<ims.length;pi++){ims[pi].setMatrixAt(k,c.pm[pi]);if(ims[pi].userData.tint)ims[pi].setColorAt(k,plC.set(c.col));}k++;}
+        for(const im of ims){im.count=k;im.visible=k>0;im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;}}}}}
 function elemBuild(E){const g=new THREE.Group();const head=z=>Math.atan2(roadDX(z),1);
-  if(E.type==='park'){const cars=parkCars(E),by=new Map();cars.forEach(c=>{if(!by.has(c.m))by.set(c.m,[]);by.get(c.m).push(c);});
+  if(E.type==='park'){const cars=parkCars(E),by=new Map();E.plod=[];cars.forEach(c=>{if(!by.has(c.m))by.set(c.m,[]);by.get(c.m).push(c);});
     for(const [m,list] of by){const MP=modelPartsT(m);const parts=[];MP.body.forEach(b=>parts.push([b.geo,b.mat,null]));MP.wheels.forEach(w=>w.parts.forEach(p=>parts.push([p[1],p[2],[w.x,w.y,w.z]])));
       const dm=new THREE.Object3D(),M=new THREE.Matrix4(),O=new THREE.Matrix4(),col=new THREE.Color();
-      for(const [geo,mat,off] of parts){const im=new THREE.InstancedMesh(geo,mat||new THREE.MeshPhongMaterial({color:'#ffffff',shininess:60,specular:0x333333}),list.length);
-        list.forEach((c,i)=>{dm.position.set(c.x,Hd(c.x,c.z)-0.02,c.z);dm.rotation.set(0,c.th,0);dm.updateMatrix();M.copy(dm.matrix);if(off){O.makeTranslation(off[0],off[1],off[2]);M.multiply(O);}im.setMatrixAt(i,M);if(!mat)im.setColorAt(i,col.set(c.col));});
-        if(!mat&&im.instanceColor)im.instanceColor.needsUpdate=true;im.castShadow=true;im.frustumCulled=false;g.add(im);}}}
+      // the same cars at three levels of detail: full near the camera, lighter further off where the difference cannot be seen; cars out of view are not drawn
+      const grp={list,parts:[],lods:[[],[],[]]};list.forEach(c=>{c.pm=[];});
+      parts.forEach(([geo,mat,off],pi)=>{const mt=mat||new THREE.MeshPhongMaterial({color:'#ffffff',shininess:60,specular:0x333333});
+        list.forEach(c=>{dm.position.set(c.x,Hd(c.x,c.z)-0.02,c.z);dm.rotation.set(0,c.th,0);dm.updateMatrix();const Mi=dm.matrix.clone();if(off){O.makeTranslation(off[0],off[1],off[2]);Mi.multiply(O);}c.pm[pi]=Mi;});
+        [geo,lodGeo(geo,0.12),lodGeo(geo,0.4)].forEach((lg,li)=>{const im=new THREE.InstancedMesh(lg,mt,list.length);if(!mat)im.setColorAt(0,col.set('#fff'));im.count=0;im.visible=false;im.frustumCulled=false;im.userData.tint=!mat;
+          g.add(im);grp.lods[li].push(im);});});
+      E.plod.push(grp);}}
   if(E.type==='volcano'){const B=boxMaker(),R=mulberry32(E.seed);
     for(let s=-2;s<=E.L+2;s+=1.05){const z=E.z0+s,c=elemPath(E,s),dc=(elemPath(E,s+0.5)-elemPath(E,s-0.5)),x=toXZx(c,z),y=elemLineY(E,z)+0.18;
       B.add(x,y-0.2,z,E.hw*2,0.4,1.0,head(z)+Math.atan(dc),0,(R()-0.5)*0.03,R()<0.15?'#3a2a26':'#4a4442',0.8+R()*0.4);
@@ -8256,7 +8285,13 @@ function cabinLight(env){const on=V&&S.mode==='play'&&S.cam===4;if(!on){CABL.int
   const f=V.fpp;cabTmp.set(f[0]*0.3,f[1]+0.05,f[2]+0.55);V.body.localToWorld(cabTmp);CABL.position.copy(cabTmp);
   CABL.intensity=(0.6+0.9*(env&&env.dayF!==undefined?env.dayF:1))*(V.type==='glb'?1.25:1);}
 // watch the frame rate while driving and step the graphics level down or up
-function perfStep(rd){return;if(S.mode!=='play'||S.modal||rd>0.5)return;PERF.acc+=rd;PERF.n++;PERF.t+=rd;
+// everything stays at its best; only on a phone that cannot keep up is the picture drawn a touch less finely
+// (never below 1.5 dots per screen point, which the eye cannot tell apart on a phone), and back up as soon as it can
+const FRS={acc:0,n:0,t:0,good:0};
+function fineRes(rd){if(S.mode!=='play'||S.modal||rd>0.5)return true;FRS.acc+=rd;FRS.n++;FRS.t+=rd;if(FRS.t<2)return true;const fps=FRS.n/FRS.acc;FRS.acc=FRS.n=FRS.t=0;
+  if(fps<45&&PERF.ps>0.76){PERF.ps=Math.max(0.75,PERF.ps-0.08);FRS.good=0;resize();}
+  else if(fps>56){if(++FRS.good>=4&&PERF.ps<1){PERF.ps=Math.min(1,PERF.ps+0.08);FRS.good=0;resize();}}else FRS.good=0;return true;}
+function perfStep(rd){if(fineRes(rd))return;if(S.mode!=='play'||S.modal||rd>0.5)return;PERF.acc+=rd;PERF.n++;PERF.t+=rd;
   if(PERF.t<2)return;const fps=PERF.n/PERF.acc,now=performance.now();PERF.acc=PERF.n=PERF.t=0;
   if(fps<42&&PERF.lvl>0){PERF.lvl--;PERF.downAt=now;PERF.good=0;applySettings();if(TR.cars.length>TR_N())trimTraffic();perfKeep();}
   // already at the lightest level: draw fewer pixels until it is smooth
@@ -8315,7 +8350,7 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
     $('envTag').textContent=fa(hr)+':'+(mn<10?tr_('۰'):'')+fa(mn)+' · '+(WX.type==='rain'&&WX.amt>0.2?tr_('بارانی'):WX.type==='snow'&&WX.amt>0.2?tr_('برفی'):env.dayF<0.3?tr_('شب'):tr_('آفتابی'))+(S.sink>0.2?tr_(' · گیر کردی!'):'');
     $('keyBtn').classList.toggle('warn',!S.engineOn&&S.crank<=0);$('keyBtn').classList.toggle('act',S.engineOn);
     drawCompass();drawMini();}}
-  rainbowStep(dt,env);banksStep();elemVisStep(dt);if(Math.floor(performance.now()/500)!==STG.gT){STG.gT=Math.floor(performance.now()/500);gatesStep();}rivNrm.offset.y-=dt*0.32;commsFrame(dt);animalsStep(dt);{const tn2=performance.now();if(tn2-cabT>500){cabT=tn2;cabinsStep();}}
+  rainbowStep(dt,env);banksStep();elemVisStep(dt);parkLodStep();if(Math.floor(performance.now()/500)!==STG.gT){STG.gT=Math.floor(performance.now()/500);gatesStep();}rivNrm.offset.y-=dt*0.32;commsFrame(dt);animalsStep(dt);{const tn2=performance.now();if(tn2-cabT>500){cabT=tn2;cabinsStep();}}
   // shadows are redrawn every frame on strong phones, every second frame on the others
   renderer.render(scene,camera);requestAnimationFrame(frame);
 }
