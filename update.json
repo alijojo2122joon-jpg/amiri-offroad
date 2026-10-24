@@ -1,13 +1,13 @@
 {
- "code": 97,
+ "code": 98,
  "minApk": 71,
  "apkUrl": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/AmiriOffroad.apk",
  "files": [
   {
    "path": "index.html",
    "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html",
-   "sha256": "2b3fedb1f89407700ab2deb5d80f1ac0cfe5d954b6fbb3dd910276ec130d4edd",
-   "size": 728543
+   "sha256": "8283ac6416bcc9a89b45d58cfb735542b124a1601cd69d6d0cc9f337bf9589a2",
+   "size": 727513
   },
   {
    "path": "snd/r_snow.ogg",
@@ -26,24 +26,6 @@
    "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/gmc.glb",
    "sha256": "cb461650e310f0ddf4f45605a0b7b45b78fe5e958b00b6a6efb8b29c1ff22f8a",
    "size": 1756904
-  },
-  {
-   "path": "snd/wolf2.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/wolf2.ogg",
-   "sha256": "9d2c67c4e553b77f3a8d8ffaf6e0b97f8968d68acc44f0291b952fcd57ce9747",
-   "size": 76987
-  },
-  {
-   "path": "snd/wolf3.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/wolf3.ogg",
-   "sha256": "63ed7c7ee7b5ae9d4d8927012c81f041f6405db1479544f93310d3b37d747ce9",
-   "size": 77317
-  },
-  {
-   "path": "snd/wolf4.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/wolf4.ogg",
-   "sha256": "2d88021bb864b16a1529ddcfefbfea78de191f49c60f27c47e2971a48ef128e7",
-   "size": 71902
   }
  ]
 }

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=97</script>
+<script>window.GAME_CODE=98</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -2646,11 +2646,7 @@ const PADS=2048/44100;
 // takes over (with a fade that wide). Ferrari V8 idle and fast idle below, a 1972 911 flat-six at speed above.
 const REALENG={f6:{L:[['r_idle',1000],['r_fast',1560],['r_high',3400],['r_high2',4420]],B:[[1300,380],[2900,700],[4700,900]]},
   // the trucks' V8: the same recordings played slower and deeper
-  v8r:{L:[['r_idle',1200],['r_fast',1900],['r_high',4300],['r_high2',5600]],B:[[1400,420],[3000,800],[4900,1000]]},
-  // the trucks, vans and the motorhome: a Toyota Hilux turbo-diesel 4x4 recorded close (idle, part throttle, high revs)
-  d4r:{L:[['d4_idle',850],['d4_mid',1900],['d4_high',3300]],B:[[1300,600],[2700,900]]},
-  // the small hatchback: a petrol four (Citroen C4 at idle, Peugeot 308 under way)
-  p4r:{L:[['p4_idle',850],['p4_mid',2600],['p4_high',4600]],B:[[1500,700],[3600,1000]]}};
+  v8r:{L:[['r_idle',1200],['r_fast',1900],['r_high',4300],['r_high2',5600]],B:[[1400,420],[3000,800],[4900,1000]]}};
 const ENGRPM={i4:[800,1400,2200,3200,4400,5800],i6:[800,1400,2200,3200,4400,5800],v8:[750,1300,2100,3100,4300,5600],d6:[600,900,1300,1800,2400,3000]};
 // fixed animal places along the route: villages and livestock in the Bamiyan valley and lake land, birds in green lands,
 // ducks and frogs at the lakes, crows over dry lands, wolves in the high mountains, gulls at the coast
@@ -2658,10 +2654,9 @@ const SPOTS=[];(function(){const r=mulberry32(4711);for(let z=600;z<ROADLEN-300;
   const lake=LAKES.some(L=>Math.abs(L.z-z)<500);
   const kind=lake?'lake':(k<=1&&r()<0.55)?'village':b==='coast'?'coast':b==='danger'||b==='crow'?(k===5||k===4?'wolves':'crows'):'birds';
   SPOTS.push({z,k:kind,side:r()<0.5?1:-1,calls:2+Math.floor(r()*2),done:false});}})();
-const WOLFS=['wolf1','wolf2','wolf3','wolf4'];
 const LOOPS=['rain','rainroof','wind','forest','night','stream','gravel','road','skid','horn','crank','gulls','frogs','flock','r_gravel','r_gravin','r_roadin','r_windin','r_snow'];
 const SHOTS=['r_start','r_shift','r_door','r_hit1','r_hit2','r_hit3','r_hit4','r_hit5','r_hit6','r_crash','r_crashb','r_bump1','r_bump2','r_bump3','r_bump4','r_knock1','r_knock2','r_creak1','r_creak2','r_creak3','r_stone1','r_stone2','r_stone3','r_stone4','r_wiper','r_pop1','r_pop2','r_pop3','thunder1','thunder2','thunder3','thunder4','splash1','splash2','splash3','mud1','mud2','crow','tick','skidshot','thud1','thud2','crash1','crash2','shift',
-  'robin1','blackbird1','nightingale1','blackcap1','owl1','owlb1','owlb2','crowb1','duck1','sheep1','sheepb1','sheepc1','cow1','cowb1','donkey1','donkeyb1','dog1','dog2','dogb1','wolf1','wolf2','wolf3','wolf4'];
+  'robin1','blackbird1','nightingale1','blackcap1','owl1','owlb1','owlb2','crowb1','duck1','sheep1','sheepb1','sheepc1','cow1','cowb1','donkey1','donkeyb1','dog1','dog2','dogb1','wolf1'];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 function setT(p,v,tc){if(AU.ac)p.setTargetAtTime(v,AU.ac.currentTime,tc||0.08);}
 function initAudio(){
@@ -2770,9 +2765,6 @@ function updateAudio(dt,env){
   if(!L)return;
   const playing=S.mode==='play'&&!S.modal&&!S.portrait,running=playing&&S.engineOn,inCar=S.cam===4&&S.mode==='play';
   AU.load+=(S.gas-AU.load)*Math.min(1,dt*5);const ld=AU.load;AU.shiftDip=Math.max(0,AU.shiftDip-dt);
-  // wolves howl on snowy nights, a few times every game hour, near and far
-  if(playing&&env.snowA>0.3&&env.dayF<0.35){AU.wolfT=(AU.wolfT===undefined?8:AU.wolfT)-dt;if(AU.wolfT<=0){AU.wolfT=(DAYLEN/24)/(2+Math.random()*2)*(0.6+Math.random()*0.8);
-    const W=WOLFS.filter(n=>SND.buf[n]);if(W.length)playBuf(pick(W),(inCar?0.08:0.14)+Math.random()*0.18,0.94+Math.random()*0.12,(Math.random()-0.5)*1.6,0.4);}}
   // engine
   const E=SND.eng;
   if(E&&E.real){
@@ -2780,8 +2772,7 @@ function updateAudio(dt,env){
     // off throttle it goes hollow and quiet; in the cabin the body takes the top off and adds boom
     const r=clamp(S.rpm,300,7000),w=engWeights(SND.engType,r);
     E.layers.forEach((l,i)=>{l.g.gain.setTargetAtTime(w[i],t,0.06);l.s.playbackRate.setTargetAtTime(clamp(r/l.rpm,0.45,2.1),t,0.035);});
-    // silent when the engine is off (only the starter turning it over makes it sound)
-    const alive=playing&&(S.engineOn||S.crank>0)?clamp((S.rpm-150)/450,0,1):0,hi=clamp((r-1200)/4500,0,1);
+    const alive=playing?clamp((r-150)/450,0,1):0,hi=clamp((r-1200)/4500,0,1);
     E.out.gain.setTargetAtTime(alive*(0.24+0.22*ld+0.08*hi)*(AU.shiftDip>0?0.55:1)*(inCar?0.9:1),t,0.05);
     E.lp.frequency.setTargetAtTime(inCar?900+ld*900+r*0.15:1600+ld*7000+r*0.4,t,0.08);
     E.bite.gain.setTargetAtTime(inCar?0:ld*5-2,t,0.08);E.warm.gain.setTargetAtTime(inCar?6:2,t,0.2);E.rv.gain.setTargetAtTime(inCar?0.09:0.04,t,0.3);
@@ -2791,7 +2782,7 @@ function updateAudio(dt,env){
     if(AU.popN>0&&AU.popT<=0){AU.popN--;AU.popT=0.06+Math.random()*0.18;playBuf(pick(['r_pop1','r_pop2','r_pop3']),(inCar?0.12:0.22)*(0.5+Math.random()*0.6),0.85+Math.random()*0.35,(Math.random()-0.5)*0.3,0.08);}}
   else if(E){const r=clamp(S.rpm,300,6200),pts=E.layers.map(l=>l.rpm),w=xfade(pts,r);
     E.layers.forEach((l,i)=>{l.g.gain.setTargetAtTime(w[i],t,0.05);l.s.playbackRate.setTargetAtTime(clamp(r/l.rpm,0.5,1.8),t,0.04);});
-    const alive=playing&&(S.engineOn||S.crank>0)?clamp((S.rpm-150)/450,0,1):0;
+    const alive=playing?clamp((r-150)/450,0,1):0;
     E.out.gain.setTargetAtTime(alive*(0.2+0.16*ld)*(AU.shiftDip>0?0.6:1)*(inCar?0.85:1),t,0.06);
     E.lp.frequency.setTargetAtTime(500+ld*1500+r*0.22,t,0.1);}
   setT(L.crank.g.gain,playing&&S.crank>0?0.32:0,0.04);
@@ -2889,7 +2880,7 @@ function ignition(){
   if(S.engineOn){if(Math.abs(S.v)<2){S.engineOn=false;toast(tr_('موتور خاموش شد'));}return;}
   if(S.crank>0)return;
   const depth=waterAt(S.x,S.z)-Math.max(Hf(S.x,S.z),S.y-0.3),flood=cust(S.veh).snork===2?3.8:2.6;
-  S.crankOk=depth<flood-0.4&&Math.random()<(WX.type!=="clear"&&WX.amt>0.5?0.6:0.8);S.crank=0.7+Math.random()*0.5;S.crankWet=depth>=flood-0.4;
+  S.crank=0.7+Math.random()*0.5;S.crankOk=depth<flood-0.4&&Math.random()<(WX.type!=='clear'&&WX.amt>0.5?0.6:0.8);S.crankWet=depth>=flood-0.4;
 }
 function toggleLow(){S.low=!S.low;$('lowBtn').classList.toggle('act',S.low);toast(S.low?tr_('دندهٔ کمکی درگیر شد: آرام اما پرزور (حدود ۸ کیلومتر)'):tr_('دندهٔ کمکی آزاد شد'));}
 function toggleDiff(){S.diff=!S.diff;$('diffBtn').classList.toggle('act',S.diff);toast(S.diff?tr_('قفل دیفرانسیل درگیر شد'):tr_('قفل دیفرانسیل آزاد شد'));}
@@ -3366,7 +3357,7 @@ function updateEnv(dt){
   const snowTarget=snowA>0.3?1:0;snowU.value+=snowTarget>snowU.value?(1-snowU.value)*dt*0.12*snowA:-dt*(snowyAt(S.x,S.y,S.z)?0:S.y>SNL(S.z)-40?0.0005:0.0028);snowU.value=clamp(snowU.value,0,1);
   trkMat.color.copy(TRK_DIRT).lerp(TRK_SNOW,clamp(snowU.value*1.4,0,1));trkMat.opacity=lerp(0.26,0.6,clamp(snowU.value*1.4,0,1));
   carSnowStep(dt,snowA,rainA);
-  {const cold=snowA>0.2||snowyAt(S.x,S.y,S.z);frostU.value=clamp(frostU.value+(cold?dt/70:-dt/110),0,1);frostLU.value=(0.05+0.95*dayF)*(1-0.45*Math.min(1,wa));}
+  {const cold=snowA>0.2;frostU.value=clamp(frostU.value+(cold?dt/70:-dt/40),0,1);frostLU.value=(0.05+0.95*dayF)*(1-0.45*Math.min(1,wa));}
   wetU.value+=(rainA-wetU.value)*dt*0.1;windU.value=1+wa*1.5+(zoneOf(S.z)===4?0.8:0);
   cTop.copy(CN.top).lerp(CD.top,dayF);cMid.copy(CN.mid).lerp(CD.mid,dayF);cHor.copy(CN.hor).lerp(CD.hor,dayF).lerp(CDUSK,warm*0.75);
   if(zoneOf(S.z)===3)cHor.lerp(CCANYON,dayF*0.35);
