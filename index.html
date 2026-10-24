@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=81</script>
+<script>window.GAME_CODE=83</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -560,7 +560,8 @@ function stageOf(z){return clamp(Math.floor(z/STAGE_LEN),0,NSTAGE-1);}
     // which challenges: always several, more of them and harder as you go
     const LP=[['park','logs','mud','stairs','planks','cont'],['mud','planks','logs','beams','park','dunes'],['logs','mud','tunnel','planks','ridge','park'],['ledge','ridge','jump','dunes','cont','tunnel'],
       ['stairs','cont','park','dunes','volcano','jump'],['ice','tunnel','ridge','planks','stairs','ledge'],['logs','mud','tunnel','ledge','planks','ridge'],['beams','dunes','cont','park','volcano','planks']];
-    const ALL=['park','ledge','volcano','beams','cont','ridge','jump','ice','dunes','stairs','planks','logs','mud','tunnel'];
+    // no ramp jumps any more: at these crawling speeds no car could clear a gap
+    const ALL=['park','ledge','volcano','beams','cont','ridge','ice','dunes','stairs','planks','logs','mud','tunnel'];
     const prev=STAGES.length?STAGES[STAGES.length-1].els.map(E=>E.type):[],prev2=STAGES.length>1?STAGES[STAGES.length-2].els.map(E=>E.type):[];
     const n=Math.min(7,5+Math.floor(r()*2.6));
     // every stage different: the challenges of the last two stages are pushed back, the land's own ones come forward
@@ -588,7 +589,7 @@ function stageOf(z){return clamp(Math.floor(z/STAGE_LEN),0,NSTAGE-1);}
       if(t==='ledge'||t==='ice'){E.w=CARW+0.45+1.0*(1-E.d);}if(t==='ridge'){E.w=CARW+1.25+1.8*(1-E.d);}
       if(t==='volcano'){E.hw=(CARW+0.3+0.5*(1-E.d))/2;E.amp=E.d>0.3?1.2+2.4*E.d:0;E.Rc=E.L/2-7;}
       if(t==='beams'){E.bw=0.64+0.25*(1-E.d);E.amp=E.d*3.2;E.und=0.4+E.d*1.4;}
-      if(t==='jump'){E.rampS=14;E.rampL=20;E.rampH=4.6;E.gap0=E.rampS+E.rampL;E.gapW=5.5+1.5*E.d;}
+      if(t==='jump'){E.rampS=14;E.rampL=18;E.rampH=5.2;E.gap0=E.rampS+E.rampL;E.gapW=3+1*E.d;}
       if(t==='dunes'){E.cw=4.2+0.6*(1-E.d);E.A=0.5+0.85*E.d;E.lam=26-4*E.d;}
       if(t==='stairs'){const N=5+Math.floor(4*E.d),T=3.6-0.9*E.d,rs=0.2+0.1*E.d;E.N=N;E.T=T;E.rs=rs;E.hw=2.3+0.3*(1-E.d);E.L=12+2*N*T+14+10;E.z1=E.z0+E.L;E.eB=roadEraw(E.z1);}
       if(t==='planks'){E.hw=2.8;const R2=mulberry32(E.seed),H=[];let q=6;while(q<E.L-6){q+=4+R2()*(7-3*E.d);if(q>E.L-6)break;if(R2()<0.35){const g=0.22+R2()*0.16;H.push({s0:q,s1:q+g,a:-9,b:9});q+=g;}else{const sd=R2()<0.5?-1:1,l=1.4+R2()*(0.8+1.2*E.d);const lh=H.filter(h=>h.a>-8||h.b<8).pop();if(lh&&((lh.a>0)!==(sd>0))&&q<lh.s1+12)q=lh.s1+12;if(lh&&q<lh.s1+6)q=lh.s1+6;if(q+l>E.L-6)break;H.push({s0:q,s1:q+l,a:sd>0?0.9-0.45*E.d:-9,b:sd>0?9:-0.9+0.45*E.d});q+=l;}}E.holes=H;E.sag=0.3+0.8*E.d;}
@@ -977,7 +978,7 @@ terrainMat.onBeforeCompile=sh=>{sh.uniforms.uSnow=snowU;sh.uniforms.uSnowD=snowD
     ' diffuseColor.rgb*=0.86+0.28*m.a;',
     ' diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(1.05,1.0,0.9),green*(b.a-0.5));',
     '}',
-    'diffuseColor.rgb=mix(diffuseColor.rgb,vec3(0.93,0.95,0.98),clamp(uSnow*2.6,0.0,1.0)*smoothstep(0.42,0.75,vNy));diffuseColor.rgb*=1.0-0.2*uWet;'].join('\n'));};
+    'diffuseColor.rgb=mix(diffuseColor.rgb,vec3(0.93,0.95,0.98),clamp(uSnow*2.6,0.0,1.0)*smoothstep(0.7,0.88,vNy));diffuseColor.rgb*=1.0-0.2*uWet;'].join('\n'));};
 
 /* ---------- Terrain colour by land ---------- */
 const ZC=ZB.map(b=>({g1:new THREE.Color(b.g1),g2:new THREE.Color(b.g2),r1:new THREE.Color(b.r1),r2:new THREE.Color(b.r2)}));
@@ -1576,7 +1577,9 @@ const rainPos=new Float32Array(RAINN*6),rainGeo=new THREE.BufferGeometry();rainG
 const rainLines=new THREE.LineSegments(rainGeo,new THREE.LineBasicMaterial({color:'#c3d2de',transparent:true,opacity:0.5}));rainLines.frustumCulled=false;scene.add(rainLines);
 const snowPos=new Float32Array(SNOWN*3),snowGeo=new THREE.BufferGeometry();snowGeo.setAttribute('position',new THREE.BufferAttribute(snowPos,3));
 const flakeTex=(function(){const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d');const g=x.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(0.5,'rgba(255,255,255,.7)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,32,32);return new THREE.CanvasTexture(c);})();
-const snowPts=new THREE.Points(snowGeo,new THREE.PointsMaterial({color:'#ffffff',size:0.22,map:flakeTex,transparent:true,depthWrite:false,opacity:0.95}));snowPts.frustumCulled=false;scene.add(snowPts);
+const snowPts=new THREE.Points(snowGeo,new THREE.PointsMaterial({color:'#ffffff',size:0.22,map:flakeTex,transparent:true,depthWrite:false,opacity:0.95}));
+// a flake right in front of the lens must not become a big white blot
+snowPts.material.onBeforeCompile=sh=>{sh.vertexShader=sh.vertexShader.replace('#include <fog_vertex>','gl_PointSize=min(gl_PointSize,9.0);\n#include <fog_vertex>');};snowPts.frustumCulled=false;scene.add(snowPts);
 // sandstorm dust blowing sideways, and hailstones falling hard and fast
 const DUSTN=4200,HAILN=1800;
 const dustPos=new Float32Array(DUSTN*6),dustGeo=new THREE.BufferGeometry();dustGeo.setAttribute('position',new THREE.BufferAttribute(dustPos,3));
@@ -1656,8 +1659,8 @@ const custAll=saved.cust&&typeof saved.cust==='object'?saved.cust:{};
 function upg(i){return upLv[i]||(upLv[i]={e:0,s:0,t:0,b:0});}
 function cust(i){const c=custAll[i]||(custAll[i]={});const d={paint:null,rim:null,bar:0,snork:0,rack:0,flag:0,roof:0,crate:0,bag:0,spare:0,tire:1};for(const k in d)if(c[k]===undefined)c[k]=d[k];return c;}
 function upCost(i,k,lv){const u=UPS.find(x=>x.k===k);return Math.round(u.base*[1,2,3.5][lv]*(1+i*0.15));}
-// every car tops out at 40% of what it once did (upgrades included): this is crawling country, not a race track
-const SPEEDK=0.4;
+// every car tops out at a quarter of what it once did (upgrades included): this is crawling country, not a race track
+const SPEEDK=0.24;
 function stats(i){const t=VEH[i],u=upg(i),p=cust(i).tire;return{maxV:t.maxV*SPEEDK*(1+0.06*u.e)*(1-(1-p)*0.25),acc:t.acc*(1+0.1*u.e),grip:t.grip*(1+0.06*u.t),brake:13*(1+0.15*u.b),travel:0.05*u.s,soft:1-0.06*u.s,p};}
 const headM=new THREE.MeshBasicMaterial({color:'#e8e2cf'}),tailM=new THREE.MeshBasicMaterial({color:'#8c2620'}),amberM=new THREE.MeshBasicMaterial({color:'#e08a2a'}),roofLM=new THREE.MeshBasicMaterial({color:'#e7e1cf'});
 const TYPES={pickup:{k:22,travel:0.28,hcg:0.7,camK:1},jeep:{k:24,travel:0.3,hcg:0.65,camK:0.95},suv:{k:21,travel:0.28,hcg:0.78,camK:1.05},suvlong:{k:20,travel:0.28,hcg:0.8,camK:1.12},van:{k:21,travel:0.25,hcg:0.86,camK:1.12},truck:{k:26,travel:0.24,hcg:0.9,camK:1.3},monster:{k:13,travel:0.5,hcg:1.25,camK:1.25},tank:{k:30,travel:0.14,hcg:0.55,camK:1.3},glb:{k:30,travel:0.15,hcg:0.48,camK:0.95},sedan:{k:25,travel:0.17,hcg:0.5,camK:0.92},crawler:{k:12,travel:0.55,hcg:1.3,camK:1.22}};
@@ -2292,10 +2295,10 @@ function buildVehicle(spec,cu,st){
     us.forEach(u=>{const L=wheels.find(w=>w.u===u&&w.w>0),Rw=wheels.find(w=>w.u===u&&w.w<0);if(!L||!Rw)return;const axle=new THREE.Mesh(axG,mats.dark),diff=new THREE.Mesh(dfG,mats.dark);diff.scale.set(1,0.9,1.15);g.add(axle);g.add(diff);
       const sh=[L,Rw].map(w=>{const m=new THREE.Mesh(shG,mats.chrome),sp=new THREE.Mesh(spG,mats.red);g.add(m);g.add(sp);return {m,sp,w,top:new THREE.Vector3(Math.sign(w.w)*Math.min(0.78,Math.abs(w.w)-0.28),lift+0.98,u+0.12)};});
       susp.push({axle,diff,L,R:Rw,sh});});}
-  // headlights: the light leaves the lamps, lights the road ahead with a defined pool and edge, and the beams themselves
-  // show faintly in the night air (more in fog, rain and dust)
+  // headlights: the light leaves the lamps and lights the road ahead with a defined pool and edge (the visible beam
+  // cones are switched off: they cut through rock walls in narrow cuttings)
   const spot=new THREE.SpotLight(0xfff1d8,0,has('rack')?110:90,0.56,0.42,1.0);spot.position.set(0,(lampPos[0]?lampPos[0][1]:fy)+lift,front+0.05);spot.target.position.set(0,lift-0.4,front+21);if(!spec.lite){body.add(spot);body.add(spot.target);}
-  const beamMat=spec.lite?null:new THREE.ShaderMaterial({uniforms:{uI:{value:0}},transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,
+  const beamMat=true?null:new THREE.ShaderMaterial({uniforms:{uI:{value:0}},transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,
     vertexShader:'varying float vL;varying vec3 vN;varying vec3 vV;void main(){vL=position.z;vec4 mv=modelViewMatrix*vec4(position,1.0);vN=normalize(normalMatrix*normal);vV=normalize(-mv.xyz);gl_Position=projectionMatrix*mv;}',
     fragmentShader:'uniform float uI;varying float vL;varying vec3 vN;varying vec3 vV;void main(){float f=abs(dot(normalize(vN),normalize(vV)));float a=pow(f,0.9)*pow(1.0-vL,2.2)*smoothstep(0.0,0.08,vL)*uI;gl_FragColor=vec4(vec3(1.0,0.95,0.84)*a,a);}'});
   if(beamMat)lampPos.forEach(p=>{const m=new THREE.Mesh(BEAMG,beamMat);m.position.set(p[0],p[1]+lift,p[2]+0.06);m.scale.set(2.4,1.5,13);m.rotation.set(0.07,p[0]>0?-0.05:0.05,0);m.renderOrder=3;m.frustumCulled=false;body.add(m);});
@@ -4210,7 +4213,7 @@ function trModel(){
 function rHead(s){return Math.atan(roadDX(s));}
 function rCurv(s){const a=roadDX(s-3),b=roadDX(s+3),d=roadDX(s);return Math.abs((b-a)/6)/Math.pow(1+d*d,1.5);}
 function trPos(c){const dx=roadDX(c.s),l=Math.sqrt(1+dx*dx);c.x=roadX(c.s)+c.off/l;c.z=c.s-dx/l*c.off;c.th=Math.atan(dx)+(c.dir<0?Math.PI:0);}
-function trSpawn(c,s,dir){c.dir=dir;c.s=s;c.off=-dir*LANE;c.offT=c.off;c.vmax=(12+Math.random()*6.5)*0.55;c.v=c.vmax*0.8;c.crash=false;c.vx=c.vz=c.w=0;c.blockT=0;c.pass=false;c.honkT=0;c.brk=false;c.park=false;c.rot=0;trPos(c);c.y=Hd(c.x,c.z);c.p=c.r=0;c.V.g.visible=true;}
+function trSpawn(c,s,dir){c.dir=dir;c.s=s;c.off=-dir*LANE;c.offT=c.off;c.vmax=(12+Math.random()*6.5)*0.35;c.v=c.vmax*0.8;c.crash=false;c.vx=c.vz=c.w=0;c.blockT=0;c.pass=false;c.honkT=0;c.brk=false;c.park=false;c.rot=0;trPos(c);c.y=Hd(c.x,c.z);c.p=c.r=0;c.V.g.visible=true;}
 function trFree(c){c.V.g.visible=false;TR.pool.push(c.V);}
 function trValid(s){return s>-60&&s<PAVE-200;}
 // keep the window around the player filled: each lane gets cars at random gaps ahead and behind
@@ -4333,8 +4336,8 @@ function snwRebuild(){
   for(let j=0;j<N;j++)for(let i=0;i<N;i++){const k=snwSlot(SNW.gx+i,SNW.gz+j);R[j*N+i]=SNW.rut[k];H[j*N+i]=SNW.th[k];}
   for(let j=0;j<N;j++)for(let i=0;i<N;i++){const o=j*N+i,r=R[o],mask=1;
     let berm=0;if(i>1&&j>1&&i<N-2&&j<N-2)berm=Math.max(0,Math.max(R[o-2],R[o+2],R[o-2*N],R[o+2*N],R[o-1],R[o+1],R[o-N],R[o+N])-r);
-    const sl=i>0&&j>0&&i<N-1&&j<N-1?Math.max(Math.abs(H[o+1]-H[o-1]),Math.abs(H[o+N]-H[o-N]))/(2*c):0,f=sstep(1.15,0.8,sl);
-    const y=H[o]+dep*mask*f*(1-0.88*r+0.45*berm)-0.15*(1-f);pos[o*3]=i*c;pos[o*3+1]=y;pos[o*3+2]=j*c;
+    const sl=i>0&&j>0&&i<N-1&&j<N-1?Math.max(Math.abs(H[o+1]-H[o-1]),Math.abs(H[o+N]-H[o-N]))/(2*c):0,f=sstep(0.75,0.5,sl);
+    const y=H[o]+dep*mask*f*(1-0.88*r+0.45*berm)-30*(1-f);pos[o*3]=i*c;pos[o*3+1]=y;pos[o*3+2]=j*c;
     const bb=Math.min(1,berm*1.5),b=Math.round(252-80*r+3*bb),gC=Math.round(248-108*r),rC=Math.round(244-134*r);col[o*3]=rC;col[o*3+1]=gC;col[o*3+2]=b;}
   for(let j=0;j<N;j++)for(let i=0;i<N;i++){const o=j*N+i,l=i>0?o-1:o,rr=i<N-1?o+1:o,u=j>0?o-N:o,dd=j<N-1?o+N:o;
     const gx=(pos[rr*3+1]-pos[l*3+1])/((rr-l)*c||c),gz=(pos[dd*3+1]-pos[u*3+1])/(((dd-u)/N)*c||c),il=1/Math.sqrt(gx*gx+1+gz*gz);nor[o*3]=-gx*il;nor[o*3+1]=il;nor[o*3+2]=-gz*il;}
@@ -4395,7 +4398,7 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
     camera.position.set(S.x+Math.sin(orbit)*r,S.y+(S.modal==='garage'?3.2:6.5),S.z+Math.cos(orbit)*r);camera.position.y=Math.max(camera.position.y,Hd(camera.position.x,camera.position.z)+1.5);
     camera.lookAt(S.x,S.y+1.3,S.z);camPos.copy(camera.position);fov=S.modal==='garage'?50:60;}
   else if(S.cam===4&&S.mode==='play'){V.g.updateMatrixWorld(true);const fx=(RIDE.pid?-V.fpp[0]:V.fpp[0])+CA.side*0.5,fy=V.fpp[1]+CA.up*0.25,fz=V.fpp[2]+(1-CA.zoom)*0.8;tmpV.set(fx,fy,fz);V.body.localToWorld(tmpV);camera.position.copy(tmpV);
-    const yw=CA.yaw+(-S.steer*0.16),cp=Math.cos(CA.pitch);tmpV2.set(fx+Math.sin(yw)*10*cp,fy-0.3+Math.sin(CA.pitch)*10,fz+Math.cos(yw)*10*cp);V.body.localToWorld(tmpV2);camera.lookAt(tmpV2);camPos.copy(tmpV);fov=74;S.camYaw=S.th;}
+    const yw=CA.yaw+S.steer*0.16,cp=Math.cos(CA.pitch);tmpV2.set(fx+Math.sin(yw)*10*cp,fy-0.3+Math.sin(CA.pitch)*10,fz+Math.cos(yw)*10*cp);V.body.localToWorld(tmpV2);camera.lookAt(tmpV2);camPos.copy(tmpV);fov=74;S.camYaw=S.th;}
   else if(S.cam===2&&S.mode==='play'){orbit+=dt*0.08;const a=S.th+Math.PI*0.62+Math.sin(orbit)*0.9+CA.yaw,r=10.5*V.camK*CA.zoom;tmpV.set(S.x+Math.sin(a)*r,S.y+(2.4+CA.up+Math.sin(CA.pitch)*r*0.6)*V.camK,S.z+Math.cos(a)*r);tmpV.y=Math.max(tmpV.y,Hd(tmpV.x,tmpV.z)+1.2);
     camPos.lerp(tmpV,1-Math.exp(-dt*3));camera.position.copy(camPos);camera.lookAt(S.x,S.y+1.1*V.camK+CA.up*0.4,S.z);fov=50;S.camYaw=S.th;}
   else if(S.cam===3){V.g.updateMatrixWorld(true);const hx=V.hood[0]+CA.side,hy=V.hood[1]+CA.up*0.5,hz=V.hood[2]+(1-CA.zoom)*2;tmpV.set(hx,hy,hz);V.body.localToWorld(tmpV);camera.position.copy(tmpV);const cp3=Math.cos(CA.pitch);tmpV2.set(hx+Math.sin(CA.yaw)*12*cp3,hy-0.4+Math.sin(CA.pitch)*12,hz+Math.cos(CA.yaw)*12*cp3);V.body.localToWorld(tmpV2);camera.lookAt(tmpV2);camPos.copy(tmpV);fov=72;S.camYaw=S.th;}
