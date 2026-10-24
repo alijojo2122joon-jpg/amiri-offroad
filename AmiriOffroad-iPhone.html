@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Amiri Offroad">
-<script>window.GAME_CODE=87</script>
+<script>window.GAME_CODE=88</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -5459,12 +5459,12 @@ const MPT={},TMAT=new Map();
    In the cold, ice crystals grow on every window from its edges inwards (on the windscreen, the side and back windows,
    whatever shape each car's glass has), feathery and uneven, fixed to the glass itself. How far from the edge each point
    of a pane is, is worked out once from that pane's own outline. The wipers do not clear it: it is on the glass, not water. */
-const frostU={value:0};window.__frost=frostU;
+const frostU={value:0};window.__frost=frostU;const wipeU={p1:{value:new THREE.Vector3(0,-1e4,0)},p2:{value:new THREE.Vector3(0,-1e4,0)},len:{value:0}};
 function frostify(m){if(m.userData.frost)return m;m.userData.frost=true;m.customProgramCacheKey=()=>'frost1';
-  m.onBeforeCompile=sh=>{sh.uniforms.uFrost=frostU;
-    sh.vertexShader='attribute float aEdge;varying float vEdge;varying vec3 vFp;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdge=aEdge;vFp=position;');
-    sh.fragmentShader='uniform float uFrost;varying float vEdge;varying vec3 vFp;\nfloat fh(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat fn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(fh(i),fh(i+vec3(1,0,0)),f.x),mix(fh(i+vec3(0,1,0)),fh(i+vec3(1,1,0)),f.x),f.y),mix(mix(fh(i+vec3(0,0,1)),fh(i+vec3(1,0,1)),f.x),mix(fh(i+vec3(0,1,1)),fh(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
-      +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nif(uFrost>0.001){float n=fn(vFp*9.0)*0.5+fn(vFp*23.0)*0.3+fn(vFp*61.0)*0.2;float reach=uFrost*0.42;float f=smoothstep(reach,reach-0.22,vEdge+(n-0.5)*0.3);float vein=smoothstep(0.55,0.75,fn(vFp*38.0+n*3.0));f*=0.72+0.28*vein;gl_FragColor=vec4(mix(gl_FragColor.rgb,vec3(0.86,0.92,0.97),f),max(gl_FragColor.a,f*0.9));}');};
+  m.onBeforeCompile=sh=>{sh.uniforms.uFrost=frostU;sh.uniforms.uWP1=wipeU.p1;sh.uniforms.uWP2=wipeU.p2;sh.uniforms.uWL=wipeU.len;
+    sh.vertexShader='attribute float aEdge;varying float vEdge;varying vec3 vFp;varying vec3 vFw;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdge=aEdge;vFp=position;vFw=(modelMatrix*vec4(position,1.0)).xyz;');
+    sh.fragmentShader='uniform float uFrost;uniform vec3 uWP1;uniform vec3 uWP2;uniform float uWL;varying float vEdge;varying vec3 vFp;varying vec3 vFw;\nfloat fh(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat fn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(fh(i),fh(i+vec3(1,0,0)),f.x),mix(fh(i+vec3(0,1,0)),fh(i+vec3(1,1,0)),f.x),f.y),mix(mix(fh(i+vec3(0,0,1)),fh(i+vec3(1,0,1)),f.x),mix(fh(i+vec3(0,1,1)),fh(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
+      +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nif(uFrost>0.001){float n=fn(vFp*9.0)*0.5+fn(vFp*23.0)*0.3+fn(vFp*61.0)*0.2;float reach=uFrost*0.42;float f=smoothstep(reach,reach-0.22,vEdge+(n-0.5)*0.3);float vein=smoothstep(0.55,0.75,fn(vFp*38.0+n*3.0));f*=0.72+0.28*vein;float wd=min(distance(vFw,uWP1),distance(vFw,uWP2));f*=smoothstep(uWL*0.92,uWL*1.04,wd);gl_FragColor=vec4(mix(gl_FragColor.rgb,vec3(0.86,0.92,0.97),f),max(gl_FragColor.a,f*0.9));}');};
   return m;}
 // how far each vertex of a pane lies from that pane's edge (0 at the edge, 1 in the middle)
 function frostPrep(root){const done=new Set();root.traverse(o=>{if(!o.isMesh||!o.material||!o.material.userData||!o.material.userData.frost)return;const g=o.geometry;if(!g||done.has(g)||g.attributes.aEdge)return;done.add(g);
@@ -6083,14 +6083,14 @@ const snowLowMat=new THREE.MeshLambertMaterial({color:'#f2f5f9',map:snowSplat,tr
 // snow painted onto the car's own surfaces: whatever faces up (bonnet edges, bumpers, the spare wheel, the steps) gets a
 // white crust while it snows, and everything low down (tyres, sills, wheel arches, bumpers) is caked with thrown-up snow
 // after driving through it. It lives in the car's materials (copies used only by your car), so it sticks exactly.
-const carSnowU={top:{value:0},low:{value:0},lowY:{value:0}};
+const carSnowU={top:{value:0},low:{value:0},lowY:{value:0},inv:{value:new THREE.Matrix4()},roof:{value:null},box:{value:new THREE.Vector4(1,1,0,1)},ready:{value:0},floor:{value:0}};
 function carSnowPaint(Vc){const seen=new Map();Vc.g.traverse(o=>{if(!o.isMesh||!o.material||Array.isArray(o.material))return;const m=o.material;
   if(m===snowTopMat||m===snowLowMat||(m.userData&&m.userData.frost)||m.transparent||!(m.isMeshPhongMaterial||m.isMeshLambertMaterial||m.isMeshStandardMaterial))return;
   let c=seen.get(m);if(!c){c=m.clone();c.userData={carSnow:true};c.customProgramCacheKey=()=>'carsnow';
-    c.onBeforeCompile=sh=>{sh.uniforms.uSTop=carSnowU.top;sh.uniforms.uSLow=carSnowU.low;sh.uniforms.uSLowY=carSnowU.lowY;
+    c.onBeforeCompile=sh=>{sh.uniforms.uSTop=carSnowU.top;sh.uniforms.uSLow=carSnowU.low;sh.uniforms.uSLowY=carSnowU.lowY;sh.uniforms.uSInv=carSnowU.inv;sh.uniforms.uSRoof=carSnowU.roof;sh.uniforms.uSBox=carSnowU.box;sh.uniforms.uSReady=carSnowU.ready;sh.uniforms.uSFloor=carSnowU.floor;
       sh.vertexShader='varying vec3 vSWP;varying vec3 vSWN;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvSWP=(modelMatrix*vec4(transformed,1.0)).xyz;vSWN=normalize(mat3(modelMatrix)*objectNormal);');
-      sh.fragmentShader='uniform float uSTop;uniform float uSLow;uniform float uSLowY;varying vec3 vSWP;varying vec3 vSWN;\nfloat sh3(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat sn3(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(sh3(i),sh3(i+vec3(1,0,0)),f.x),mix(sh3(i+vec3(0,1,0)),sh3(i+vec3(1,1,0)),f.x),f.y),mix(mix(sh3(i+vec3(0,0,1)),sh3(i+vec3(1,0,1)),f.x),mix(sh3(i+vec3(0,1,1)),sh3(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
-        +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nif(uSTop+uSLow>0.01){float n=sn3(vSWP*6.0)*0.6+sn3(vSWP*19.0)*0.4;float up=smoothstep(0.42,0.75,normalize(vSWN).y)*smoothstep(0.0,0.4,uSTop)*smoothstep(0.25,0.55,n+uSTop*0.3);float lo=smoothstep(uSLowY+0.75,uSLowY+0.05,vSWP.y)*smoothstep(0.0,0.5,uSLow)*smoothstep(0.3,0.6,n+uSLow*0.35);float f=clamp(max(up,lo),0.0,1.0);gl_FragColor.rgb=mix(gl_FragColor.rgb,vec3(0.93,0.95,0.985)*(0.9+0.1*n),f);}');};
+      sh.fragmentShader='uniform float uSTop;uniform float uSLow;uniform float uSLowY;uniform mat4 uSInv;uniform sampler2D uSRoof;uniform vec4 uSBox;uniform float uSReady;uniform float uSFloor;varying vec3 vSWP;varying vec3 vSWN;\nfloat sh3(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat sn3(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(sh3(i),sh3(i+vec3(1,0,0)),f.x),mix(sh3(i+vec3(0,1,0)),sh3(i+vec3(1,1,0)),f.x),f.y),mix(mix(sh3(i+vec3(0,0,1)),sh3(i+vec3(1,0,1)),f.x),mix(sh3(i+vec3(0,1,1)),sh3(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
+        +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nbool inside=false;if(uSReady>0.5){vec3 lp=(uSInv*vec4(vSWP,1.0)).xyz;vec2 uv=vec2((lp.x+uSBox.x)/(2.0*uSBox.x),(lp.z+uSBox.y)/(2.0*uSBox.y));if(uv.x>0.0&&uv.x<1.0&&uv.y>0.0&&uv.y<1.0){vec4 r=texture2D(uSRoof,uv);float hy=uSBox.z+r.r*uSBox.w;inside=abs(lp.x)<uSBox.x-0.34&&lp.y<hy-0.12&&lp.y>uSFloor;}}\nif(!inside&&uSTop+uSLow>0.01){float n=sn3(vSWP*6.0)*0.6+sn3(vSWP*19.0)*0.4;float up=smoothstep(0.42,0.75,normalize(vSWN).y)*smoothstep(0.0,0.4,uSTop)*smoothstep(0.25,0.55,n+uSTop*0.3);float lo=smoothstep(uSLowY+0.75,uSLowY+0.05,vSWP.y)*smoothstep(0.0,0.5,uSLow)*smoothstep(0.3,0.6,n+uSLow*0.35);float f=clamp(max(up,lo),0.0,1.0);gl_FragColor.rgb=mix(gl_FragColor.rgb,vec3(0.93,0.95,0.985)*(0.9+0.1*n),f);}');};
     seen.set(m,c);}
   o.material=c;});}
 function carSnowStart(Vc){const body=Vc.body,bp=Vc.bodyPts[0],L=bp[0]+0.25,W=bp[1]+0.12,NX=12,NZ=24,targets=[];
@@ -6116,14 +6116,21 @@ function carSnowWork(){const J=CSN.job;if(!J||J.done)return;const {body,L,W,NX,N
     I.push(E.b,E.a,base,E.b,base,base+1);}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('aUp',new THREE.Float32BufferAttribute(UP,1));g.setIndex(I);g.computeVertexNormals();
   const top=new THREE.Mesh(g,snowTopMat);top.renderOrder=2;body.add(top);
-  J.Vc.snowTop=top;}
+  J.Vc.snowTop=top;
+  // the roof map: for each spot of the car seen from above, the height of the first thing hit, and whether it is roof
+  // (high up, near the car's top): anything below a roof is inside the cabin, and the cabin stays dry
+  let mx=-1e9,mn=1e9;for(const h of H)if(h!==null){mx=Math.max(mx,h);mn=Math.min(mn,h);}const rng=Math.max(0.5,mx-mn+0.2),D=new Uint8Array((NX+1)*(NZ+1)*4);
+  for(let v=0;v<H.length;v++){const h=H[v];D[v*4]=h===null?0:Math.round(clamp((h-mn+0.1)/rng,0,1)*255);D[v*4+1]=h!==null&&h>mx-0.5?255:0;D[v*4+3]=255;}
+  const tex=new THREE.DataTexture(D,NX+1,NZ+1,THREE.RGBAFormat);tex.magFilter=tex.minFilter=THREE.NearestFilter;tex.needsUpdate=true;
+  J.Vc.snowRoof={tex,box:new THREE.Vector4(W*(NX+1)/NX,L*(NZ+1)/NZ,mn-0.1,rng)};}
 function carSnowStep(dt,snowA,rainA){if(!V||S.mode!=='play')return;
   const onSnow=S.surf==='snow'&&!S.air&&Math.abs(S.v||0)>0.5;
   CSN.top=clamp(CSN.top+(snowA>0.3?dt/110*snowA:-dt/(rainA>0.3?90:300)),0,1);
   CSN.low=clamp(CSN.low+(onSnow?dt*Math.min(1,Math.abs(S.v)/6)/25:-dt/(rainA>0.3?60:240))+(snowA>0.3?dt/400:0),0,1);
   if((CSN.top>0.01||CSN.low>0.01)&&(!CSN.job||CSN.job.Vc!==V))carSnowStart(V);carSnowWork();
   snowDepU.value=0.01+0.24*CSN.top;if(V.snowTop)V.snowTop.visible=CSN.top>0.02;
-  carSnowU.top.value=CSN.top;carSnowU.low.value=CSN.low;carSnowU.lowY.value=S.y+V.bodyBot-0.25;}
+  carSnowU.top.value=CSN.top;carSnowU.low.value=CSN.low;carSnowU.lowY.value=S.y+V.bodyBot-0.25;
+  if(V.snowRoof){carSnowU.roof.value=V.snowRoof.tex;carSnowU.box.value.copy(V.snowRoof.box);carSnowU.floor.value=V.bodyBot+0.2;V.body.updateMatrixWorld();carSnowU.inv.value.copy(V.body.matrixWorld).invert();carSnowU.ready.value=1;}else carSnowU.ready.value=0;}
 
 /* Tyre tracks */
 const TRK_DIRT=new THREE.Color('#2e2418'),TRK_SNOW=new THREE.Color('#7d8a99');
@@ -6326,20 +6333,20 @@ function updateAudio(dt,env){
   // tyres: gravel loop shaped per surface, road rumble on asphalt, the stream when wading, squeal when sliding
   const sp=Math.abs(S.v||0),ground=playing&&!S.air,sf=S.surf,moving=ground&&sp>0.5,k=Math.pow(clamp(sp/16,0,1),0.8);
   let gv=0,gLp=9000,gRate=0.8+sp*0.02,road=0,wade=0;
-  if(moving){if(sf==='gravel')gv=0.5;else if(sf==='rock'){gv=0.4;gRate*=1.15;}else if(sf==='snow'){gv=L.r_snow?0:0.4;gLp=1400;gRate*=0.7;}else if(sf==='sand'){gv=0.35;gLp=2600;gRate*=0.85;}
+  if(moving){if(sf==='gravel')gv=0.5;else if(sf==='rock'){gv=0.4;gRate*=1.15;}else if(sf==='snow'){gv=0.42;gLp=1900;gRate*=0.55;}else if(sf==='sand'){gv=0.35;gLp=2600;gRate*=0.85;}
     else if(sf==='grass'){gv=0.18;gLp=2000;}else if(sf==='mud'){gv=0.2;gLp=700;gRate*=0.6;}else if(sf==='wood'){gv=0.2;gLp=1600;}else if(sf==='asphalt')road=0.32;else if(sf==='water')wade=0.6;}
   if(L.r_gravel&&L.r_gravin){
     // real tyres: stones crunching under the tyres (heard from outside, or through the floor in the cabin),
     // the deep road drone inside the car, and wind roar that grows with the square of the speed
     // tyres packing fresh snow: a real recording of a car rolling slowly over snow and ice
-    if(L.r_snow){const sv=moving&&sf==='snow'?0.75*Math.pow(clamp(sp/9,0.15,1),0.7):0;setT(L.r_snow.g.gain,inCar?sv*0.55:sv,0.1);setT(L.r_snow.f.frequency,inCar?3200:9000,0.2);L.r_snow.s.playbackRate.setTargetAtTime(clamp(0.75+sp*0.04,0.7,1.35),t,0.12);}
+    if(L.r_snow){const sv=moving&&sf==='snow'?1.0*Math.pow(clamp(sp/7,0.25,1),0.6):0;setT(L.r_snow.g.gain,inCar?sv*0.85:sv*1.1,0.08);setT(L.r_snow.f.frequency,inCar?4200:10000,0.2);L.r_snow.s.playbackRate.setTargetAtTime(clamp(0.75+sp*0.04,0.7,1.35),t,0.12);}
     const gx=gv*k*1.15;setT(L.r_gravel.g.gain,inCar?0:gx,0.08);setT(L.r_gravin.g.gain,inCar?gx*0.9:0,0.08);setT(L.gravel.g.gain,0,0.1);
     setT(L.r_gravel.f.frequency,gLp,0.1);setT(L.r_gravin.f.frequency,Math.min(gLp,5000),0.1);
     const gr=clamp(0.75+sp*0.018,0.6,1.4)*(gRate/(0.8+sp*0.02));L.r_gravel.s.playbackRate.setTargetAtTime(gr,t,0.1);L.r_gravin.s.playbackRate.setTargetAtTime(gr,t,0.1);
     const roll=moving&&sf!=='water'?Math.pow(clamp(sp/30,0,1),1.2):0;
     setT(L.r_roadin.g.gain,inCar?roll*(sf==='asphalt'?0.5:0.32):0,0.15);L.r_roadin.s.playbackRate.setTargetAtTime(0.8+sp*0.012,t,0.15);
     setT(L.road.g.gain,inCar?0:(road*k+(moving&&sf!=='water'?0.05*k:0))*0.7,0.1);L.road.s.playbackRate.setTargetAtTime(0.7+sp*0.015,t,0.1);
-    const aero=playing?Math.pow(clamp(sp/45,0,1),2):0;setT(L.r_windin.g.gain,aero*(inCar?0.22:0.4),0.2);setT(L.r_windin.f.frequency,inCar?2200:7000,0.3);
+    const aero=playing?Math.pow(clamp(sp/45,0,1),2):0;setT(L.r_windin.g.gain,aero*(inCar?0.02:0.4),0.2);setT(L.r_windin.f.frequency,inCar?2200:7000,0.3);
     // loose stones flicking into the wheel arches on gravel and rock
     if(moving&&(sf==='gravel'||sf==='rock')&&Math.random()<dt*sp*0.12)playBuf(pick(['r_stone1','r_stone2','r_stone3','r_stone4']),(inCar?0.07:0.12)*(0.4+Math.random()*0.8)*Math.min(1,sp/10),0.8+Math.random()*0.5,(Math.random()-0.5)*0.9);}
   else{setT(L.gravel.g.gain,gv*k*(inCar?0.6:1),0.08);setT(L.gravel.f.frequency,gLp,0.1);L.gravel.s.playbackRate.setTargetAtTime(clamp(gRate,0.5,1.6),t,0.1);
@@ -6354,7 +6361,7 @@ function updateAudio(dt,env){
   AU.gustT=(AU.gustT===undefined?20:AU.gustT)-dt;if(AU.gustT<=0){AU.gustLen=6+Math.random()*14+wA*10;AU.gustAt=AU.gustLen;AU.gustT=AU.gustLen+(wA>0.3?10+Math.random()*20:40+Math.random()*80);AU.gustPk=0.35+Math.random()*0.4+wA*0.3;}
   AU.gustAt=Math.max(0,(AU.gustAt||0)-dt);const ge=AU.gustLen?Math.sin(Math.PI*clamp(1-AU.gustAt/AU.gustLen,0,1)):0;
   AU.windV+=((ge*(AU.gustPk||0)+wA*0.12+sandA*0.45+(zoneOf(S.z)===4?0.06:0))-AU.windV)*Math.min(1,dt*0.8);
-  setT(L.wind.g.gain,AU.windV*(inCar?0.4:0.75)*(S.mode==='play'||S.mode==='menu'?1:0),0.3);setT(L.wind.f.frequency,inCar?1200:4000,0.3);
+  setT(L.wind.g.gain,AU.windV*(inCar?0.04:0.75)*(S.mode==='play'||S.mode==='menu'?1:0),0.3);setT(L.wind.f.frequency,inCar?1200:4000,0.3);
   // nature: birds by day in green lands, insects at night, running water near lakes, fords and the sea
   const zk=zoneOf(S.z),bz=ZB[zk].birds,green=bz==='song'?1:bz==='forest'?0.9:bz==='coast'?0.4:bz==='crow'?0.2:0.05;
   AU.birdG+=(green*sstep(0.25,0.6,env.dayF)*(1-Math.min(1,wA*1.4))-AU.birdG)*Math.min(1,dt*0.3);
@@ -7351,6 +7358,7 @@ function updateWindscreen(dt,env){
   const SW=1.15,PAUSE=wet>0.6?1.2:wet>0.3?3:5;
   if(wet>0.1||WS.run>0){const was=WS.t;WS.t+=dt;const P=SW+PAUSE;if(was%P>WS.t%P||was===0){if(wet>0.1){WS.run=1;if(S.mode==='play')playBuf('r_wiper',S.cam===4?0.9:0.4,0.97+Math.random()*0.06);}else WS.run=0;}
     if(!WS.run)WS.t=0;}
+  if(V&&V.wip&&V.wip.length&&(WS.swept||(WS.run&&WS.t>0.6))){WS.swept=true;V.wip[0].pv.getWorldPosition(wipeU.p1.value);(V.wip[1]||V.wip[0]).pv.getWorldPosition(wipeU.p2.value);wipeU.len.value=V.wip[0].L||0.5;}else wipeU.len.value=0;
   if(!show)return;
   // no mist or drops painted on the glass any more: only the wiper blades sweep across it
   const ph=WS.t%(SW+PAUSE),s=WS.run&&ph<SW?0.5-0.5*Math.cos(ph/SW*Math.PI*2):0;
