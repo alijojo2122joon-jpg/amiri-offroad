@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=93</script>
+<script>window.GAME_CODE=94</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -2535,10 +2535,10 @@ const carSnowU={top:{value:0},low:{value:0},lowY:{value:0},inv:{value:new THREE.
 function carSnowPaint(Vc){const seen=new Map();Vc.g.traverse(o=>{if(!o.isMesh||!o.material||Array.isArray(o.material))return;const m=o.material;
   if(m===snowTopMat||m===snowLowMat||(m.userData&&m.userData.frost)||m.transparent||!(m.isMeshPhongMaterial||m.isMeshLambertMaterial||m.isMeshStandardMaterial))return;
   let c=seen.get(m);if(!c){c=m.clone();c.userData={carSnow:true};c.customProgramCacheKey=()=>'carsnow';
-    c.onBeforeCompile=sh=>{sh.uniforms.uSTop=carSnowU.top;sh.uniforms.uSLow=carSnowU.low;sh.uniforms.uSLowY=carSnowU.lowY;sh.uniforms.uSInv=carSnowU.inv;sh.uniforms.uSRoof=carSnowU.roof;sh.uniforms.uSBox=carSnowU.box;sh.uniforms.uSReady=carSnowU.ready;sh.uniforms.uSFloor=carSnowU.floor;sh.uniforms.uSCab=carSnowU.cabin;
+    c.onBeforeCompile=sh=>{sh.uniforms.uSTop=carSnowU.top;sh.uniforms.uSLow=carSnowU.low;sh.uniforms.uSLowY=carSnowU.lowY;sh.uniforms.uSInv=carSnowU.inv;sh.uniforms.uSRoof=carSnowU.roof;sh.uniforms.uSBox=carSnowU.box;sh.uniforms.uSReady=carSnowU.ready;sh.uniforms.uSFloor=carSnowU.floor;sh.uniforms.uSCab=carSnowU.cabin;sh.uniforms.uSLight=frostLU;
       sh.vertexShader='varying vec3 vSWP;varying vec3 vSWN;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvSWP=(modelMatrix*vec4(transformed,1.0)).xyz;vSWN=normalize(mat3(modelMatrix)*objectNormal);');
-      sh.fragmentShader='uniform float uSTop;uniform float uSLow;uniform float uSLowY;uniform mat4 uSInv;uniform sampler2D uSRoof;uniform vec4 uSBox;uniform float uSReady;uniform float uSFloor;uniform float uSCab;varying vec3 vSWP;varying vec3 vSWN;\nfloat sh3(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat sn3(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(sh3(i),sh3(i+vec3(1,0,0)),f.x),mix(sh3(i+vec3(0,1,0)),sh3(i+vec3(1,1,0)),f.x),f.y),mix(mix(sh3(i+vec3(0,0,1)),sh3(i+vec3(1,0,1)),f.x),mix(sh3(i+vec3(0,1,1)),sh3(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
-        +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nbool inside=false;vec3 slp=(uSInv*vec4(vSWP,1.0)).xyz;if(uSReady>0.5){vec3 lp=slp;vec2 uv=vec2((lp.x+uSBox.x)/(2.0*uSBox.x),(lp.z+uSBox.y)/(2.0*uSBox.y));if(uv.x>0.0&&uv.x<1.0&&uv.y>0.0&&uv.y<1.0){vec4 r=texture2D(uSRoof,uv);float hy=uSBox.z+r.r*uSBox.w;inside=abs(lp.x)<uSBox.x-0.34&&lp.y<hy-0.12&&lp.y>uSFloor;}}\nif(inside&&uSCab>0.5){float cn=sn3(slp*55.0)*0.5+sn3(slp*140.0)*0.5;float lum=dot(gl_FragColor.rgb,vec3(0.3,0.59,0.11));vec3 trim=mix(vec3(0.20,0.19,0.18),vec3(0.27,0.25,0.23),cn);vec3 cloth=mix(vec3(0.30,0.26,0.22),vec3(0.40,0.35,0.30),cn);float seat=smoothstep(0.55,0.85,normalize(vSWN).y);gl_FragColor.rgb=mix(gl_FragColor.rgb,mix(trim,cloth,seat)*(0.7+0.6*lum),smoothstep(0.25,0.05,lum));}\nif(!inside&&uSTop+uSLow>0.01){float n=sn3(slp*6.0)*0.6+sn3(slp*19.0)*0.4;float up=smoothstep(0.42,0.75,normalize(vSWN).y)*smoothstep(0.0,0.4,uSTop)*smoothstep(0.25,0.55,n+uSTop*0.3);float lo=smoothstep(uSLowY+0.75,uSLowY+0.05,vSWP.y)*smoothstep(0.0,0.5,uSLow)*smoothstep(0.3,0.6,n+uSLow*0.35);float f=clamp(max(up,lo),0.0,1.0);gl_FragColor.rgb=mix(gl_FragColor.rgb,vec3(0.93,0.95,0.985)*(0.9+0.1*n),f);}');};
+      sh.fragmentShader='uniform float uSTop;uniform float uSLow;uniform float uSLowY;uniform mat4 uSInv;uniform sampler2D uSRoof;uniform vec4 uSBox;uniform float uSReady;uniform float uSFloor;uniform float uSCab;uniform float uSLight;varying vec3 vSWP;varying vec3 vSWN;\nfloat sh3(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat sn3(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(sh3(i),sh3(i+vec3(1,0,0)),f.x),mix(sh3(i+vec3(0,1,0)),sh3(i+vec3(1,1,0)),f.x),f.y),mix(mix(sh3(i+vec3(0,0,1)),sh3(i+vec3(1,0,1)),f.x),mix(sh3(i+vec3(0,1,1)),sh3(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
+        +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nbool inside=false;vec3 slp=(uSInv*vec4(vSWP,1.0)).xyz;if(uSReady>0.5){vec3 lp=slp;vec2 uv=vec2((lp.x+uSBox.x)/(2.0*uSBox.x),(lp.z+uSBox.y)/(2.0*uSBox.y));if(uv.x>0.0&&uv.x<1.0&&uv.y>0.0&&uv.y<1.0){vec4 r=texture2D(uSRoof,uv);float hy=uSBox.z+r.r*uSBox.w;inside=abs(lp.x)<uSBox.x-0.34&&lp.y<hy-0.12&&lp.y>uSFloor;}}\nif(inside&&uSCab>0.5){float cn=sn3(slp*55.0)*0.5+sn3(slp*140.0)*0.5;float lum=dot(gl_FragColor.rgb,vec3(0.3,0.59,0.11));vec3 trim=mix(vec3(0.20,0.19,0.18),vec3(0.27,0.25,0.23),cn);vec3 cloth=mix(vec3(0.30,0.26,0.22),vec3(0.40,0.35,0.30),cn);float seat=smoothstep(0.55,0.85,normalize(vSWN).y);gl_FragColor.rgb=mix(gl_FragColor.rgb,mix(trim,cloth,seat)*(0.7+0.6*lum),smoothstep(0.25,0.05,lum));}\nif(!inside&&uSTop+uSLow>0.01){float n=sn3(slp*6.0)*0.6+sn3(slp*19.0)*0.4;float up=smoothstep(0.42,0.75,normalize(vSWN).y)*smoothstep(0.0,0.4,uSTop)*smoothstep(0.25,0.55,n+uSTop*0.3);float lo=smoothstep(uSLowY+0.75,uSLowY+0.05,vSWP.y)*smoothstep(0.0,0.5,uSLow)*smoothstep(0.3,0.6,n+uSLow*0.35);float f=clamp(max(up,lo),0.0,1.0);gl_FragColor.rgb=mix(gl_FragColor.rgb,vec3(0.93,0.95,0.985)*(0.9+0.1*n)*max(uSLight,0.06),f);}');};
     seen.set(m,c);}
   o.material=c;});}
 function carSnowStart(Vc){const body=Vc.body,bp=Vc.bodyPts[0],L=bp[0]+0.25,W=bp[1]+0.12,NX=12,NZ=24,targets=[];
@@ -2570,8 +2570,8 @@ function carSnowWork(){const J=CSN.job;if(!J||J.done)return;const {body,L,W,NX,N
   let mx=-1e9,mn=1e9;for(const h of HR)if(h!==null){mx=Math.max(mx,h);mn=Math.min(mn,h);}const rng=Math.max(0.5,mx-mn+0.2),D=new Uint8Array((NX+1)*(NZ+1)*4);
   for(let v=0;v<HR.length;v++){const h=HR[v];D[v*4]=h===null?0:Math.round(clamp((h-mn+0.1)/rng,0,1)*255);D[v*4+1]=h!==null&&h>mx-0.5?255:0;D[v*4+3]=255;}
   const tex=new THREE.DataTexture(D,NX+1,NZ+1,THREE.RGBAFormat);tex.magFilter=tex.minFilter=THREE.NearestFilter;tex.needsUpdate=true;
-  // small, low cars (sports cars, hatchbacks) carry only a thin layer: about 5 cm; tall ones up to 25 cm
-  J.Vc.snowMax=mx<1.95?0.05:0.24;
+  // small, low cars (sports cars, hatchbacks) carry only a thin layer: about 5 cm; bigger ones up to 12 cm
+  J.Vc.snowMax=mx<1.95?0.05:0.12;
   J.Vc.snowRoof={tex,box:new THREE.Vector4(W*(NX+1)/NX,L*(NZ+1)/NZ,mn-0.1,rng)};}
 function carSnowStep(dt,snowA,rainA){if(!V||S.mode!=='play')return;
   const onSnow=S.surf==='snow'&&!S.air&&Math.abs(S.v||0)>0.5;
