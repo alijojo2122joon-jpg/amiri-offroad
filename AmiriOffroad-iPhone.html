@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Amiri Offroad">
-<script>window.GAME_CODE=98</script>
+<script>window.GAME_CODE=99</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -4119,7 +4119,7 @@ function saveSet(){try{localStorage.setItem(SETK,JSON.stringify(SET));}catch(e){
 if(!SET.qv2){SET.quality='auto';SET.qv2=1;}
 const PERF={lvl:(navigator.hardwareConcurrency||4)>=8&&(navigator.deviceMemory||4)>=6?3:(navigator.hardwareConcurrency||4)>=6&&(navigator.deviceMemory||4)>=4?2:(navigator.hardwareConcurrency||4)<=4||(navigator.deviceMemory||4)<=3?0:1,acc:0,n:0,t:0,good:0,downAt:-1e9,ps:1,fn:0};
 // the level that kept this phone smooth last time is where it starts
-try{const pl=JSON.parse(localStorage.getItem('amiri-perf')||'null');if(pl&&pl.lvl>=0&&pl.lvl<=3){PERF.lvl=pl.lvl;PERF.ps=clamp(pl.ps||1,0.55,1);}}catch(e){}
+try{const pl=JSON.parse(localStorage.getItem('amiri-perf')||'null');if(pl&&pl.lvl>=0&&pl.lvl<=3){PERF.lvl=pl.lvl;PERF.ps=1;}}catch(e){}
 function perfKeep(){try{localStorage.setItem('amiri-perf',JSON.stringify({lvl:PERF.lvl,ps:PERF.ps}));}catch(e){}}
 const QL=()=>SET.quality==='high'?3:SET.quality==='low'?1:PERF.lvl,QV=a=>a[QL()];
 // each camera mode remembers how you turned and moved it (one finger: turn; two fingers: pinch to zoom, drag to move)
@@ -4519,7 +4519,7 @@ const sun=new THREE.DirectionalLight(0xffd9a6,1.05);
 sun.castShadow=false;
 Object.assign(sun.shadow.camera,{left:-45,right:45,top:45,bottom:-45,near:10,far:400});sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.03;
 sun.shadow.bias=-0.0006;sun.shadow.normalBias=0.04;scene.add(sun);scene.add(sun.target);
-function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setPixelRatio(Math.min((window.devicePixelRatio||1)*((window.visualViewport&&visualViewport.scale)||1),QV([0.72,0.98,1.3,2])*PERF.ps));renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();try{S.vOff=-1;}catch(e){}}
+function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setPixelRatio(Math.min((window.devicePixelRatio||1)*((window.visualViewport&&visualViewport.scale)||1),QV([1,1.1,1.35,2])));renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();try{S.vOff=-1;}catch(e){}}
 window.addEventListener('resize',resize);
 const timeU={value:0},windU={value:1},snowU={value:0},wetU={value:0},snowDU={value:0},snowCU={value:new THREE.Vector3(0,0,20)};
 const matCache={};
@@ -8259,7 +8259,7 @@ function perfStep(rd){if(SET.quality!=='auto'||S.mode!=='play'||S.modal||rd>0.5)
   if(PERF.t<2)return;const fps=PERF.n/PERF.acc,now=performance.now();PERF.acc=PERF.n=PERF.t=0;
   if(fps<42&&PERF.lvl>0){PERF.lvl--;PERF.downAt=now;PERF.good=0;applySettings();if(TR.cars.length>TR_N())trimTraffic();perfKeep();}
   // already at the lightest level: draw fewer pixels until it is smooth
-  else if(fps<40&&PERF.lvl===0&&PERF.ps>0.56){PERF.ps=Math.max(0.55,PERF.ps-0.1);PERF.downAt=now;PERF.good=0;resize();perfKeep();}
+  // never drawn below one pixel per screen pixel: a blurry, blocky picture is worse than a few frames less
   else if(fps>56){PERF.good+=2;if(PERF.good>=8&&now-PERF.downAt>30000){if(PERF.ps<1){PERF.ps=Math.min(1,PERF.ps+0.1);resize();}else if(PERF.lvl<3){PERF.lvl++;applySettings();}PERF.good=0;perfKeep();}}else PERF.good=0;}
 function trimTraffic(){while(TR.cars.length>TR_N()){const c=TR.cars.pop();if(typeof trFree==='function')trFree(c);}}
 /* ---------- Loop ---------- */
