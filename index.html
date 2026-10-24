@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=79</script>
+<script>window.GAME_CODE=80</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -855,14 +855,15 @@ const canvas=$('gl');
 // smoothing the edges costs a lot on weaker phones; they get a sharper picture from the pixel count instead
 const renderer=new THREE.WebGLRenderer({canvas,antialias:PERF.lvl>=2&&SET.quality!=='low',powerPreference:'high-performance'});
 if(FILMIC){renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;renderer.physicallyCorrectLights=false;}
-renderer.shadowMap.enabled=true;renderer.shadowMap.type=PERF.lvl>=2?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;renderer.shadowMap.autoUpdate=false;
+// no shadow maps (the heaviest part of drawing on a phone); the soft dark patch under each car stays
+renderer.shadowMap.enabled=false;
 const scene=new THREE.Scene();
 const HOR=new THREE.Color('#f2dfbf');
 scene.background=HOR.clone();scene.fog=new THREE.Fog(HOR,260,1800);
 const camera=new THREE.PerspectiveCamera(60,1,0.3,6000);
 const hemi=new THREE.HemisphereLight(0xcfe3ff,0x8a7350,0.62);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xffd9a6,1.05);
-sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+sun.castShadow=false;
 Object.assign(sun.shadow.camera,{left:-45,right:45,top:45,bottom:-45,near:10,far:400});sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.03;
 sun.shadow.bias=-0.0006;sun.shadow.normalBias=0.04;scene.add(sun);scene.add(sun.target);
 function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setPixelRatio(Math.min((window.devicePixelRatio||1)*((window.visualViewport&&visualViewport.scale)||1),QV([0.72,0.98,1.3,2])*PERF.ps));renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();try{S.vOff=-1;}catch(e){}}
@@ -2790,7 +2791,7 @@ $('laW').addEventListener('input',e=>laSize('w',+e.target.value));$('laC').addEv
 document.addEventListener('click',e=>{if(document.body.classList.contains('editing')&&$('comms').contains(e.target)){e.stopPropagation();e.preventDefault();}},true);$('laP').addEventListener('input',e=>laSize('p',+e.target.value));
 $('laReset').addEventListener('click',()=>{SET.lay={};applyLayout();$('laW').value=1;$('laP').value=1;$('laC').value=1;});$('laDone').addEventListener('click',endLayout);
 window.addEventListener('resize',applyLayout);
-function applySettings(){applyLayout();resize();const ms=QV([512,1024,1024,2048]);sun.castShadow=QL()>0;if(sun.shadow.mapSize.x!==ms){sun.shadow.mapSize.set(ms,ms);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}}
+function applySettings(){applyLayout();resize();const ms=QV([512,1024,1024,2048]);sun.castShadow=false;if(sun.shadow.mapSize.x!==ms){sun.shadow.mapSize.set(ms,ms);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}}
   if(SET.time==='day')S.tod=0.42;else if(SET.time==='sunset')S.tod=0.715;else if(SET.time==='night')S.tod=0.02;$('spdU').textContent=SET.units==='mph'?'mph':'km/h';$('fpsTag').hidden=!SET.fps;try{vcUI();}catch(e){}if(typeof pTile!=='undefined'&&tiles.size)scanTiles(true);}
 
 /* Menus, exit and map */
@@ -4358,7 +4359,6 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
     drawCompass();drawMini();}}
   rainbowStep(dt,env);banksStep();elemVisStep(dt);if(Math.floor(performance.now()/500)!==STG.gT){STG.gT=Math.floor(performance.now()/500);gatesStep();}rivNrm.offset.y-=dt*0.32;commsFrame(dt);animalsStep(dt);{const tn2=performance.now();if(tn2-cabT>500){cabT=tn2;cabinsStep();}}
   // shadows are redrawn every frame on strong phones, every second frame on the others
-  PERF.fn++;renderer.shadowMap.needsUpdate=QL()>=2||(PERF.fn&1)===0;
   renderer.render(scene,camera);requestAnimationFrame(frame);
 }
 rebuildEnv();scanTiles(true);processTiles(1e9);updateRoad(true);applyVehicle();applySettings();refreshMenu();updateGrass(0,true);
