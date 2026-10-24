@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Amiri Offroad">
-<script>window.GAME_CODE=99</script>
+<script>window.GAME_CODE=100</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -4119,9 +4119,10 @@ function saveSet(){try{localStorage.setItem(SETK,JSON.stringify(SET));}catch(e){
 if(!SET.qv2){SET.quality='auto';SET.qv2=1;}
 const PERF={lvl:(navigator.hardwareConcurrency||4)>=8&&(navigator.deviceMemory||4)>=6?3:(navigator.hardwareConcurrency||4)>=6&&(navigator.deviceMemory||4)>=4?2:(navigator.hardwareConcurrency||4)<=4||(navigator.deviceMemory||4)<=3?0:1,acc:0,n:0,t:0,good:0,downAt:-1e9,ps:1,fn:0};
 // the level that kept this phone smooth last time is where it starts
-try{const pl=JSON.parse(localStorage.getItem('amiri-perf')||'null');if(pl&&pl.lvl>=0&&pl.lvl<=3){PERF.lvl=pl.lvl;PERF.ps=1;}}catch(e){}
+// highest quality on every phone, always: nothing is ever lowered or left out
+PERF.lvl=3;PERF.ps=1;SET.quality='high';try{localStorage.removeItem('amiri-perf');}catch(e){}
 function perfKeep(){try{localStorage.setItem('amiri-perf',JSON.stringify({lvl:PERF.lvl,ps:PERF.ps}));}catch(e){}}
-const QL=()=>SET.quality==='high'?3:SET.quality==='low'?1:PERF.lvl,QV=a=>a[QL()];
+const QL=()=>3,QV=a=>a[QL()];
 // each camera mode remembers how you turned and moved it (one finger: turn; two fingers: pinch to zoom, drag to move)
 const CAM0=()=>({yaw:0,pitch:0,zoom:1,up:0,side:0});
 if(!Array.isArray(SET.cam)||SET.cam.length!==5)SET.cam=[0,1,2,3,4].map(CAM0);
@@ -4506,7 +4507,7 @@ function surfaceAt(x,z){
 /* ---------- Renderer, sky, light ---------- */
 const canvas=$('gl');
 // smoothing the edges costs a lot on weaker phones; they get a sharper picture from the pixel count instead
-const renderer=new THREE.WebGLRenderer({canvas,antialias:PERF.lvl>=2&&SET.quality!=='low',powerPreference:'high-performance'});
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
 if(FILMIC){renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;renderer.physicallyCorrectLights=false;}
 // no shadow maps (the heaviest part of drawing on a phone); the soft dark patch under each car stays
 renderer.shadowMap.enabled=false;
@@ -6602,7 +6603,7 @@ function renderSettings(){$('setBody').innerHTML=seg(tr_('زبان'),'lang',[['f
   +'<label class="prof">'+tr_('اسم')+'<input id="pfName" maxlength="16" autocomplete="nickname"></label>'
   +'<label class="prof">'+tr_('ایمیل (جیمیل)')+'<input id="pfMail" type="email" maxlength="60" autocomplete="email" dir="ltr" placeholder="name@gmail.com"></label>'
   +'<label class="prof">'+tr_('پلاک ماشین')+'<input id="pfPlate" maxlength="10"></label><small style="color:#6a5d4e">'+tr_('پلاک روی جلو و عقب ماشینت دیده می‌شود، هم برای خودت و هم برای بقیه در بازی آنلاین.')+'</small>'
-  +tr_('<button class="big alt" id="layBtn">جابه‌جایی و اندازهٔ فرمان و پدال‌ها</button>')+seg(tr_('صدا'),'sound',[[true,tr_('روشن')],[false,tr_('خاموش')]])+range(tr_('بلندی صدا'),'vol',0,1,0.05)+seg(tr_('کیفیت گرافیک'),'quality',[['auto',tr_('خودکار (روان)')],['high',tr_('بالا')],['low',tr_('سبک')]])+range(tr_('حساسیت فرمان'),'sens',0.6,1.6,0.1)
+  +tr_('<button class="big alt" id="layBtn">جابه‌جایی و اندازهٔ فرمان و پدال‌ها</button>')+seg(tr_('صدا'),'sound',[[true,tr_('روشن')],[false,tr_('خاموش')]])+range(tr_('بلندی صدا'),'vol',0,1,0.05)+range(tr_('حساسیت فرمان'),'sens',0.6,1.6,0.1)
   +seg(tr_('واحد سرعت'),'units',[['kmh',tr_('کیلومتر')],['mph',tr_('مایل')]])
   +seg(tr_('بزرگنمایی نقشهٔ کوچک'),'miniZoom',[[160,tr_('نزدیک')],[260,tr_('متوسط')],[480,tr_('دور')]])
   +range(tr_('بلندی آهنگ (ضبط ماشین)'),'mvol',0,1,0.05)
@@ -8255,7 +8256,7 @@ function cabinLight(env){const on=V&&S.mode==='play'&&S.cam===4;if(!on){CABL.int
   const f=V.fpp;cabTmp.set(f[0]*0.3,f[1]+0.05,f[2]+0.55);V.body.localToWorld(cabTmp);CABL.position.copy(cabTmp);
   CABL.intensity=(0.6+0.9*(env&&env.dayF!==undefined?env.dayF:1))*(V.type==='glb'?1.25:1);}
 // watch the frame rate while driving and step the graphics level down or up
-function perfStep(rd){if(SET.quality!=='auto'||S.mode!=='play'||S.modal||rd>0.5)return;PERF.acc+=rd;PERF.n++;PERF.t+=rd;
+function perfStep(rd){return;if(S.mode!=='play'||S.modal||rd>0.5)return;PERF.acc+=rd;PERF.n++;PERF.t+=rd;
   if(PERF.t<2)return;const fps=PERF.n/PERF.acc,now=performance.now();PERF.acc=PERF.n=PERF.t=0;
   if(fps<42&&PERF.lvl>0){PERF.lvl--;PERF.downAt=now;PERF.good=0;applySettings();if(TR.cars.length>TR_N())trimTraffic();perfKeep();}
   // already at the lightest level: draw fewer pixels until it is smooth
