@@ -1,13 +1,13 @@
 {
- "code": 96,
+ "code": 97,
  "minApk": 71,
  "apkUrl": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/AmiriOffroad.apk",
  "files": [
   {
    "path": "index.html",
    "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html",
-   "sha256": "af3467bf3f1b4385a3533112f41c690ca65141dafcb4fcbbe62cfcf738f03be4",
-   "size": 728566
+   "sha256": "2b3fedb1f89407700ab2deb5d80f1ac0cfe5d954b6fbb3dd910276ec130d4edd",
+   "size": 728543
   },
   {
    "path": "snd/r_snow.ogg",
@@ -44,54 +44,6 @@
    "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/wolf4.ogg",
    "sha256": "2d88021bb864b16a1529ddcfefbfea78de191f49c60f27c47e2971a48ef128e7",
    "size": 71902
-  },
-  {
-   "path": "snd/r_start2.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/r_start2.ogg",
-   "sha256": "1f7e66e96994a6fa6e2cb26c711297f4d964738e8939851cacfe41df4892af57",
-   "size": 24581
-  },
-  {
-   "path": "snd/r_startin.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/r_startin.ogg",
-   "sha256": "ed43d7015a3135af629590f55086a17893eb7253f88474410cfbf6c5cb772c49",
-   "size": 23303
-  },
-  {
-   "path": "snd/d4_idle.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/d4_idle.ogg",
-   "sha256": "2a4cbd431059800c0add74b79a4fb7e0fce6de5ada2e6d96633325882026434f",
-   "size": 32945
-  },
-  {
-   "path": "snd/d4_mid.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/d4_mid.ogg",
-   "sha256": "9f7080369f08ee1c8279dd22add4e508269cdd52ac24a9ed833a4a3a06f0927c",
-   "size": 30351
-  },
-  {
-   "path": "snd/d4_high.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/d4_high.ogg",
-   "sha256": "f2f3635e191f9f1c41e625aaf9968a3038f8464f348315112a8e22277b0a2697",
-   "size": 48807
-  },
-  {
-   "path": "snd/p4_idle.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/p4_idle.ogg",
-   "sha256": "578a07348f059294eb8a69844d7555a1a9e3cf566ec0a0fa7578234aa4155bf3",
-   "size": 45055
-  },
-  {
-   "path": "snd/p4_mid.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/p4_mid.ogg",
-   "sha256": "898cc1fed4f0246cc9eed927aef40abba83a1850a12f747dc35f60877916b50e",
-   "size": 34171
-  },
-  {
-   "path": "snd/p4_high.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/p4_high.ogg",
-   "sha256": "8f59d6324253e4dc7fa2ea677f0b883d56784861127b2050f917291ee836adb3",
-   "size": 17123
   }
  ]
 }
