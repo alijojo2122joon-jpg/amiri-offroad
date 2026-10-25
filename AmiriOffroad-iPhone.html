@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Amiri Offroad">
-<script>window.GAME_CODE=101</script>
+<script>window.GAME_CODE=102</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -4204,8 +4204,7 @@ function stageOf(z){return clamp(Math.floor(z/STAGE_LEN),0,NSTAGE-1);}
     // which challenges: always several, more of them and harder as you go
     const LP=[['park','logs','mud','stairs','planks','cont'],['mud','planks','logs','beams','park','dunes'],['logs','mud','tunnel','planks','ridge','park'],['ledge','ridge','jump','dunes','cont','tunnel'],
       ['stairs','cont','park','dunes','volcano','jump'],['ice','tunnel','ridge','planks','stairs','ledge'],['logs','mud','tunnel','ledge','planks','ridge'],['beams','dunes','cont','park','volcano','planks']];
-    // no ramp jumps any more: at these crawling speeds no car could clear a gap
-    const ALL=['park','ledge','volcano','beams','cont','ridge','ice','dunes','stairs','planks','logs','mud','tunnel'];
+    const ALL=['park','ledge','volcano','beams','cont','ridge','jump','ice','dunes','stairs','planks','logs','mud','tunnel'];
     const prev=STAGES.length?STAGES[STAGES.length-1].els.map(E=>E.type):[],prev2=STAGES.length>1?STAGES[STAGES.length-2].els.map(E=>E.type):[];
     const n=Math.min(7,5+Math.floor(r()*2.6));
     // every stage different: the challenges of the last two stages are pushed back, the land's own ones come forward
@@ -4233,7 +4232,7 @@ function stageOf(z){return clamp(Math.floor(z/STAGE_LEN),0,NSTAGE-1);}
       if(t==='ledge'||t==='ice'){E.w=CARW+0.45+1.0*(1-E.d);}if(t==='ridge'){E.w=CARW+1.25+1.8*(1-E.d);}
       if(t==='volcano'){E.hw=(CARW+0.3+0.5*(1-E.d))/2;E.amp=E.d>0.3?1.2+2.4*E.d:0;E.Rc=E.L/2-7;}
       if(t==='beams'){E.bw=0.64+0.25*(1-E.d);E.amp=E.d*3.2;E.und=0.4+E.d*1.4;}
-      if(t==='jump'){E.rampS=14;E.rampL=18;E.rampH=5.2;E.gap0=E.rampS+E.rampL;E.gapW=3+1*E.d;}
+      if(t==='jump'){E.rampS=14;E.rampL=20;E.rampH=3.2;E.gap0=E.rampS+E.rampL;E.gapW=10+5*E.d;}
       if(t==='dunes'){E.cw=4.2+0.6*(1-E.d);E.A=0.5+0.85*E.d;E.lam=26-4*E.d;}
       if(t==='stairs'){const N=5+Math.floor(4*E.d),T=3.6-0.9*E.d,rs=0.2+0.1*E.d;E.N=N;E.T=T;E.rs=rs;E.hw=2.3+0.3*(1-E.d);E.L=12+2*N*T+14+10;E.z1=E.z0+E.L;E.eB=roadEraw(E.z1);}
       if(t==='planks'){E.hw=2.8;const R2=mulberry32(E.seed),H=[];let q=6;while(q<E.L-6){q+=4+R2()*(7-3*E.d);if(q>E.L-6)break;if(R2()<0.35){const g=0.22+R2()*0.16;H.push({s0:q,s1:q+g,a:-9,b:9});q+=g;}else{const sd=R2()<0.5?-1:1,l=1.4+R2()*(0.8+1.2*E.d);const lh=H.filter(h=>h.a>-8||h.b<8).pop();if(lh&&((lh.a>0)!==(sd>0))&&q<lh.s1+12)q=lh.s1+12;if(lh&&q<lh.s1+6)q=lh.s1+6;if(q+l>E.L-6)break;H.push({s0:q,s1:q+l,a:sd>0?0.9-0.45*E.d:-9,b:sd>0?9:-0.9+0.45*E.d});q+=l;}}E.holes=H;E.sag=0.3+0.8*E.d;}
@@ -5312,7 +5311,7 @@ function cust(i){const c=custAll[i]||(custAll[i]={});const d={paint:null,rim:nul
 // no money in the game for now: everything in the garage is free
 function upCost(i,k,lv){return 0;}
 // every car tops out at a quarter of what it once did (upgrades included): this is crawling country, not a race track
-const SPEEDK=0.24;
+const SPEEDK=1;
 function stats(i){const t=VEH[i],u=upg(i),p=cust(i).tire;return{maxV:t.maxV*SPEEDK*(1+0.06*u.e)*(1-(1-p)*0.25),acc:t.acc*(1+0.1*u.e),grip:t.grip*(1+0.06*u.t),brake:13*(1+0.15*u.b),travel:0.05*u.s,soft:1-0.06*u.s,p};}
 const headM=new THREE.MeshBasicMaterial({color:'#e8e2cf'}),tailM=new THREE.MeshBasicMaterial({color:'#8c2620'}),amberM=new THREE.MeshBasicMaterial({color:'#e08a2a'}),roofLM=new THREE.MeshBasicMaterial({color:'#e7e1cf'});
 const TYPES={pickup:{k:22,travel:0.28,hcg:0.7,camK:1},jeep:{k:24,travel:0.3,hcg:0.65,camK:0.95},suv:{k:21,travel:0.28,hcg:0.78,camK:1.05},suvlong:{k:20,travel:0.28,hcg:0.8,camK:1.12},van:{k:21,travel:0.25,hcg:0.86,camK:1.12},truck:{k:26,travel:0.24,hcg:0.9,camK:1.3},monster:{k:13,travel:0.5,hcg:1.25,camK:1.25},tank:{k:30,travel:0.14,hcg:0.55,camK:1.3},glb:{k:30,travel:0.15,hcg:0.48,camK:0.95},sedan:{k:25,travel:0.17,hcg:0.5,camK:0.92},crawler:{k:12,travel:0.55,hcg:1.3,camK:1.22}};
@@ -8129,7 +8128,7 @@ function trModel(){
 function rHead(s){return Math.atan(roadDX(s));}
 function rCurv(s){const a=roadDX(s-3),b=roadDX(s+3),d=roadDX(s);return Math.abs((b-a)/6)/Math.pow(1+d*d,1.5);}
 function trPos(c){const dx=roadDX(c.s),l=Math.sqrt(1+dx*dx);c.x=roadX(c.s)+c.off/l;c.z=c.s-dx/l*c.off;c.th=Math.atan(dx)+(c.dir<0?Math.PI:0);}
-function trSpawn(c,s,dir){c.dir=dir;c.s=s;c.off=-dir*LANE;c.offT=c.off;c.vmax=(12+Math.random()*6.5)*0.35;c.v=c.vmax*0.8;c.crash=false;c.vx=c.vz=c.w=0;c.blockT=0;c.pass=false;c.honkT=0;c.brk=false;c.park=false;c.rot=0;trPos(c);c.y=Hd(c.x,c.z);c.p=c.r=0;c.V.g.visible=true;}
+function trSpawn(c,s,dir){c.dir=dir;c.s=s;c.off=-dir*LANE;c.offT=c.off;c.vmax=12+Math.random()*6.5;c.v=c.vmax*0.8;c.crash=false;c.vx=c.vz=c.w=0;c.blockT=0;c.pass=false;c.honkT=0;c.brk=false;c.park=false;c.rot=0;trPos(c);c.y=Hd(c.x,c.z);c.p=c.r=0;c.V.g.visible=true;}
 function trFree(c){c.V.g.visible=false;TR.pool.push(c.V);}
 function trValid(s){return s>-60&&s<PAVE-200;}
 // keep the window around the player filled: each lane gets cars at random gaps ahead and behind
