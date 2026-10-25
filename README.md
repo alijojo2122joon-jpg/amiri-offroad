@@ -15,3 +15,5 @@
 **Shqip:** Shkarko dhe instalo APK-në. Pas kësaj, loja përditësohet vetë nga kjo faqe sa herë që hapet.
 
 This repository only holds the game's builds and updates.
+
+[Privacy policy · سیاست حریم خصوصی](PRIVACY.md)
