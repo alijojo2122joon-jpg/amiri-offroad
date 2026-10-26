@@ -1,14 +1,13 @@
 {
- "code": 110,
+ "code": 111,
  "minApk": 110,
  "apkUrl": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/AmiriOffroad.apk",
  "files": [
   {
    "path": "index.html",
    "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html",
-   "sha256": "6b61da252f37025744a8bfe9fe1eec0b8774ee9fba7f398b06b4e58dcd9d3340",
-   "size": 746907
+   "sha256": "7938b225ed059f919ba378b1f261bd7fcfb6b241ae04f1fea5a67eab3c6a9d92",
+   "size": 748399
   }
- ],
- "apkSize": 21867701
+ ]
 }

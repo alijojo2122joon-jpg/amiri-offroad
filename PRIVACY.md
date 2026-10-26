@@ -1,6 +1,6 @@
 # Amiri Offroad — Privacy Policy
 
-*Last updated: 26 October 2026*
+*Last updated: 27 October 2026*
 
 Amiri Offroad ("the game") is an off-road driving game for Android, made by an independent developer. This page explains what information the game handles.
 
@@ -8,7 +8,11 @@ Amiri Offroad ("the game") is an off-road driving game for Android, made by an i
 
 The game saves your progress (stages played, stars, coins, cars, colours and settings) **only on your own device**. It is not sent to the developer or to any server of ours. Uninstalling the game deletes it.
 
-The game has no accounts, no sign-in, no chat and no online play. It does not ask for your name, e-mail, contacts, location, photos, microphone or camera.
+The game has no accounts and no sign-in. It does not ask for your e-mail, contacts, location, photos, microphone or camera.
+
+## Online play
+
+If you choose **Online play**, the game sends the nickname you type (optional), your car and its colours, and your car's position in the game world to the other players, through public message relay servers (HiveMQ, EMQX, Eclipse Mosquitto). Players can only send each other ready-made phrases ("Hello", "Wait", "Thanks"…); there is no free text chat and no voice. Nothing is stored by the developer, and nothing is sent when you are not in Online play. Use a nickname, not your real full name.
 
 ## Advertising (Google AdMob)
 
@@ -44,7 +48,7 @@ Questions about this policy can be sent to the developer through the e-mail addr
 
 # امیری آفرود — سیاست حریم خصوصی
 
-بازی پیشرفت تو (مرحله‌ها، ستاره‌ها، سکه‌ها، ماشین‌ها و تنظیمات) را **فقط روی گوشی خودت** ذخیره می‌کند و برای سازنده یا هیچ سروری فرستاده نمی‌شود. بازی حساب کاربری، چت یا بازی آنلاین ندارد و اسم، ایمیل، مخاطبان، مکان، عکس، میکروفون یا دوربین تو را نمی‌خواهد.
+بازی پیشرفت تو (مرحله‌ها، ستاره‌ها، سکه‌ها، ماشین‌ها و تنظیمات) را **فقط روی گوشی خودت** ذخیره می‌کند و برای سازنده یا هیچ سروری فرستاده نمی‌شود. بازی حساب کاربری ندارد و ایمیل، مخاطبان، مکان، عکس، میکروفون یا دوربین تو را نمی‌خواهد. در «بازی آنلاین»، اسمی که می‌نویسی، ماشینت و جای ماشینت در بازی از راه سرورهای عمومی پیام‌رسان برای بازیکنان دیگر فرستاده می‌شود؛ پیام‌ها فقط جمله‌های آماده‌اند و چت آزاد یا صدا ندارد.
 
 نسخهٔ Google Play با **Google AdMob** تبلیغ نشان می‌دهد. گوگل برای نمایش و اندازه‌گیری تبلیغ ممکن است اطلاعاتی مثل شناسهٔ تبلیغاتی گوشی، آدرس IP و اطلاعات دستگاه را جمع کند، طبق سیاست‌های خودش: <https://policies.google.com/technologies/partner-sites>. هر جا قانون بخواهد (مثلاً در اروپا)، بازی پیش از تبلیغ شخصی‌سازی‌شده با فرم رضایت گوگل از تو اجازه می‌گیرد.
 
