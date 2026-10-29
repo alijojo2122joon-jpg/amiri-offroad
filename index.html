@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=112</script>
+<script>window.GAME_CODE=113</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -919,14 +919,14 @@ const canvas=$('gl');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
 if(FILMIC){renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;renderer.physicallyCorrectLights=false;}
 // no shadow maps (the heaviest part of drawing on a phone); the soft dark patch under each car stays
-renderer.shadowMap.enabled=false;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;
 const scene=new THREE.Scene();
 const HOR=new THREE.Color('#f2dfbf');
 scene.background=HOR.clone();scene.fog=new THREE.Fog(HOR,260,1800);
 const camera=new THREE.PerspectiveCamera(60,1,0.3,6000);
 const hemi=new THREE.HemisphereLight(0xcfe3ff,0x8a7350,0.62);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xffd9a6,1.05);
-sun.castShadow=false;
+sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.radius=3;
 Object.assign(sun.shadow.camera,{left:-45,right:45,top:45,bottom:-45,near:10,far:400});sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.03;
 sun.shadow.bias=-0.0006;sun.shadow.normalBias=0.04;scene.add(sun);scene.add(sun.target);
 function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setPixelRatio(Math.min((window.devicePixelRatio||1)*((window.visualViewport&&visualViewport.scale)||1),QV([1,1.1,1.4,2])));renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();try{S.vOff=-1;}catch(e){}}
@@ -937,9 +937,13 @@ function mat(c){return matCache[c]||(matCache[c]=new THREE.MeshLambertMaterial({
 function swayMat(opts,amp){
   const m=new THREE.MeshLambertMaterial(opts);
   m.onBeforeCompile=sh=>{sh.uniforms.uTime=timeU;sh.uniforms.uWind=windU;sh.uniforms.uSnow=snowU;
+    // the wind moves leaves, needles, bushes and grass: the higher up the plant, the more it sways
+    sh.vertexShader='uniform float uTime;uniform float uWind;\n'+sh.vertexShader.replace('#include <begin_vertex>',
+      '#include <begin_vertex>\n#ifdef USE_INSTANCING\nvec4 wp0=modelMatrix*instanceMatrix*vec4(0.0,0.0,0.0,1.0);\n#else\nvec4 wp0=modelMatrix*vec4(0.0,0.0,0.0,1.0);\n#endif\nfloat sw=max(position.y-'+(amp.base||0).toFixed(2)+',0.0)*'+amp.k.toFixed(3)+'*uWind;transformed.x+=(sin(uTime*1.6+wp0.x*0.21+wp0.z*0.17)+0.35*sin(uTime*3.7+wp0.x*0.5))*sw;transformed.z+=cos(uTime*1.25+wp0.z*0.19)*sw*0.7;');
     // plants and trees take snow on their tops while it lies
     sh.fragmentShader='uniform float uSnow;\n'+sh.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb=mix(diffuseColor.rgb,vec3(0.9,0.93,0.97),clamp(uSnow*2.0,0.0,1.0)*0.42);');
 };
+  m.customProgramCacheKey=()=>'sway'+amp.k+'_'+(amp.base||0);
   return m;
 }
 const SUNDIR=new THREE.Vector3(0.6,0.4,0.4).normalize();
@@ -992,6 +996,12 @@ function tr(g,x,y,z,rx,ry,rz,s){g.applyMatrix4(new THREE.Matrix4().compose(new T
 const detailTex=(function(){const s=128,d=new Uint8Array(s*s*4);for(let y=0;y<s;y++)for(let x=0;x<s;x++){
   const n=0.5*vnoise(x*0.09,y*0.09)+0.3*vnoise(x*0.31+5,y*0.31)+0.2*hash2(x,y*7+3);let v=0.82+0.18*n;if(hash2(x*3+1,y*5)>0.985)v*=0.93;const o=(y*s+x)*4;d[o]=d[o+1]=d[o+2]=Math.round(clamp(v,0,1)*255);d[o+3]=255;}
   const t=new THREE.DataTexture(d,s,s,THREE.RGBAFormat);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.anisotropy=4;t.needsUpdate=true;return t;})();
+// fine relief for the ground (bump): smooth noise at a high resolution, so the light shows small ridges and hollows without blocks
+const reliefTex=(function(){const S=256,d=new Uint8Array(S*S*4);for(let y=0;y<S;y++)for(let x=0;x<S;x++){
+  const pv=(x0,z0,P)=>{const xi=Math.floor(x0),zi=Math.floor(z0),fx=x0-xi,fz=z0-zi,u2=fx*fx*(3-2*fx),w2=fz*fz*(3-2*fz),h=(i,j)=>hash2(((i%P)+P)%P+P*7,((j%P)+P)%P);const A=h(xi,zi),B=h(xi+1,zi),C=h(xi,zi+1),D2=h(xi+1,zi+1);return A+(B-A)*u2+(C-A)*w2+(A-B-C+D2)*u2*w2;};
+  const u=x/S,v=y/S,n=0.55*pv(u*16,v*16,16)+0.3*pv(u*32,v*32,32)+0.15*pv(u*64,v*64,64);const o=(y*S+x)*4;d[o]=d[o+1]=d[o+2]=Math.round(clamp(n,0,1)*255);d[o+3]=255;}
+  // the noise repeats exactly across the texture, so it tiles without a seam
+  const t=new THREE.DataTexture(d,S,S,THREE.RGBAFormat);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.anisotropy=4;t.needsUpdate=true;return t;})();
 // Reflections for the paint, glass and chrome: a small sky/ground cube map, used directly by Phong materials
 const carEnv=(function(){const faces=[];const mk=(top,mid,bot,sun)=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');const g=x.createLinearGradient(0,0,0,64);g.addColorStop(0,top);g.addColorStop(0.48,mid);g.addColorStop(0.52,'#8a7a62');g.addColorStop(1,bot);x.fillStyle=g;x.fillRect(0,0,64,64);
     if(sun){const r=x.createRadialGradient(40,18,0,40,18,22);r.addColorStop(0,'rgba(255,250,235,1)');r.addColorStop(1,'rgba(255,250,235,0)');x.fillStyle=r;x.fillRect(0,0,64,64);}return c;};
@@ -1011,7 +1021,7 @@ const groundTex=(function(){const S=512,d=new Uint8Array(S*S*4);
     d[o]=Math.round(clamp(g,0,1)*255);d[o+1]=Math.round(clamp(rk,0,1)*255);d[o+2]=Math.round(clamp(pb,0,1)*255);d[o+3]=Math.round(clamp(mac,0,1)*255);}
   const t=new THREE.DataTexture(d,S,S,THREE.RGBAFormat);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.anisotropy=8;t.needsUpdate=true;return t;})();
 const groundU={value:groundTex},detailOn={value:1};
-const terrainMat=new THREE.MeshPhongMaterial({vertexColors:true,map:detailTex,bumpScale:0.9,specular:0x0c0c0c,shininess:6,side:THREE.DoubleSide});
+const terrainMat=new THREE.MeshPhongMaterial({vertexColors:true,map:detailTex,bumpMap:reliefTex,bumpScale:0.55,bumpScale:0.9,specular:0x0c0c0c,shininess:6,side:THREE.DoubleSide});
 terrainMat.onBeforeCompile=sh=>{sh.uniforms.uSnow=snowU;sh.uniforms.uSnowD=snowDU;sh.uniforms.uSnowC=snowCU;sh.uniforms.uWet=wetU;sh.uniforms.uGround=groundU;sh.uniforms.uDetail=detailOn;
   // lying snow is a real layer over the whole land: the ground is raised by its depth on all but steep faces; round the
   // car the deformable snow (with the tyre ruts) takes over, so the land under it stays down
@@ -1226,7 +1236,23 @@ function buildTileVeg(T){
     im.instanceColor.needsUpdate=true;im.frustumCulled=true;im.castShadow=!lo&&key!=='bush';im.receiveShadow=key==='rock';scene.add(im);meshes.push(im);}
   T.veg=meshes;T.obst=obst;
 }
-function disposeTile(T){if(T.mesh){scene.remove(T.mesh);T.mesh.geometry.dispose();}(T.veg||[]).forEach(m=>{scene.remove(m);m.dispose&&m.dispose();});T.veg=[];}
+// far ground (the two coarser levels) is drawn in blocks of 4 x 4 tiles, one mesh each: a few dozen draws instead of two hundred
+const BLK=4,blocks=new Map();
+function blkKey(ix,iz){return Math.floor(ix/BLK)+','+Math.floor(iz/BLK);}
+function blkAdd(T){const k=blkKey(T.ix,T.iz);let B=blocks.get(k);if(!B){const [bx,bz]=k.split(',').map(Number);B={bx,bz,set:new Set(),mesh:null,dirty:true};blocks.set(k,B);}B.set.add(T);B.dirty=true;T.block=B;}
+function blkDel(T){const B=T.block;if(!B)return;B.set.delete(T);B.dirty=true;T.block=null;if(T.geo){T.geo.dispose();T.geo=null;}}
+function blkBuild(){for(const [k,B] of blocks){if(!B.dirty)continue;B.dirty=false;if(B.mesh){scene.remove(B.mesh);B.mesh.geometry.dispose();B.mesh=null;}
+    if(!B.set.size){blocks.delete(k);continue;}
+    let nv=0,ni=0;for(const T of B.set){nv+=T.geo.attributes.position.count;ni+=T.geo.index.count;}
+    const pos=new Float32Array(nv*3),nor=new Float32Array(nv*3),col=new Float32Array(nv*3),uv=new Float32Array(nv*2),idx=new Uint32Array(ni);let ov=0,oi=0;
+    const ox=B.bx*BLK*TILE,oz=B.bz*BLK*TILE;
+    for(const T of B.set){const g=T.geo,p=g.attributes.position.array,n=g.attributes.position.count,dx=T.ix*TILE-ox,dz=T.iz*TILE-oz;
+      for(let i=0;i<n;i++){pos[(ov+i)*3]=p[i*3]+dx;pos[(ov+i)*3+1]=p[i*3+1];pos[(ov+i)*3+2]=p[i*3+2]+dz;}
+      nor.set(g.attributes.normal.array,ov*3);col.set(g.attributes.color.array,ov*3);uv.set(g.attributes.uv.array,ov*2);
+      const I=g.index.array;for(let i=0;i<I.length;i++)idx[oi+i]=I[i]+ov;ov+=n;oi+=I.length;}
+    const m=new THREE.BufferGeometry();m.setAttribute('position',new THREE.BufferAttribute(pos,3));m.setAttribute('normal',new THREE.BufferAttribute(nor,3));m.setAttribute('color',new THREE.BufferAttribute(col,3));m.setAttribute('uv',new THREE.BufferAttribute(uv,2));m.setIndex(new THREE.BufferAttribute(idx,1));m.computeBoundingSphere();
+    B.mesh=new THREE.Mesh(m,terrainMat);B.mesh.position.set(ox,0,oz);B.mesh.receiveShadow=true;scene.add(B.mesh);}}
+function disposeTile(T){if(T.block)blkDel(T);if(T.mesh){scene.remove(T.mesh);T.mesh.geometry.dispose();}(T.veg||[]).forEach(m=>{scene.remove(m);m.dispose&&m.dispose();});T.veg=[];}
 let pTile=[1e9,1e9],tileQueue=[],tileScanT=0;
 function tileWanted(ix,iz){const zc=iz*TILE+TILE/2,xc=ix*TILE+TILE/2;if(FREE)return Math.hypot(xc-FX,zc-FZ)<FR+1700;if(zc<Z0-200||zc>ROADLEN+2600)return false;return Math.abs(xc-roadX(clamp(zc,0,ROADLEN)))<8000;}
 function scanTiles(force){
@@ -1235,6 +1261,7 @@ function scanTiles(force){
   const want=new Map();
   for(let iz=piz-12;iz<=piz+12;iz++)for(let ix=pix-12;ix<=pix+12;ix++)if(tileLod(ix,iz,pix,piz)>=0){if(!tileWanted(ix,iz))continue;want.set(ix+','+iz,tileLod(ix,iz,pix,piz));}
   for(const [k,T] of tiles){if(!want.has(k)){disposeTile(T);tiles.delete(k);}}
+  blkBuild();
   tileQueue=[];
   for(const [k,lod] of want){const T=tiles.get(k);if(!T||T.lod!==lod){const [ix,iz]=k.split(',').map(Number);tileQueue.push({ix,iz,lod,d:Math.max(Math.abs(ix-pix),Math.abs(iz-piz))});}}
   tileQueue.sort((a,b)=>a.d-b.d);
@@ -1243,10 +1270,12 @@ function processTiles(budgetMs){
   const t0=performance.now();
   while(tileQueue.length&&performance.now()-t0<budgetMs){
     const q=tileQueue.shift(),key=q.ix+','+q.iz;const old=tiles.get(key);
-    const geo=buildTileGeo(q.ix,q.iz,q.lod);const mesh=new THREE.Mesh(geo,terrainMat);mesh.position.set(q.ix*TILE,0,q.iz*TILE);mesh.receiveShadow=q.lod===0;scene.add(mesh);
+    const geo=buildTileGeo(q.ix,q.iz,q.lod);let mesh=null;
+    if(q.lod===0){mesh=new THREE.Mesh(geo,terrainMat);mesh.position.set(q.ix*TILE,0,q.iz*TILE);mesh.receiveShadow=true;scene.add(mesh);}
     if(old)disposeTile(old);
-    const T={ix:q.ix,iz:q.iz,lod:q.lod,mesh,veg:[],obst:[]};if(q.lod<2)buildTileVeg(T);tiles.set(key,T);
+    const T={ix:q.ix,iz:q.iz,lod:q.lod,mesh,veg:[],obst:[]};if(!mesh){T.geo=geo;blkAdd(T);}if(q.lod<2)buildTileVeg(T);tiles.set(key,T);
   }
+  blkBuild();
 }
 function nearObst(x,z){const out=[roadObst,cabObst];const ix=Math.floor(x/TILE),iz=Math.floor(z/TILE);for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const T=tiles.get((ix+i)+','+(iz+j));if(T&&T.obst)out.push(T.obst);}return out;}
 
@@ -1438,12 +1467,35 @@ function updateRoad(force){
 }
 
 /* Water: lakes, gorge creeks and the sea at the end of the road */
-const waterNrm=(function(){const S=128,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d'),id=x.createImageData(S,S);const hgt=(i,j)=>Math.sin(i*0.29+Math.sin(j*0.13)*2)*0.5+Math.sin(j*0.37+i*0.11)*0.35+Math.sin((i+j)*0.21)*0.25;
-  for(let j=0;j<S;j++)for(let i=0;i<S;i++){const dx=hgt(i+1,j)-hgt(i-1,j),dy=hgt(i,j+1)-hgt(i,j-1),o=(j*S+i)*4;id.data[o]=128+dx*60;id.data[o+1]=128+dy*60;id.data[o+2]=255;id.data[o+3]=255;}
+// water: a ripple normal map made of many small wave trains (no seams, tiles in both directions)
+const waterNrm=(function(){const S=256,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d'),id=x.createImageData(S,S),R=mulberry32(4242),W=[];
+  for(let q=0;q<14;q++){const a=R()*6.283,f=[1,2,2,3,3,4,5,6,7,8,9,11,13,16][q],kx=Math.round(Math.cos(a)*f),ky=Math.round(Math.sin(a)*f)||1;W.push([kx,ky,R()*6.283,1/Math.pow(f,0.9)]);}
+  const hgt=(i,j)=>{let h=0;for(const [kx,ky,p,am] of W)h+=am*Math.sin((kx*i+ky*j)/S*6.283+p);return h;};
+  for(let j=0;j<S;j++)for(let i=0;i<S;i++){const dx=hgt(i+1,j)-hgt(i-1,j),dy=hgt(i,j+1)-hgt(i,j-1),o=(j*S+i)*4;id.data[o]=clamp(128+dx*42,0,255);id.data[o+1]=clamp(128+dy*42,0,255);id.data[o+2]=255;id.data[o+3]=255;}
   x.putImageData(id,0,0);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(18,18);return t;})();
-const waterMat=new THREE.MeshPhongMaterial({normalMap:waterNrm,normalScale:new THREE.Vector2(0.35,0.35),color:'#2d6f8c',specular:0xfff0d0,shininess:140,transparent:true,opacity:0.88,envMap:carEnv,reflectivity:0.45,combine:THREE.MixOperation});
-LAKES.forEach(L=>{const m=new THREE.Mesh(new THREE.CircleGeometry(1,40),waterMat);m.scale.set(L.b*1.05,L.a*1.05,1);m.rotation.set(-Math.PI/2,0,0);const piv=new THREE.Group();piv.position.set(L.x,L.level,L.z);piv.rotation.y=L.ang;piv.add(m);scene.add(piv);});
-const streamMat=new THREE.MeshPhongMaterial({color:'#5f8f86',specular:0xfff6e0,shininess:90,transparent:true,opacity:0.8});
+// open water reads the ripples in world space (the same size on a pond and on the sea), three layers drifting different ways;
+// it gets lighter and more mirror-like toward the horizon (Fresnel), and its sides and depth are a darker body of water
+function waterize(m,sc){m.onBeforeCompile=sh=>{sh.uniforms.uT=timeU;sh.uniforms.uHor=skyU.hor;sh.uniforms.uMid=skyU.mid;
+    sh.vertexShader='varying vec3 vWP;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvWP=(modelMatrix*vec4(transformed,1.0)).xyz;');
+    sh.fragmentShader='uniform float uT;uniform vec3 uHor,uMid;varying vec3 vWP;\n'+sh.fragmentShader.replace('#include <normal_fragment_maps>',
+      'vec2 wq=vWP.xz*'+sc.toFixed(3)+';vec3 n1=texture2D(normalMap,wq+vec2(uT*0.021,uT*0.013)).xyz*2.0-1.0;vec3 n2=texture2D(normalMap,wq*1.93+vec2(-uT*0.017,uT*0.024)).xyz*2.0-1.0;vec3 n3=texture2D(normalMap,wq*0.31+vec2(uT*0.006,-uT*0.004)).xyz*2.0-1.0;'
+      +'vec2 sl=(n1.xy+n2.xy*0.55+n3.xy*0.9)*normalScale;normal=normalize((viewMatrix*vec4(normalize(vec3(-sl.x,1.0,-sl.y)),0.0)).xyz);')
+      .replace('#include <tonemapping_fragment>','float wfr=pow(1.0-clamp(dot(normalize(vViewPosition),normal),0.0,1.0),4.0);gl_FragColor.rgb=mix(gl_FragColor.rgb,mix(uHor,uMid,0.35)*0.92,wfr*0.85);gl_FragColor.a=mix(gl_FragColor.a,1.0,wfr*0.7);\n#include <tonemapping_fragment>');};
+  m.customProgramCacheKey=()=>'water'+sc;return m;}
+const waterMat=waterize(new THREE.MeshPhongMaterial({normalMap:waterNrm,normalScale:new THREE.Vector2(0.42,0.42),color:'#1f5f7a',specular:0xfff0d0,shininess:180,transparent:true,opacity:0.86,envMap:carEnv,reflectivity:0.5,combine:THREE.MixOperation,depthWrite:false}),0.045);
+// the body of the water under the surface: darker toward the bottom (seen from the side, from a beam, a cliff or a bank)
+const waterDeepMat=new THREE.MeshLambertMaterial({vertexColors:true,transparent:true,opacity:0.9,depthWrite:false,side:THREE.DoubleSide});
+function waterSlab(w,d,depth){const g=new THREE.Group(),top=new THREE.Mesh(new THREE.PlaneGeometry(w,d,1,1),waterMat);top.rotation.x=-Math.PI/2;g.add(top);
+  const P=[],C=[],I=[],hw=w/2,hd=d/2,c0=new THREE.Color('#2a6f8a'),c1=new THREE.Color('#06202c');
+  const wall=(ax,az,bx,bz)=>{const n=P.length/3;P.push(ax,-0.05,az,bx,-0.05,bz,bx,-depth,bz,ax,-depth,az);[c0,c0,c1,c1].forEach(c=>C.push(c.r,c.g,c.b));I.push(n,n+1,n+2,n,n+2,n+3);};
+  wall(-hw,-hd,hw,-hd);wall(hw,-hd,hw,hd);wall(hw,hd,-hw,hd);wall(-hw,hd,-hw,-hd);
+  {const n=P.length/3;P.push(-hw,-depth,-hd,hw,-depth,-hd,hw,-depth,hd,-hw,-depth,hd);for(let q=0;q<4;q++)C.push(c1.r,c1.g,c1.b);I.push(n,n+2,n+1,n,n+3,n+2);}
+  const bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.Float32BufferAttribute(P,3));bg.setAttribute('color',new THREE.Float32BufferAttribute(C,3));bg.setIndex(I);bg.computeVertexNormals();
+  const body=new THREE.Mesh(bg,waterDeepMat);body.renderOrder=-0.5;g.add(body);return g;}
+LAKES.forEach(L=>{const m=new THREE.Mesh(new THREE.CircleGeometry(1,64),waterMat);m.scale.set(L.b*1.05,L.a*1.05,1);m.rotation.set(-Math.PI/2,0,0);const piv=new THREE.Group();piv.position.set(L.x,L.level,L.z);piv.rotation.y=L.ang;piv.add(m);
+  {const cy=new THREE.CylinderGeometry(1,1,1,64,1,true);cy.translate(0,-0.5,0);const pc=cy.attributes.position,col=[],a=new THREE.Color('#2a6f8a'),b=new THREE.Color('#06202c');for(let q=0;q<pc.count;q++){const c=pc.getY(q)>-0.5?a:b;col.push(c.r,c.g,c.b);}cy.setAttribute('color',new THREE.Float32BufferAttribute(col,3));const wall=new THREE.Mesh(cy,waterDeepMat);wall.scale.set(L.b*1.05,L.dep+1,L.a*1.05);wall.position.y=-0.04;piv.add(wall);}
+  scene.add(piv);});
+const streamMat=waterize(new THREE.MeshPhongMaterial({normalMap:waterNrm,normalScale:new THREE.Vector2(0.6,0.6),color:'#4f8378',specular:0xfff6e0,shininess:120,transparent:true,opacity:0.8,envMap:carEnv,reflectivity:0.35,combine:THREE.MixOperation,depthWrite:false}),0.09);
 FORDS.forEach(F=>{const hw=HW(F.z),m=new THREE.Mesh(new THREE.PlaneGeometry(2*(hw+12),F.w+2),streamMat);m.rotation.x=-Math.PI/2;const piv=new THREE.Group();piv.position.set(roadX(F.z),F.level,F.z);piv.rotation.y=Math.atan(roadDX(F.z));piv.add(m);scene.add(piv);});
 (function(){const m=new THREE.Mesh(new THREE.PlaneGeometry(9000,9000),waterMat);m.rotation.x=-Math.PI/2;m.position.set(roadX(ROADLEN),0,ROADLEN+500);scene.add(m);})();
 
@@ -1587,6 +1639,8 @@ const clouds=[];const cloudMat=new THREE.MeshLambertMaterial({color:'#ffffff',tr
 (function(){const g=new THREE.IcosahedronGeometry(1,1);
   for(let i=0;i<30;i++){const grp=new THREE.Group();const k=4+Math.floor(rng()*4);
     for(let j=0;j<k;j++){const b=new THREE.Mesh(g,cloudMat);b.position.set(j*9-k*4.5,rng()*4,rng()*7);b.scale.set(9+rng()*7,5+rng()*3,7+rng()*4);grp.add(b);}
+    // one mesh per cloud (its puffs merged): a handful of draws for the whole sky
+    {grp.updateMatrixWorld(true);const gs=grp.children.map(b=>{const q=g.clone();q.applyMatrix4(b.matrix);return q.index?q.toNonIndexed():q;});grp.clear();grp.add(new THREE.Mesh(mergeGeos(gs),cloudMat));}
     grp.position.set((rng()*2-1)*1800,0,(rng()*2-1)*1800);grp.userData.h=240+rng()*120;scene.add(grp);clouds.push(grp);}})();
 
 /* Birds: vultures circle over dangerous ground, crows flap around dead trees, songbirds flit in the green lands, gulls glide over the coast */
@@ -2012,7 +2066,12 @@ function modelPartsT(name){if(MPT[name])return MPT[name];const sc=MODELS[name];i
     return {x:o.x,y:o.y,z:o.z,wr,parts};});
   // body: merged per material; plain paint (no texture) is marked so the garage colour goes on it
   const PAINTRE=MPAINT[name]||/body(mat)?|paint/i;
-  const groups=new Map();bodyIt.forEach(it=>{const paint=PAINTRE.test(it.m.name||'')&&(!it.m.map||!!MPAINT[name]);const k=paint?'paint'+(it.m.map?it.m.uuid:''):it.m.uuid;if(!groups.has(k))groups.set(k,{mat:paint?null:texMat(it.m,it.nm),gmap:paint&&it.m.map?greyMap(it.m.map):null,geos:[]});groups.get(k).geos.push(it.g);});
+  const stIt=bodyIt.filter(it=>/steering/i.test(it.nm));let steer=null;
+  if(stIt.length){const b=new THREE.Box3();stIt.forEach(it=>b.union(it.g.boundingBox));const sc0=b.getCenter(new THREE.Vector3()),ax=new THREE.Vector3(),ref=new THREE.Vector3(0,0.45,-1).normalize(),a=new THREE.Vector3(),bq=new THREE.Vector3(),cq=new THREE.Vector3(),n=new THREE.Vector3();
+    // the column's axis: the sum of the faces' normals, each turned toward the driver
+    stIt.forEach(it=>{const p=it.g.attributes.position;for(let i=0;i+2<p.count;i+=3){a.fromBufferAttribute(p,i);bq.fromBufferAttribute(p,i+1);cq.fromBufferAttribute(p,i+2);n.subVectors(bq,a).cross(cq.clone().sub(a));if(n.dot(ref)<0)n.negate();ax.add(n);}});
+    if(ax.lengthSq()<1e-12)ax.copy(ref);ax.normalize();const geos=stIt.map(it=>it.g.clone().translate(-sc0.x,-sc0.y,-sc0.z));steer={geo:mergeUV(geos),mat:texMat(stIt[0].m,stIt[0].nm),c:sc0,axis:ax};}
+  const groups=new Map();bodyIt.forEach(it=>{if(steer&&/steering/i.test(it.nm))return;const paint=PAINTRE.test(it.m.name||'')&&(!it.m.map||!!MPAINT[name]);const k=paint?'paint'+(it.m.map?it.m.uuid:''):it.m.uuid;if(!groups.has(k))groups.set(k,{mat:paint?null:texMat(it.m,it.nm),gmap:paint&&it.m.map?greyMap(it.m.map):null,geos:[]});groups.get(k).geos.push(it.g);});
   const body=[...groups.values()].map(G=>({mat:G.mat,gmap:G.gmap,geo:mergeUV(G.geos)}));
   const box=new THREE.Box3();bodyIt.forEach(it=>box.union(it.g.boundingBox));
   const bb=re=>{const b=new THREE.Box3();let n=0;bodyIt.forEach(it=>{if(re.test(it.nm)){b.union(it.g.boundingBox);n++;}});return n?b:null;};
@@ -2029,7 +2088,7 @@ function modelPartsT(name){if(MPT[name])return MPT[name];const sc=MODELS[name];i
     const ey=Math.min(roof-0.2*K,gb.max.y-0.04*K),hz=gb.min.z-0.52*K;swc=new THREE.Vector3(hx,ey-0.4*K,hz+0.5*K);headOv=[hx,ey,hz];}
   const plates=bodyIt.filter(it=>/numberplate|licen/i.test(it.nm+' '+(it.m&&it.m.name||''))).map(it=>it.g.boundingBox.clone());
   if(MCABIN[name]&&headOv)cabinParts(body,box,glass,headOv);
-  return MPT[name]={body,wheels,box,glass,plates,int:{head:headOv||[swc.x,swc.y+0.3,swc.z-0.45],dash:[0,swc.y-0.05,swc.z+0.25,box.max.x*1.6],wh:[swc.x,swc.y,swc.z]},
+  return MPT[name]={steer,body,wheels,box,glass,plates,int:{head:headOv||[swc.x,swc.y+0.3,swc.z-0.45],dash:[0,swc.y-0.05,swc.z+0.25,box.max.x*1.6],wh:[swc.x,swc.y,swc.z]},
     lamp:hb?[hb.max.x*0.7,(hb.min.y+hb.max.y)/2,hb.max.z]:null,tail:tb?[tb.max.x*0.75,(tb.min.y+tb.max.y)/2,tb.min.z]:null};}
 function mergeUV(list){let n=0;list.forEach(g=>n+=g.attributes.position.count);const pos=new Float32Array(n*3),nor=new Float32Array(n*3),uv=new Float32Array(n*2);let o=0;
   list.forEach(g=>{const c=g.attributes.position.count;pos.set(g.attributes.position.array,o*3);nor.set(g.attributes.normal.array,o*3);if(g.attributes.uv)uv.set(g.attributes.uv.array,o*2);o+=c;});
@@ -2064,7 +2123,7 @@ function accPart(name,turn){const key=name+(turn||0);if(ACCG[key])return ACCG[ke
 function fitPart(body,name,x,y,z,w,h,l,turn){const P=accPart(name,turn);if(!P)return null;const s=P.box.getSize(new THREE.Vector3());
   const sx=w/s.x,sz=l?l/s.z:sx,sy=h?h/s.y:Math.min(sx,sz);const grp=new THREE.Group();
   P.items.forEach(it=>{const m=new THREE.Mesh(it.g,it.m);m.castShadow=true;grp.add(m);});grp.scale.set(sx,sy,sz);grp.position.set(x,y,z);body.add(grp);return grp;}
-function buildVehicle(spec,cu,st){
+function buildVehicle(spec,cu,st){let glbSteer=null;
   const type=spec.type,lift=type==='glb'?0:type==='monster'?0.85:type==='crawler'?1.0:0,wr=type==='glb'?((spec.tex?modelPartsT:modelParts)(spec.glb).wheels[0].wr):type==='monster'?0.95:type==='crawler'?0.85:type==='tank'?0.36:type==='sedan'?0.32:type==='truck'?0.6:type==='van'?(spec.style==='town'?0.41:0.44):0.5;
   const P=Parts(lift);const g=new THREE.Group(),body=new THREE.Group();g.add(body);
   let intOv=null,rackOv=null,wheelPos,cargo=null,front,fy,hood,roofY,ant,snork,lampPos=[],tailPos=[],ambPos=[],revPos=[],cabF=0;
@@ -2381,6 +2440,8 @@ function buildVehicle(spec,cu,st){
   if(type==='glb')for(const k of ['paint','roof','dark','chrome','trim','rubber'])mats[k].side=THREE.DoubleSide;
   const glassGeos=spec.tex?MP.glass:(P.b.glass||[]).slice();
   if(spec.tex)for(const B of MP.body){let pm=mats.paint;if(!B.mat&&B.gmap){pm=mats.paint.clone();pm.map=B.gmap;pm.needsUpdate=true;}const m=new THREE.Mesh(B.geo,B.mat||pm);m.castShadow=!(B.mat&&B.mat.transparent);m.receiveShadow=!B.mat;body.add(m);}
+  // the model's steering wheel on its own pivot: it turns about its column as you steer
+  if(spec.tex&&MP.steer){const sg=new THREE.Group();sg.position.copy(MP.steer.c);const sm=new THREE.Mesh(MP.steer.geo,MP.steer.mat);sg.add(sm);body.add(sg);sg.userData.axis=MP.steer.axis;glbSteer=sg;}
   for(const k in P.b){const m=new THREE.Mesh(mergeGeos(P.b[k]),mats[k]);m.castShadow=!['head','tail','amber','roofL','glass','lens'].includes(k);m.receiveShadow=k==='paint'||k==='roof';body.add(m);}
   let antMount=null;
   if(type==='glb'&&MP&&!spec.lite){const pts=carPts(MP),B=MP.box,len=B.max.z-B.min.z;
@@ -2541,7 +2602,7 @@ function buildVehicle(spec,cu,st){
   let gauge=null;if(spec.cabinFix&&MP&&MP.int){const K=CARSC,[hx,ey,hz]=MP.int.head,cv=document.createElement('canvas');cv.width=320;cv.height=128;
     const tex=new THREE.CanvasTexture(cv);if(FILMIC)tex.encoding=THREE.sRGBEncoding;const m=new THREE.Mesh(new THREE.PlaneGeometry(0.36*K,0.144*K),new THREE.MeshBasicMaterial({map:tex,toneMapped:false}));
     let gy=ey-0.17*K;if(MP.glass&&MP.glass.length){let lo=1e9;MP.glass.forEach(g=>{g.computeBoundingBox();lo=Math.min(lo,g.boundingBox.min.y);});gy=Math.min(gy,lo-0.07*K);}m.position.set(hx,gy+lift,hz+0.6*K);m.rotation.set(-0.5,Math.PI,0);body.add(m);gauge={cv,ctx:cv.getContext('2d'),tex,last:''};}
-  return {gauge,beamMat,dashP:[INT.dash[1]+lift,INT.dash[2],INT.dash[3]],wip,hull,ws,trk,susp,cloth,fpp:[INT.head[0],INT.head[1]+lift,INT.head[2]],swheel:swIn,bodyPts,bodyBot,g,body,wheels,ant:antSegs,hood:[hood[0],hood[1]+lift,hood[2]],camK:T.camK,phys,mats,spot,glows,rack:has('rack'),eng:spec.eng,type,wb:maxU*2};
+  return {glbSteer,gauge,beamMat,dashP:[INT.dash[1]+lift,INT.dash[2],INT.dash[3]],wip,hull,ws,trk,susp,cloth,fpp:[INT.head[0],INT.head[1]+lift,INT.head[2]],swheel:swIn,bodyPts,bodyBot,g,body,wheels,ant:antSegs,hood:[hood[0],hood[1]+lift,hood[2]],camK:T.camK,phys,mats,spot,glows,rack:has('rack'),eng:spec.eng,type,wb:maxU*2};
 }
 
 /* ---------- State ---------- */
@@ -2574,9 +2635,18 @@ function plateMat(t){t=cleanPlate(t);if(plateMats[t])return plateMats[t];const c
 function myCu(i){return Object.assign({},cust(i),{plate:cleanPlate(SET.plate||'')});}
 function showVehicle(i){
   if(V){scene.remove(V.g);V.g.traverse(o=>{if(o.geometry&&!o.isSprite)o.geometry.dispose();if(o.material&&o.material.isMeshStandardMaterial)o.material.dispose();});}
-  V=buildVehicle(VEH[i],myCu(i),stats(i));addCat(V);scene.add(V.g);settleVehicle();
+  V=buildVehicle(VEH[i],myCu(i),stats(i));tyreDeform(V);addCat(V);scene.add(V.g);settleVehicle();
   if(AU.ac)buildEngineLayers(VEH[i].eng);
 }
+// the tyre gives where it meets the ground: the bottom flattens into a patch and the sidewalls bulge out, more as the pressure
+// drops and as the load grows (on a rock or a log the tyre visibly squashes over it); the rim keeps its shape
+function tyreDeform(Vc){Vc.wheels.forEach(w=>{const TD={d:{value:new THREE.Vector3(0,-1,0)},f:{value:0},r:{value:w.wr}};w.TD=TD;
+    w.spin.traverse(o=>{if(!o.isMesh)return;const mats=Array.isArray(o.material)?o.material:[o.material];const out=mats.map(m0=>{const m=m0.clone();
+        m.onBeforeCompile=sh=>{sh.uniforms.uTD=TD.d;sh.uniforms.uTF=TD.f;sh.uniforms.uTR=TD.r;
+          sh.vertexShader='uniform vec3 uTD;uniform float uTF,uTR;\n'+sh.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
+            {float t=dot(transformed,uTD),rf=uTR*(1.0-uTF),e=max(0.0,t-rf),near=smoothstep(uTR*(1.0-2.6*uTF)-0.01,rf,t)*step(0.62*uTR,length(transformed.yz));
+             transformed-=uTD*e;float sx=transformed.x>=0.0?1.0:-1.0;transformed.x+=sx*(e*0.55+near*uTF*uTR*0.32);}`);};
+        m.customProgramCacheKey=()=>'tyre';return m;});o.material=Array.isArray(o.material)?out:out[0];});});}
 function applyVehicle(){ST=stats(S.veh);showVehicle(S.veh);CSN.job=null;}
 /* ---------- Snow on the car ----------
    While it snows, a layer settles on everything facing up (roof, bonnet, rack, load); after driving through snow the tyres
@@ -2638,7 +2708,7 @@ function carSnowWork(){const J=CSN.job;if(!J||J.done)return;const {body,L,W,NX,N
   J.Vc.snowRoof={tex,box:new THREE.Vector4(W*(NX+1)/NX,L*(NZ+1)/NZ,mn-0.1,rng)};}
 function carSnowStep(dt,snowA,rainA){if(!V||S.mode!=='play')return;
   const onSnow=S.surf==='snow'&&!S.air&&Math.abs(S.v||0)>0.5;
-  CSN.top=clamp(CSN.top+(snowA>0.3?dt/110*snowA:-dt/(rainA>0.3?90:300)),0,1);
+  CSN.top=clamp(CSN.top+(snowA>0.3?dt/110*snowA:(WX.hold||0)>600?-dt/60:rainA>0.3?-dt/90:0),0,1);
   CSN.low=clamp(CSN.low+(onSnow?dt*Math.min(1,Math.abs(S.v)/6)/25:-dt/(rainA>0.3?60:240))+(snowA>0.3?dt/400:0),0,1);
   if((CSN.top>0.01||CSN.low>0.01||VEH[S.veh].cabinFix)&&(!CSN.job||CSN.job.Vc!==V))carSnowStart(V);carSnowU.cabin.value=0;carSnowWork();
   snowDepU.value=0.005+(V.snowMax||0.24)*CSN.top;if(V.snowTop)V.snowTop.visible=CSN.top>0.02;
@@ -3062,7 +3132,7 @@ $('laW').addEventListener('input',e=>laSize('w',+e.target.value));$('laC').addEv
 document.addEventListener('click',e=>{if(document.body.classList.contains('editing')&&$('comms').contains(e.target)){e.stopPropagation();e.preventDefault();}},true);$('laP').addEventListener('input',e=>laSize('p',+e.target.value));
 $('laReset').addEventListener('click',()=>{SET.lay={};applyLayout();$('laW').value=1;$('laP').value=1;$('laC').value=1;});$('laDone').addEventListener('click',endLayout);
 window.addEventListener('resize',applyLayout);
-function applySettings(){applyLayout();resize();const ms=QV([512,1024,1024,2048]);sun.castShadow=false;if(sun.shadow.mapSize.x!==ms){sun.shadow.mapSize.set(ms,ms);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}}
+function applySettings(){applyLayout();resize();const ms=QV([1024,1024,2048,2048]);sun.castShadow=true;if(sun.shadow.mapSize.x!==ms){sun.shadow.mapSize.set(ms,ms);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}}
   if(SET.time==='day')S.tod=0.42;else if(SET.time==='sunset')S.tod=0.715;else if(SET.time==='night')S.tod=0.02;$('spdU').textContent=SET.units==='mph'?'mph':'km/h';$('fpsTag').hidden=!SET.fps;try{vcUI();}catch(e){}if(typeof pTile!=='undefined'&&tiles.size)scanTiles(true);}
 
 /* Menus, exit and map */
@@ -3356,14 +3426,16 @@ blob.rotation.x=-Math.PI/2;blobG.add(blob);scene.add(blobG);
 function renderVehicle(dt){
   {const gh=Hd(S.x,S.z);blobG.position.set(S.x,gh+0.05,S.z);blobG.rotation.set(-S.pitch,S.th,S.roll,'YXZ');const bp=V.bodyPts[0];blob.scale.set(bp[1]*2.6,bp[0]*2.5,1);blob.material.opacity=0.6*clamp(1-(S.y-gh)/2.5,0,1);}
   V.g.position.set(S.x,S.y,S.z);V.g.rotation.set(-S.pitch,S.th,S.roll,'YXZ');
-  wheelRot+=(S.fwd||0)*dt;if(V.trk)V.trk(wheelRot);if(V.swheel)V.swheel.rotation.z=-(S.steer||0)*WLOCK;const c0=V.phys.c0,top=V.phys.cmax-c0,nW=V.wheels.length,p=ST.p;
+  wheelRot+=(S.fwd||0)*dt;if(V.trk)V.trk(wheelRot);if(V.swheel)V.swheel.rotation.z=-(S.steer||0)*WLOCK;if(V.glbSteer)V.glbSteer.quaternion.setFromAxisAngle(V.glbSteer.userData.axis,(S.steer||0)*WLOCK);const c0=V.phys.c0,top=V.phys.cmax-c0,nW=V.wheels.length,p=ST.p;
   if(V.susp)for(const A of V.susp){const a=A.L.pivot.position,b=A.R.pivot.position,mx=(a.x+b.x)/2,my=(a.y+b.y)/2,len=Math.abs(a.x-b.x)-0.35;
     A.axle.position.set(mx,my,a.z);A.axle.scale.set(len,1,1);A.axle.rotation.z=Math.atan2(a.y-b.y,a.x-b.x);A.diff.position.set(mx*0.4,my,a.z);
     for(const H of A.sh){const p=H.w.pivot.position,bx=Math.sign(H.w.w)*(Math.abs(p.x)-0.32),by=p.y+0.05,dx=H.top.x-bx,dy=H.top.y-by,dz=H.top.z-p.z,l=Math.max(0.2,Math.hypot(dx,dy,dz));
       H.m.position.set((bx+H.top.x)/2,(by+H.top.y)/2,(p.z+H.top.z)/2);H.m.scale.set(1,l,1);H.m.quaternion.setFromUnitVectors(tmpUp,tmpDir.set(dx/l,dy/l,dz/l));
       H.sp.position.set(bx+dx*0.62,by+dy*0.62,p.z+dz*0.62);H.sp.quaternion.copy(H.m.quaternion);}}
   V.wheels.forEach(w=>{w.pivot.position.y=w.wr+clamp(w.x||0,-c0,top)-S.sink*0.45;w.spin.rotation.x=wheelRot/w.wr;if(w.front)w.pivot.rotation.y=S.delta||0;
-    const load=w.g?w.F/(9.8/nW):0,sq=clamp((load-0.5)*0.035*(1.7-p)+(1-p)*0.09*(w.g?1:0.4),0,0.16);w.squash.scale.set(1+sq*0.9,1-sq,1-sq*0.15);w.squash.position.y=-w.wr*sq;});
+    const load=w.g?w.F/(9.8/nW):0,sq=clamp((load-0.5)*0.07*(1.7-p)+(1-p)*0.22*(w.g?1:0.35),0,0.22);
+    if(w.TD){const rx=w.spin.rotation.x;w.TD.d.value.set(0,-Math.cos(rx),Math.sin(rx));w.TD.f.value+=(sq-w.TD.f.value)*Math.min(1,dt*18);w.squash.scale.set(1,1,1);w.squash.position.y=-w.wr*w.TD.f.value*0.85;}
+    else{w.squash.scale.set(1+sq*0.9,1-sq*0.7,1-sq*0.15);w.squash.position.y=-w.wr*sq*0.7;}});
   const dtt=Math.max(dt,0.001),aF=clamp(((S.fwd||0)-S.prevF)/dtt,-40,40),aV=clamp((S.vy-S.prevVy)/dtt,-60,60);S.prevF=S.fwd||0;S.prevVy=S.vy;
   const aL=clamp((S.fwd||0)*S.w,-30,30),A=S.ant;
   A.vx+=(-26*A.x-1.6*A.vx-aF*0.045+S.pv*0.5+aV*0.006)*dt;A.vz+=(-26*A.z-1.6*A.vz+aL*0.05-S.rv*0.5+aV*0.004)*dt;
@@ -3422,7 +3494,9 @@ function updateEnv(dt){
   // thunderstorms in heavy rain and hail, and now and then thundersnow in a heavy snowfall
   if(rainA>0.6||hailA>0.6||snowA>0.6){WX.ltTimer-=dt;if(WX.ltTimer<=0){WX.flash=1;SFX.thunder(0.6+Math.random()*1.8);WX.ltTimer=snowA>0.6?18+Math.random()*30:8+Math.random()*16;}}
   WX.flash=Math.max(0,WX.flash-dt*5);
-  const snowTarget=snowA>0.3?1:0;snowU.value+=snowTarget>snowU.value?(1-snowU.value)*dt*0.12*snowA:-dt*(snowyAt(S.x,S.y,S.z)?0:S.y>SNL(S.z)-40?0.0005:0.0028);snowU.value=clamp(snowU.value,0,1);
+  // after a snowfall the snow lies for ten minutes of play, then melts away within a minute (always white high up)
+  if(snowA>0.3)WX.hold=0;else WX.hold=(WX.hold||0)+dt;const meltK=WX.hold>600?1/60:0;
+  const snowTarget=snowA>0.3?1:0;snowU.value+=snowTarget>snowU.value?(1-snowU.value)*dt*0.12*snowA:-dt*(snowyAt(S.x,S.y,S.z)?0:meltK);snowU.value=clamp(snowU.value,0,1);
   trkMat.color.copy(TRK_DIRT).lerp(TRK_SNOW,clamp(snowU.value*1.4,0,1));trkMat.opacity=lerp(0.26,0.6,clamp(snowU.value*1.4,0,1));
   carSnowStep(dt,snowA,rainA);
   {const cold=snowA>0.2;frostU.value=clamp(frostU.value+(cold?dt/70:-dt/40),0,1);frostLU.value=(0.05+0.95*dayF)*(1-0.45*Math.min(1,wa));}
@@ -3933,7 +4007,27 @@ function aniProto(key){if(ANIPROTO[key]!==undefined)return ANIPROTO[key];const A
   const b=new THREE.Box3().setFromObject(wrap),s=(A.len||1)/Math.max(0.01,b.max.z-b.min.z);inner.scale.setScalar(s);wrap.updateMatrixWorld(true);
   const b2=new THREE.Box3().setFromObject(wrap),c=b2.getCenter(new THREE.Vector3());inner.position.set(-c.x,-b2.min.y,-c.z);
   wrap.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=false;o.material=lambertOf(o.material);}});
+  // where the legs are: the feet (lowest part) in front of and behind the middle, the hips about half way up
+  wrap.updateMatrixWorld(true);let H=0,zs=0,n=0;const feet=[],v=new THREE.Vector3();
+  wrap.traverse(o=>{if(!o.isMesh)return;o.userData.aniA=o.matrixWorld.clone();o.userData.aniAi=o.matrixWorld.clone().invert();const p=o.geometry.attributes.position;
+    for(let i=0;i<p.count;i+=3){v.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);H=Math.max(H,v.y);zs+=v.z;n++;}});
+  const zc=zs/Math.max(1,n);wrap.traverse(o=>{if(!o.isMesh)return;const p=o.geometry.attributes.position;for(let i=0;i<p.count;i+=2){v.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);if(v.y<H*0.16)feet.push(v.z);}});
+  const fr=feet.filter(z=>z>zc),rr=feet.filter(z=>z<=zc),avg=a=>a.reduce((s,x)=>s+x,0)/Math.max(1,a.length);
+  wrap.userData.legs={hip:H*0.5,zc,zf:fr.length?avg(fr):zc+A.len*0.3,zr:rr.length?avg(rr):zc-A.len*0.3,len:A.len};
   return ANIPROTO[key]=wrap;}
+// legs that walk: each leg swings from its hip, front and back on opposite sides together (a trot), the foot lifts on the way forward
+function aniLegs(g,legs){const U={ph:{value:0},amp:{value:0}};
+  g.traverse(o=>{if(!o.isMesh)return;const mats=Array.isArray(o.material)?o.material:[o.material],out=mats.map(m0=>{const m=m0.clone();
+      const u={uPh:U.ph,uAmp:U.amp,uA:{value:o.userData.aniA},uAi:{value:o.userData.aniAi},uHip:{value:legs.hip},uZC:{value:legs.zc},uZF:{value:legs.zf},uZR:{value:legs.zr},uLen:{value:legs.len}};
+      m.onBeforeCompile=sh=>{Object.assign(sh.uniforms,u);
+        sh.vertexShader='uniform float uPh,uAmp,uHip,uZC,uZF,uZR,uLen;uniform mat4 uA,uAi;\n'+sh.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
+          vec3 ap=(uA*vec4(transformed,1.0)).xyz;float fr=step(uZC,ap.z),zcol=mix(uZR,uZF,fr),sd=step(0.0,ap.x),lp=abs(fr-sd)*3.14159;
+          float w=smoothstep(uHip*1.05,uHip*0.55,ap.y)*smoothstep(uLen*0.24,uLen*0.1,abs(ap.z-zcol));float an=uAmp*sin(uPh+lp)*w,c=cos(an),s=sin(an),dy=ap.y-uHip,dz=ap.z-zcol;
+          ap.y=uHip+dy*c-dz*s;ap.z=zcol+dy*s+dz*c;ap.y+=max(0.0,sin(uPh+lp+1.5708))*uAmp*0.22*uHip*w*smoothstep(uHip*0.6,0.0,ap.y);
+          transformed=(uAi*vec4(ap,1.0)).xyz;`);};
+      m.customProgramCacheKey=()=>'aniLegs';return m;});
+    o.material=Array.isArray(o.material)?out:out[0];});
+  return U;}
 // plain lit materials (the files' metal/rough settings came out black under the game's lights, and these are cheaper on phones)
 const LAMB=new Map();function lambertOf(m,br){if(Array.isArray(m))return m.map(q=>lambertOf(q,br));if(LAMB.has(m))return LAMB.get(m);const L=new THREE.MeshLambertMaterial({map:m.map||null,color:(m.color?m.color.clone():new THREE.Color(1,1,1)).multiplyScalar(m.map?(br||1):1),transparent:!!m.transparent,opacity:m.opacity,alphaTest:m.alphaTest||0,side:THREE.DoubleSide});if(L.map&&FILMIC)L.map.encoding=THREE.sRGBEncoding;LAMB.set(m,L);return L;}
 // herds: one may live in each 360 m cell of the land; they are brought to life when you come near and put away when you leave
@@ -3944,8 +4038,8 @@ function herdFor(ix,iz){const r=mulberry32((ix*92821)^(iz*68917)^777),cz=(iz+0.5
   const n=kind==='bear'?1:kind==='camel'||kind==='horse'?2+Math.floor(r()*3):3+Math.floor(r()*5);return {kind,x,z,n,seed:(ix*31+iz*17)>>>0};}
 function herdSpawn(H){const P=aniProto(H.kind);if(!P)return [];const r=mulberry32(H.seed+5),out=[],A=ANI[H.kind];
   for(let i=0;i<H.n;i++){const x=H.x+(r()*2-1)*18,z=H.z+(r()*2-1)*18;if(waterAt(x,z)>Hf(x,z)-0.3)continue;
-    const g=P.clone(true),s=0.85+r()*0.3;g.scale.setScalar(s);scene.add(g);
-    out.push({g,A,kind:H.kind,x,z,th:r()*6.28,hx:H.x,hz:H.z,tx:x,tz:z,v:0,state:'graze',t:r()*6,ph:r()*6,s,run:0});}
+    const g=P.clone(true),s=0.85+r()*0.3;g.scale.setScalar(s);scene.add(g);const LU=aniLegs(g,P.userData.legs);
+    out.push({LU,g,A,kind:H.kind,x,z,th:r()*6.28,hx:H.x,hz:H.z,tx:x,tz:z,v:0,state:'graze',t:r()*6,ph:r()*6,s,run:0});}
   return out;}
 function animalsStep(dt){
   if(S.mode!=='play'&&S.mode!=='menu')return;
@@ -3966,7 +4060,8 @@ function animalsStep(dt){
     // pushed aside if the car runs into it
     if(dp<1.6+a.A.len*0.4){const k=(1.6+a.A.len*0.4-dp)/Math.max(dp,0.1);a.x+=dxp*k;a.z+=dzp*k;}
     a.ph+=dt*(1.5+a.v*2.2);const gy=meshH(a.x,a.z),bob=a.v>0.1?Math.abs(Math.sin(a.ph))*0.05*a.s*Math.min(1,a.v):0,graze=a.state==='graze'?0.07*Math.sin(a.ph*0.3)+0.06:0;
-    a.g.position.set(a.x,gy+bob,a.z);a.g.rotation.set(graze+(a.v>0.1?Math.sin(a.ph*2)*0.03:0),a.th,0,'YXZ');}}
+    a.g.position.set(a.x,gy+bob,a.z);a.g.rotation.set(graze+(a.v>0.1?Math.sin(a.ph*2)*0.03:0),a.th,0,'YXZ');
+    if(a.LU){a.LU.ph.value=a.ph;a.LU.amp.value=clamp(a.v*(a.state==='run'?0.09:0.32),0,a.state==='run'?0.62:0.42);}}}
 // cabins: at the far end of the side roads that don't end at a lake, and on quiet hills beside the trails
 const CABIN_MODELS=[{m:'cabin1',len:10},{m:'cabin2',len:8},{m:'cabin3',len:11}],CABINS=[];
 (function(){const r=mulberry32(3131);
@@ -4156,7 +4251,7 @@ function freeStart(){S.mode='play';if(FS.x!==null&&Math.hypot(FS.x-FX,FS.z-FZ)<F
 function freeRescue(){const k=freeTrailNear(S.x,S.z);if(k>=0)placeAt(FW.PX[k],FW.PZ[k],freeHeading(k));toast(tr_('برگشتی روی راه'));}
 // switching between the stage road and the free map
 function setWorld(fw){fw=!!fw;if(fw)freeInit();if(fw===FREE)return;FREE=fw;FW.group&&(FW.group.visible=FREE);
-  mhCache.clear();treeCache.clear();for(const [,T] of tiles)disposeTile(T);tiles.clear();tileQueue=[];pTile=[1e9,1e9];
+  mhCache.clear();treeCache.clear();for(const [,T] of tiles)disposeTile(T);tiles.clear();blkBuild();tileQueue=[];pTile=[1e9,1e9];
   for(const [,rc] of roadChunks)rc.meshes.forEach(m=>{scene.remove(m);if(m.geometry&&!m.userData.shared)m.geometry.dispose();});roadChunks.clear();roadCiLast=1e9;
   for(const [,m] of grass)m.forEach(x=>{scene.remove(x);x.dispose&&x.dispose();});grass.clear();
   for(const [,E] of HERD.cells)E.an.forEach(a=>scene.remove(a.g));HERD.cells.clear();
@@ -4410,7 +4505,7 @@ function parkLodStep(){let fr=false;
         for(const im of ims){im.count=k;im.visible=k>0;im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;}}}}}
 function elemBuild(E){const g=new THREE.Group();const head=z=>Math.atan2(roadDX(z),1);
   if(E.type==='park'){const cars=parkCars(E),by=new Map();E.plod=[];cars.forEach(c=>{if(!by.has(c.m))by.set(c.m,[]);by.get(c.m).push(c);});
-    for(const [m,list] of by){const MP=modelPartsT(m);const parts=[];MP.body.forEach(b=>parts.push([b.geo,b.mat,null]));MP.wheels.forEach(w=>w.parts.forEach(p=>parts.push([p[1],p[2],[w.x,w.y,w.z]])));
+    for(const [m,list] of by){const MP=modelPartsT(m);const parts=[];MP.body.forEach(b=>parts.push([b.geo,b.mat,null]));if(MP.steer)parts.push([MP.steer.geo,MP.steer.mat,[MP.steer.c.x,MP.steer.c.y,MP.steer.c.z]]);MP.wheels.forEach(w=>w.parts.forEach(p=>parts.push([p[1],p[2],[w.x,w.y,w.z]])));
       const dm=new THREE.Object3D(),M=new THREE.Matrix4(),O=new THREE.Matrix4(),col=new THREE.Color();
       // the same cars at three levels of detail: full near the camera, lighter further off where the difference cannot be seen; cars out of view are not drawn
       const grp={list,parts:[],lods:[[],[],[]]};list.forEach(c=>{c.pm=[];});
@@ -4432,7 +4527,7 @@ function elemBuild(E){const g=new THREE.Group();const head=z=>Math.atan2(roadDX(
       for(const o of [-BEAMC,BEAMC]){const x=toXZx(c+o,z);B.add(x,y-0.2,z,E.bw,0.4,2.06,head(z)+Math.atan(dc),0,0,'#6a5642',0.8+R()*0.35);
         if(Math.floor(s/12)!==Math.floor((s+2)/12)){const wl=Math.min(E.eA,E.eB)-14;B.add(x,(y+wl)/2-1,z,0.32,y-wl+2,0.32,0,0,0,'#4a3c30',0.9);}}}
     g.add(B.mesh(elWoodMat));
-    const wl=Math.min(E.eA,E.eB)-14,sea=new THREE.Mesh(new THREE.PlaneGeometry(1800,E.L+6),waterMat);sea.rotation.x=-Math.PI/2;const piv=new THREE.Group();piv.position.set(roadX(E.zc),wl,E.zc);piv.rotation.y=head(E.zc);piv.add(sea);g.add(piv);}
+    const wl=Math.min(E.eA,E.eB)-14,sea=waterSlab(1800,E.L+500,45);const piv=new THREE.Group();piv.position.set(roadX(E.zc),wl,E.zc);piv.rotation.y=head(E.zc);piv.add(sea);g.add(piv);}
   if(E.type==='jump'){const B=boxMaker();for(let s=E.rampS;s<=E.gap0;s+=0.5){const z=E.z0+s,y=elemDeck(E,roadX(z),z);B.add(roadX(z),y-0.12,z,6.4,0.24,0.52,head(z),-Math.atan(E.rampH/E.rampL),0,'#7a6650',0.85+((s*2)%2)*0.15);
       if(Math.floor(s)%3===0)for(const sd of [-1,1])B.add(toXZx(sd*3,z),(y+roadE(z))/2-0.4,z,0.25,y-roadE(z)+1,0.25,0,0,0,'#4a3c30',1);}
     g.add(B.mesh(elWoodMat));}
@@ -4691,7 +4786,7 @@ function trSound(dt){if(!AU.ac||!SND.buf.r_idle||!SND.buf.r_fast)return;
    Around the player the snow is a real layer up to 30 cm deep: a fine mesh laid over the ground that follows the terrain
    exactly. Every tyre (yours and the traffic's) presses a rut into it, with the snow pushed up into a low ridge on each side.
    Ruts stay while you are near, and slowly fill in again while it keeps snowing. Further away the ground is simply white. */
-const SNW={cell:0.25,N:241,M:256,gx:1e9,gz:1e9,dirty:true,t:0,fillT:0,depth:0,last:new Map()};
+const SNW={cell:0.3,N:321,M:352,gx:1e9,gz:1e9,dirty:true,t:0,fillT:0,depth:0,last:new Map()};
 (function(){const N=SNW.N,M=SNW.M;SNW.tx=new Int32Array(M*M).fill(-2147483647);SNW.tz=new Int32Array(M*M);SNW.th=new Float32Array(M*M);SNW.rut=new Float32Array(M*M);
   SNW.R=new Float32Array(N*N);SNW.H=new Float32Array(N*N);
   const g=new THREE.BufferGeometry(),pos=new Float32Array(N*N*3),nor=new Float32Array(N*N*3),col=new Uint8Array(N*N*3),idx=[];
@@ -4793,7 +4888,7 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
   if(SLEEP.on){const a=SLEEP.a0+SLEEP.t*0.32,cx=SLEEP.cx,cz=SLEEP.cz;camera.position.set(cx+Math.sin(a)*14,0,cz+Math.cos(a)*14);camera.position.y=Math.max(SLEEP.cy+5.5,Hd(camera.position.x,camera.position.z)+2);camera.lookAt(cx,SLEEP.cy+1,cz);}
   if(window.__camOv){const o=window.__camOv;camera.position.set(o[0],o[1],o[2]);camera.lookAt(o[3],o[4],o[5]);}
   skyGroup.position.copy(camera.position);
-  sun.position.multiplyScalar(220).add(tmpV.set(S.x,S.y,S.z));sun.target.position.set(S.x,S.y,S.z);sun.target.updateMatrixWorld();
+  {const gx=Math.round(S.x/2)*2,gz=Math.round(S.z/2)*2;sun.position.multiplyScalar(220).add(tmpV.set(gx,S.y,gz));sun.target.position.set(gx,S.y,gz);sun.target.updateMatrixWorld();}
   updateParticles(dt,env);updateWindscreen(dt,env);updateAudio(dt,env);
   if(S.mode==='play'){hudT-=dt;if(hudT<=0){hudT=0.1;
     if(V.gauge&&S.cam===4)drawGauge(V.gauge);
@@ -4805,6 +4900,7 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
     drawCompass();drawMini();}}
   rainbowStep(dt,env);banksStep();elemVisStep(dt);parkLodStep();if(Math.floor(performance.now()/500)!==STG.gT){STG.gT=Math.floor(performance.now()/500);gatesStep();}rivNrm.offset.y-=dt*0.32;commsFrame(dt);animalsStep(dt);{const tn2=performance.now();if(tn2-cabT>500){cabT=tn2;cabinsStep();}}
   // shadows are redrawn every frame on strong phones, every second frame on the others
+  PERF.fn++;renderer.shadowMap.needsUpdate=QL()>=3||(PERF.fn&1)===0;
   renderer.render(scene,camera);requestAnimationFrame(frame);
 }
 rebuildEnv();scanTiles(true);processTiles(1e9);updateRoad(true);applyVehicle();applySettings();refreshMenu();updateGrass(0,true);
