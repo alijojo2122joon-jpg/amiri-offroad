@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=120</script>
+<script>window.GAME_CODE=121</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -3622,7 +3622,9 @@ const puffs=[];
 (function(){const g=new THREE.IcosahedronGeometry(0.5,1);for(let i=0;i<60;i++){const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({color:'#cdb894',transparent:true,opacity:0,depthWrite:false}));m.visible=false;scene.add(m);puffs.push({m,life:0,vx:0,vy:0,vz:0});}})();
 let puffI=0,puffT=0,puffSide=0;
 const PUFFC={asphalt:'#d9d6d0',gravel:'#c7b08a',grass:'#a9a079',rock:'#b2a99c',mud:'#5c4a36',sand:'#e0cb98',snow:'#ffffff',water:'#e6f3f8',wood:'#b9a27c'};
-function updatePuffs(dt,playing){
+// the dust kicked up by the tyres is switched off: it cost a lot of drawing for little
+const NO_TYRE_DUST=true;if(NO_TYRE_DUST)puffs.forEach(p=>{p.life=0;scene.remove(p.m);});
+function updatePuffs(dt,playing){if(NO_TYRE_DUST)return;
   for(const p of puffs){if(p.life<=0)continue;p.life-=dt*1.1;p.m.position.x+=p.vx*dt;p.m.position.y+=p.vy*dt;p.m.position.z+=p.vz*dt;p.vy*=1-dt;p.m.scale.setScalar(0.45+(1-p.life)*2.4);p.m.material.opacity=Math.max(0,p.life)*0.42;if(p.life<=0)p.m.visible=false;}
   if(!playing||S.air)return;const sp=Math.abs(S.v);if(sp<4&&S.slipNow<0.3)return;if(S.surf==='asphalt'&&S.slipNow<0.35)return;
   puffT-=dt;if(puffT>0)return;puffT=Math.max(0.03,0.1-sp*0.002-S.slipNow*0.04);
