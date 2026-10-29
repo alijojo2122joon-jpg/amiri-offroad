@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=111</script>
+<script>window.GAME_CODE=112</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -45,7 +45,7 @@
 .big.ad{background:#3f7f5f;color:#fff}
 .big.ad svg{width:18px;height:18px}
 .mstats .st{color:#f2a93b}
-#musBtn,#musPanel,#sleepBtn,#wipBtn,#eyes,#drowsy,#sleepCard,#awakeTag,#micBtn,#spkBtn,#chatIn,#chatSend{display:none!important}
+#musBtn,#musPanel,#sleepBtn,#eyes,#drowsy,#sleepCard,#awakeTag,#micBtn,#spkBtn,#chatIn,#chatSend{display:none!important}
 #chatBar{grid-template-columns:1fr auto}
 
 #layBar{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:50%;transform:translateX(-50%);z-index:36;display:flex;gap:10px;align-items:center;direction:rtl;padding:8px 12px;font-size:12px;color:var(--paper);flex-wrap:wrap;justify-content:center;max-width:94vw}
@@ -2636,7 +2636,7 @@ function carSnowWork(){const J=CSN.job;if(!J||J.done)return;const {body,L,W,NX,N
   // small, low cars (sports cars, hatchbacks) carry only a thin layer: about 5 cm; bigger ones up to 12 cm
   J.Vc.snowMax=mx<1.95?0.05:0.12;
   J.Vc.snowRoof={tex,box:new THREE.Vector4(W*(NX+1)/NX,L*(NZ+1)/NZ,mn-0.1,rng)};}
-function carSnowStep(dt,snowA,rainA){return;
+function carSnowStep(dt,snowA,rainA){if(!V||S.mode!=='play')return;
   const onSnow=S.surf==='snow'&&!S.air&&Math.abs(S.v||0)>0.5;
   CSN.top=clamp(CSN.top+(snowA>0.3?dt/110*snowA:-dt/(rainA>0.3?90:300)),0,1);
   CSN.low=clamp(CSN.low+(onSnow?dt*Math.min(1,Math.abs(S.v)/6)/25:-dt/(rainA>0.3?60:240))+(snowA>0.3?dt/400:0),0,1);
@@ -3425,7 +3425,7 @@ function updateEnv(dt){
   const snowTarget=snowA>0.3?1:0;snowU.value+=snowTarget>snowU.value?(1-snowU.value)*dt*0.12*snowA:-dt*(snowyAt(S.x,S.y,S.z)?0:S.y>SNL(S.z)-40?0.0005:0.0028);snowU.value=clamp(snowU.value,0,1);
   trkMat.color.copy(TRK_DIRT).lerp(TRK_SNOW,clamp(snowU.value*1.4,0,1));trkMat.opacity=lerp(0.26,0.6,clamp(snowU.value*1.4,0,1));
   carSnowStep(dt,snowA,rainA);
-  {const cold=snowA>0.2;frostU.value=0;frostLU.value=(0.05+0.95*dayF)*(1-0.45*Math.min(1,wa));}
+  {const cold=snowA>0.2;frostU.value=clamp(frostU.value+(cold?dt/70:-dt/40),0,1);frostLU.value=(0.05+0.95*dayF)*(1-0.45*Math.min(1,wa));}
   wetU.value+=(rainA-wetU.value)*dt*0.1;windU.value=1+wa*1.5+(zoneOf(S.z)===4?0.8:0);
   cTop.copy(CN.top).lerp(CD.top,dayF);cMid.copy(CN.mid).lerp(CD.mid,dayF);cHor.copy(CN.hor).lerp(CD.hor,dayF).lerp(CDUSK,warm*0.75);
   if(zoneOf(S.z)===3)cHor.lerp(CCANYON,dayF*0.35);
