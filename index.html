@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=119</script>
+<script>window.GAME_CODE=120</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1819,8 +1819,10 @@ const flagTexCache={};
 function flagTex(code){if(flagTexCache[code])return flagTexCache[code];const c=document.createElement('canvas');c.width=192;c.height=128;drawFlag(c.getContext('2d'),code,192,128);const t=new THREE.CanvasTexture(c);{const im=FLAGIMG[code==='afw'?'af3':code];if(im&&!(im.complete&&im.naturalWidth))im.addEventListener('load',()=>{drawFlag(c.getContext('2d'),code,192,128);t.needsUpdate=true;});}if(FILMIC)t.encoding=THREE.sRGBEncoding;t.anisotropy=4;return flagTexCache[code]=t;}
 function flagURL(code){const c=document.createElement('canvas');c.width=48;c.height=32;drawFlag(c.getContext('2d'),code,48,32);return c.toDataURL();}
 const ACC0=[{k:'bar',n:tr_('سپر ضربه‌گیر'),d:tr_('لوله‌های محافظ جلو'),price:12000},{k:'snork',n:tr_('اسنورکل'),d:tr_('در آب عمیق‌تر خاموش نمی‌شوی'),price:15000},{k:'rack',n:tr_('باربند و پروژکتور'),d:tr_('چهار چراغ اضافه'),price:10000},{k:'roof',n:tr_('سقف سفید'),d:tr_('سقف دورنگ'),price:4000},{k:'crate',n:tr_('دبه‌های بنزین'),d:tr_('دو دبه روی سقف یا باربند'),price:1500},{k:'bag',n:tr_('چمدان'),d:tr_('چمدان سفر روی سقف'),price:3000},{k:'spare',n:tr_('لاستیک زاپاس'),d:tr_('یک لاستیک اضافه، جایی که به ماشین می‌آید'),price:6000}];
-const ACC=ACC0.map(a=>Object.assign({},a,{price:Math.round(a.price/10/50)*50}));
-const flagURLs={};const PAINT_COST=300,RIM_COST=200;
+// while testing everything in the garage is free (set TEST_FREE to false to go back to prices)
+const TEST_FREE=true;
+const ACC=ACC0.map(a=>Object.assign({},a,{price:TEST_FREE?0:Math.round(a.price/10/50)*50}));
+const flagURLs={};const PAINT_COST=TEST_FREE?0:300,RIM_COST=TEST_FREE?0:200;
 if(saved.vset!==3){saved.owned=[0];saved.up={};saved.cust={};saved.veh=0;saved.coins=saved.vset===2?1500:0;}
 const owned=Array.isArray(saved.owned)?saved.owned.filter(i=>i>=0&&i<VEH.length):[0];if(!owned.includes(0))owned.unshift(0);
 // while testing: every car is open to drive (set to false to go back to buying them)
@@ -1829,7 +1831,8 @@ const upLv=saved.up&&typeof saved.up==='object'?saved.up:{};
 const custAll=saved.cust&&typeof saved.cust==='object'?saved.cust:{};
 function upg(i){return upLv[i]||(upLv[i]={e:0,s:0,t:0,b:0});}
 function cust(i){const c=custAll[i]||(custAll[i]={});const d={paint:null,rim:null,bar:0,snork:0,rack:0,flag:0,roof:0,crate:0,bag:0,spare:0,tire:1};for(const k in d)if(c[k]===undefined)c[k]=d[k];return c;}
-function upCost(i,k,lv){const u=UPS.find(x=>x.k===k);return Math.round(u.base*[1,2,3.5][lv]*(1+i*0.12)/50)*50;}
+if(TEST_FREE)VEH.forEach(v=>v.price=0);
+function upCost(i,k,lv){if(TEST_FREE)return 0;const u=UPS.find(x=>x.k===k);return Math.round(u.base*[1,2,3.5][lv]*(1+i*0.12)/50)*50;}
 // every car tops out at a quarter of what it once did (upgrades included): this is crawling country, not a race track
 const SPEEDK=1;
 function stats(i){const t=VEH[i],u=upg(i),p=cust(i).tire;return{maxV:t.maxV*SPEEDK*(1+0.06*u.e)*(1-(1-p)*0.25),acc:t.acc*(1+0.1*u.e),grip:t.grip*(1+0.06*u.t),brake:13*(1+0.15*u.b),travel:0.05*u.s,soft:1-0.06*u.s,p};}
