@@ -5,6 +5,7 @@
 | | |
 |---|---|
 | 📱 Android | [AmiriOffroad.apk](https://github.com/alijojo2122joon-jpg/amiri-offroad/raw/main/AmiriOffroad.apk) |
+| 🪟 Windows (برنامه / program) | [AmiriOffroad-Setup.exe](https://github.com/alijojo2122joon-jpg/amiri-offroad/raw/main/AmiriOffroad-Setup.exe) |
 | 💻 PC / کامپیوتر / Kompjuter | [AmiriOffroad-PC.html](https://github.com/alijojo2122joon-jpg/amiri-offroad/raw/main/AmiriOffroad-PC.html) |
 | 🍎 iPhone | [AmiriOffroad-iPhone.html](https://github.com/alijojo2122joon-jpg/amiri-offroad/raw/main/AmiriOffroad-iPhone.html) |
 
