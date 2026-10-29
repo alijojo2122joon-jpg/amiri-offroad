@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=118</script>
+<script>window.GAME_CODE=119</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -2659,7 +2659,8 @@ function buildVehicle(spec,cu,st){let glbSteer=null;
 }
 
 /* ---------- State ---------- */
-const startCoins=typeof saved.coins==='number'?saved.coins:0;
+// while testing: a billion coins to buy everything (set TEST_RICH to false to go back)
+const TEST_RICH=true;const startCoins=Math.max(typeof saved.coins==='number'?saved.coins:0,TEST_RICH?1000000000:0);
 // stars: one to three for each stage, by how many times you lost on the way (none: three)
 const STARS=Array.isArray(saved.stars)&&saved.vset===3?saved.stars.slice(0,NSTAGE).map(v=>clamp(v|0,0,3)):[];while(STARS.length<NSTAGE)STARS.push(0);
 if(saved.vset!==3&&typeof saved.stageMax==='number')for(let i=0;i<Math.min(saved.stageMax,NSTAGE);i++)STARS[i]=1;
