@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=115</script>
+<script>window.GAME_CODE=116</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -2737,7 +2737,7 @@ function carSnowWork(){const J=CSN.job;if(!J||J.done)return;const {body,L,W,NX,N
   J.Vc.snowRoof={tex,box:new THREE.Vector4(W*(NX+1)/NX,L*(NZ+1)/NZ,mn-0.1,rng)};}
 function carSnowStep(dt,snowA,rainA){if(!V||S.mode!=='play')return;
   const onSnow=S.surf==='snow'&&!S.air&&Math.abs(S.v||0)>0.5;
-  CSN.top=clamp(CSN.top+(snowA>0.3?dt/110*snowA:(WX.hold||0)>600?-dt/60:rainA>0.3?-dt/90:0),0,1);
+  CSN.top=clamp(CSN.top+(snowA>0.3?dt/110*snowA:(WX.hold||0)>0.5?-dt/50:rainA>0.3?-dt/90:0),0,1);
   CSN.low=clamp(CSN.low+(onSnow?dt*Math.min(1,Math.abs(S.v)/6)/25:-dt/(rainA>0.3?60:240))+(snowA>0.3?dt/400:0),0,1);
   if((CSN.top>0.01||CSN.low>0.01||VEH[S.veh].cabinFix)&&(!CSN.job||CSN.job.Vc!==V))carSnowStart(V);carSnowU.cabin.value=0;carSnowWork();
   snowDepU.value=0.005+(V.snowMax||0.24)*CSN.top;if(V.snowTop)V.snowTop.visible=CSN.top>0.02;
@@ -3523,8 +3523,8 @@ function updateEnv(dt){
   // thunderstorms in heavy rain and hail, and now and then thundersnow in a heavy snowfall
   if(rainA>0.6||hailA>0.6||snowA>0.6){WX.ltTimer-=dt;if(WX.ltTimer<=0){WX.flash=1;SFX.thunder(0.6+Math.random()*1.8);WX.ltTimer=snowA>0.6?18+Math.random()*30:8+Math.random()*16;}}
   WX.flash=Math.max(0,WX.flash-dt*5);
-  // after a snowfall the snow lies for ten minutes of play, then melts away within a minute (always white high up)
-  if(snowA>0.3)WX.hold=0;else WX.hold=(WX.hold||0)+dt;const meltK=WX.hold>600?1/60:0;
+  // after a snowfall stops, the lying snow melts away in about 50 seconds (always white high up)
+  if(snowA>0.3)WX.hold=0;else WX.hold=(WX.hold||0)+dt;const meltK=WX.hold>0.5?1/50:0; // after the snowfall stops, lying snow melts away in about 50 s
   const snowTarget=snowA>0.3?1:0;snowU.value+=snowTarget>snowU.value?(1-snowU.value)*dt*0.12*snowA:-dt*(snowyAt(S.x,S.y,S.z)?0:meltK);snowU.value=clamp(snowU.value,0,1);
   trkMat.color.copy(TRK_DIRT).lerp(TRK_SNOW,clamp(snowU.value*1.4,0,1));trkMat.opacity=lerp(0.26,0.6,clamp(snowU.value*1.4,0,1));
   carSnowStep(dt,snowA,rainA);
