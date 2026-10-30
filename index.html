@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=128</script>
+<script>window.GAME_CODE=129</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -86,6 +86,18 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 #chatPeople{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:5px;font:700 12px var(--body)}#chatPeople:empty{display:none}#chatPeople button{border:1px solid rgba(255,255,255,.2);background:transparent;color:var(--paper);border-radius:9px;padding:3px 8px;font:inherit}#chatPeople button.mu{opacity:.5;text-decoration:line-through}
 #mini{width:100px;height:100px;border-radius:12px;border:2px solid rgba(255,255,255,.55);box-shadow:0 6px 20px rgba(10,20,26,.22);background:#6f9a57;cursor:pointer}
 .icons{display:grid;gap:6px}
+.tempRow{display:flex;align-items:center;gap:6px;font:700 11px var(--body);color:var(--paper);margin-top:4px}.tempRow i{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.15);overflow:hidden;display:block}.tempRow b{display:block;height:100%;width:30%;background:linear-gradient(90deg,#4fa3e0,#8fc46a 45%,#f2a93b 75%,#d6493f);background-size:220px 100%}.tempRow.hot{color:#ff8a7a;animation:hotb .7s infinite alternate}@keyframes hotb{to{opacity:.45}}
+#fixBtn{color:#ffd27a}#fixBtn.alert{background:rgba(214,73,63,.6);animation:hotb .8s infinite alternate}
+#repPanel{position:fixed;right:12px;bottom:12px;width:min(330px,46vw);z-index:45;padding:12px 14px;pointer-events:auto;display:grid;gap:8px}
+#repPanel .rtop{display:flex;justify-content:space-between;align-items:center}#repPanel .rtop b{color:var(--amber);font:800 15px var(--body)}#repStep{font:600 12px var(--body);color:var(--paper);line-height:1.7}
+#repAct{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}.rbtn{font:800 14px var(--body);padding:12px 18px;border-radius:12px;border:none;background:var(--amber);color:#1b1306;min-width:140px;touch-action:none;user-select:none}.rbtn.hold:active{filter:brightness(1.2);transform:scale(.97)}
+.rbar{width:100%;height:8px;border-radius:4px;background:rgba(255,255,255,.15);overflow:hidden}.rbar i{display:block;height:100%;width:0;background:#8fc46a}
+.nuts{position:relative;width:132px;height:132px;border-radius:50%;background:radial-gradient(circle,#555a60 0 30%,#2a2c2f 31% 70%,#151515 71%)}.nuts.lamps{width:220px;border-radius:14px;background:#2a2c2f}
+.nut{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:7px;border:2px solid #c9ccd0;background:#8e9399;transition:transform .3s,opacity .3s}.nut.done{transform:rotate(180deg) scale(.6);opacity:.25}.nut.loose{opacity:.35}.nut.loose.done{opacity:1;transform:rotate(-180deg)}
+.lamps .nut{width:54px;height:40px;margin:-20px 0 0 -27px;border-radius:12px;background:#4a4030;border-color:#776}.lamps .nut.done{transform:none;opacity:1;background:#fff3c4;box-shadow:0 0 16px #ffe08a}
+.dragZone{position:relative;width:100%;height:96px;display:flex;align-items:center;justify-content:center}.dz{position:absolute;top:30px;width:36px;height:36px;border:2px dashed rgba(255,255,255,.4);border-radius:50%}.dz.l{left:12px}.dz.r{right:12px}
+.dragW{width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,#8e9399 0 22%,#3a3c3f 23% 34%,#1a1a1a 35%);touch-action:none;cursor:grab}.dragW.spare{background:radial-gradient(circle,#c9ccd0 0 22%,#4a4c4f 23% 34%,#222 35%);transform:translateX(-95px)}
+body.repairing #ctl{display:none!important}
 .ib{width:38px;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:var(--glass);color:var(--paper);display:grid;place-items:center;padding:0;font:800 11px var(--body)}
 .ib svg{width:19px;height:19px}
 .ib.act{background:rgba(242,169,59,.6);color:var(--ink)}
@@ -297,6 +309,7 @@ body.editing #comms{pointer-events:auto;outline:2px dashed var(--amber);outline-
     <canvas id="compass" width="320" height="56"></canvas>
     <div class="info"><span>ارتفاع <b id="alt" class="num">۰</b> م</span><span id="envTag"></span><span id="awakeTag"></span></div>
     <div id="netTag" hidden><i></i><span id="netTxt"></span></div>
+    <div id="tempRow" class="tempRow" hidden><span>دمای موتور</span><i><b id="tempFill"></b></i></div>
   </div>
   <div id="comms" hidden>
     <div id="chatLog"></div>
@@ -330,10 +343,12 @@ body.editing #comms{pointer-events:auto;outline:2px dashed var(--amber);outline-
       <button class="ib" id="pauseBtn" aria-label="منو"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
       <button class="ib" id="camBtn" aria-label="تغییر دوربین"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       <button class="ib" id="rescueBtn" aria-label="برگشت به جای امن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg></button>
+      <button class="ib" id="fixBtn" hidden aria-label="تعمیر"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg></button>
       <button class="ib" id="musBtn" aria-label="آهنگ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></button>
     </div>
   </div>
 </div>
+<div id="repPanel" class="panel" hidden><div class="rtop"><b id="repTitle"></b><button class="mx" id="repClose" aria-label="بستن">×</button></div><div id="repStep"></div><div id="repAct"></div></div>
 <div id="zoneCard"><small id="zcKm"></small><b id="zcName"></b><em id="zcWarn"></em></div>
 
 <div id="ctl" hidden>
@@ -542,7 +557,7 @@ SET.cam=SET.cam.map(c=>Object.assign(CAM0(),c||{}));
 let saved={};try{saved=JSON.parse(localStorage.getItem(SAVE)||'{}')||{};}catch(e){saved={};}
 try{if(window.AndroidApp&&AndroidApp.loadData){const f=JSON.parse(AndroidApp.loadData()||'{}');if(f&&(f.t||0)>(saved.t||0))saved=f;}}catch(e){}
 
-var FREE=false,FW=null,FS=null,FMAP='island',DK={vz:0},dkObst=[];
+var BRK={flat:-1,heat:0.45,lights:true,hotWarn:false,spare:1,rep:null};var FREE=false,FW=null,FS=null,FMAP='island',DK={vz:0},dkObst=[];
 /* ---------- The road: eight lands. The first three are a short paved highway; from the Red Canyon on it is the wild 30 km-per-land track ---------- */
 // Lands are laid out in "design" metres (30 km each); the first three are squeezed into PAVE real metres of two-track dirt road.
 const ZONE=30000,NZONE=8,DESLEN=ZONE*NZONE,PAVE=3000,KZ=3*ZONE/PAVE,ROADLEN=DESLEN-3*ZONE+PAVE,HALFW=2.6,SNOWALT=400,AW=3.9;
@@ -2666,7 +2681,7 @@ function buildVehicle(spec,cu,st){let glbSteer=null;
   let gauge=null;if(spec.cabinFix&&MP&&MP.int){const K=CARSC,[hx,ey,hz]=MP.int.head,cv=document.createElement('canvas');cv.width=320;cv.height=128;
     const tex=new THREE.CanvasTexture(cv);if(FILMIC)tex.encoding=THREE.sRGBEncoding;const m=new THREE.Mesh(new THREE.PlaneGeometry(0.36*K,0.144*K),new THREE.MeshBasicMaterial({map:tex,toneMapped:false}));
     let gy=ey-0.17*K;if(MP.glass&&MP.glass.length){let lo=1e9;MP.glass.forEach(g=>{g.computeBoundingBox();lo=Math.min(lo,g.boundingBox.min.y);});gy=Math.min(gy,lo-0.07*K);}m.position.set(hx,gy+lift,hz+0.6*K);m.rotation.set(-0.5,Math.PI,0);body.add(m);gauge={cv,ctx:cv.getContext('2d'),tex,last:''};}
-  return {glbSteer,gauge,beamMat,dashP:[INT.dash[1]+lift,INT.dash[2],INT.dash[3]],wip,hull,ws,trk,susp,cloth,fpp:[INT.head[0],INT.head[1]+lift,INT.head[2]],swheel:swIn,bodyPts,bodyBot,g,body,wheels,ant:antSegs,hood:[hood[0],hood[1]+lift,hood[2]],camK:T.camK,phys,mats,spot,glows,rack:has('rack'),eng:spec.eng,type,wb:maxU*2};
+  return {frontZ:typeof front==='number'?front:2,glbSteer,gauge,beamMat,dashP:[INT.dash[1]+lift,INT.dash[2],INT.dash[3]],wip,hull,ws,trk,susp,cloth,fpp:[INT.head[0],INT.head[1]+lift,INT.head[2]],swheel:swIn,bodyPts,bodyBot,g,body,wheels,ant:antSegs,hood:[hood[0],hood[1]+lift,hood[2]],camK:T.camK,phys,mats,spot,glows,rack:has('rack'),eng:spec.eng,type,wb:maxU*2};
 }
 
 /* ---------- State ---------- */
@@ -2712,7 +2727,7 @@ function tyreDeform(Vc){Vc.wheels.forEach(w=>{const TD={d:{value:new THREE.Vecto
             {float t=dot(transformed,uTD),rf=uTR*(1.0-uTF),e=max(0.0,t-rf),near=smoothstep(uTR*(1.0-2.6*uTF)-0.01,rf,t)*step(0.62*uTR,length(transformed.yz));
              transformed-=uTD*e;float sx=transformed.x>=0.0?1.0:-1.0;transformed.x+=sx*(e*0.55+near*uTF*uTR*0.32);}`);};
         m.customProgramCacheKey=()=>'tyre';return m;});o.material=Array.isArray(o.material)?out:out[0];});});}
-function applyVehicle(){ST=stats(S.veh);showVehicle(S.veh);CSN.job=null;}
+function applyVehicle(){ST=stats(S.veh);showVehicle(S.veh);CSN.job=null;brkReset();}
 /* ---------- Snow on the car ----------
    While it snows, a layer settles on everything facing up (roof, bonnet, rack, load); after driving through snow the tyres
    and the lower body are packed with it. Both are fixed to the car's body, so they move with it exactly, and melt away
@@ -3083,6 +3098,7 @@ function ignition(){
   if(S.mode!=='play')return;
   if(S.engineOn){if(Math.abs(S.v)<2){S.engineOn=false;toast(tr_('موتور خاموش شد'));}return;}
   if(S.crank>0)return;
+  if(brkOn()&&BRK.heat>0.75){toast(tr_('موتور هنوز داغ است؛ صبر کن یا آب بریز'));return;}
   const depth=waterAt(S.x,S.z)-Math.max(Hf(S.x,S.z),S.y-0.3),flood=cust(S.veh).snork===2?3.8:2.6;
   S.crank=0.7+Math.random()*0.5;S.crankOk=depth<flood-0.4&&Math.random()<(WX.type!=='clear'&&WX.amt>0.5?0.6:0.8);S.crankWet=depth>=flood-0.4;
 }
@@ -3310,7 +3326,7 @@ function drawCompass(){const w=compass.width,h=compass.height,deg=((-S.th*180/Ma
 const GEARS=[0,0.2,0.38,0.57,0.78,1.0],GRAV=9.8;
 function physStep(h,inp){
   const sinT=Math.sin(S.th),cosT=Math.cos(S.th),vF=S.vx*sinT+S.vz*cosT,vL=S.vx*cosT-S.vz*sinT;
-  const P0=V.phys,nW=V.wheels.length,p=ST.p,loose=LOOSE[S.surf]||0;
+  const P0=V.phys,nW=V.wheels.length,p=ST.p,loose=LOOSE[S.surf]||0,FLATW=FREE&&BRK.flat>=0?V.wheels[BRK.flat]:null,HP=FREE&&BRK.heat>0.85?clamp(1-(BRK.heat-0.85)*3.5,0.4,1):1;
   // the steering wheel works like a real one: a fixed ratio (about 17 to 1) at every speed, so fast a small turn of the wheel
   // is already a lot. The arrow keys have no feel for that, so for them the lock is eased as the speed rises.
   const delta=S.steer*0.6/(S.kbd?1+vF*vF/300:1)*(S.diff?0.82:1);S.delta=delta;
@@ -3337,7 +3353,7 @@ function physStep(h,inp){
   const sinkD=S.sink,drag=0.15*loose+sinkD*2.2+(1-p)*0.05;
   for(const wh of V.wheels){
     const u=wh.u,w=wh.w,wx=S.x+sinT*u+cosT*w,wz=S.z+cosT*u-sinT*w;
-    const hgr=Hd(wx,wz)-sinkD,yi=S.y+u*sp+w*sr,xi=hgr-yi,c=P0.c0+xi;
+    const hgr=Hd(wx,wz)-sinkD-(wh===FLATW?0.13:0),yi=S.y+u*sp+w*sr,xi=hgr-yi,c=P0.c0+xi;
     if(wh.c===undefined)wh.c=c;const cd=h>0?(c-wh.c)/h:0;wh.c=c;wh.x=xi;
     if(c<=0||upY<(crawl?0.02:0.3)){wh.g=false;wh.F=0;continue;}
     wh.g=true;ground++;
@@ -3348,9 +3364,9 @@ function physStep(h,inp){
     fxW+=F*nx;fzW+=F*nz;fyW+=F*ny;Tp+=F*ny*u;Tr+=F*ny*w;
     const vu=vF-S.w*w,vw=vL+S.w*u,st=wh.front?delta:0,cs=Math.cos(st),sn=Math.sin(st),vxw=vu*cs+vw*sn,vyw=-vu*sn+vw*cs;
     const wl=waterAt(wx,wz),dep=wl-hgr;
-    let mu=(MU[S.surf]||0.8)*wg;if(dep>0.2)mu=Math.min(mu,0.6*wg);
+    let mu=(MU[S.surf]||0.8)*wg*(wh===FLATW?0.55:1);if(dep>0.2)mu=Math.min(mu,0.6*wg);
     const maxF=mu*F;
-    let fx=drive/nW-vxw*(0.008+drag);
+    let fx=drive*HP/nW-vxw*(0.008+drag+(wh===FLATW?0.09:0));
     if(brake>0)fx-=Math.sign(vxw)*Math.min(brake/nW,Math.abs(vxw)*10);
     if(hold)fx-=clamp(vxw*40,-7/nW,7/nW);
     let fy=-vyw*(loose?4.2:5.5)-clamp(vyw*40,-1.5,1.5);
@@ -3456,11 +3472,11 @@ function physics(dt){
   V.wheels.forEach(w=>{w.cdT-=dt;if(w.cdT<=0){if(w.bottom&&w.cdMax>2){SFX.clunk(w.cdMax);w.cdT=0.2;}else if(w.cdMax>2.4){SFX.bump(w.cdMax);w.cdT=0.12;}}});
   const depth=waterAt(S.x,S.z)-Math.max(Hf(S.x,S.z),S.y-0.3);if(depth>0.3&&wasDepth<=0.3&&Math.abs(S.v)>4)SFX.splash(Math.abs(S.v)*0.3);
   if(wasAir&&!S.air&&S.maxCd>4)SFX.hit(S.maxCd*0.4);
-  if((S.wallHit||0)>2.5&&S.hitCd<=0){SFX.hit(S.wallHit*0.5);S.hitCd=0.35;}S.wallHit=0;
+  if((S.wallHit||0)>2.5&&S.hitCd<=0){SFX.hit(S.wallHit*0.5);S.hitCd=0.35;brkHit(S.wallHit);}S.wallHit=0;brkStep(dt);
   S.hitCd-=dt;const rad=1.3*V.camK,cu=cust(S.veh);
   nearObst(S.x,S.z).forEach(arr=>arr.forEach(o=>{const dx=S.x-o.x,dz=S.z-o.z,rr=o.r+rad,dd=dx*dx+dz*dz;
     if(dd<rr*rr){const d=Math.sqrt(dd)||0.01,nx=dx/d,nz=dz/d;S.x+=nx*(rr-d);S.z+=nz*(rr-d);const vn=S.vx*nx+S.vz*nz;
-      if(vn<0){S.vx-=1.3*vn*nx;S.vz-=1.3*vn*nz;S.w+=(Math.random()-.5)*Math.min(2,-vn*0.2);if(-vn>2.5&&S.hitCd<=0){SFX.hit(-vn*0.5);S.hitCd=0.35;if(-vn>(cu.bar===2?11:8.5)&&Math.random()<0.55)stall(tr_('ضربه موتور را خاموش کرد'));}}}}));
+      if(vn<0){S.vx-=1.3*vn*nx;S.vz-=1.3*vn*nz;S.w+=(Math.random()-.5)*Math.min(2,-vn*0.2);if(-vn>2.5&&S.hitCd<=0){SFX.hit(-vn*0.5);S.hitCd=0.35;brkHit(-vn);if(-vn>(cu.bar===2?11:8.5)&&Math.random()<0.55)stall(tr_('ضربه موتور را خاموش کرد'));}}}}));
   carBump();
   if(FREE&&FW&&FW.dk){const m=150,xa=DK.x0+m,xb=DK.x0+(DK.nx-1)*DK.cell-m,za=DK.z0+m,zb=DK.z0+(DK.nz-1)*DK.cell-m;if(S.x<xa){S.x=xa;if(S.vx<0)S.vx*=-0.3;}if(S.x>xb){S.x=xb;if(S.vx>0)S.vx*=-0.3;}if(S.z<za){S.z=za;if(S.vz<0)S.vz*=-0.3;}if(S.z>zb){S.z=zb;if(S.vz>0)S.vz*=-0.3;}}
   else if(FREE){const u=S.x-FX,v=S.z-FZ,r=Math.hypot(u,v),M=FR+900;if(r>M){S.x=FX+u/r*M;S.z=FZ+v/r*M;const vn=(S.vx*u+S.vz*v)/r;if(vn>0){S.vx-=1.3*vn*u/r;S.vz-=1.3*vn*v/r;}}}
@@ -3499,7 +3515,7 @@ function renderVehicle(dt){
       H.m.position.set((bx+H.top.x)/2,(by+H.top.y)/2,(p.z+H.top.z)/2);H.m.scale.set(1,l,1);H.m.quaternion.setFromUnitVectors(tmpUp,tmpDir.set(dx/l,dy/l,dz/l));
       H.sp.position.set(bx+dx*0.62,by+dy*0.62,p.z+dz*0.62);H.sp.quaternion.copy(H.m.quaternion);}}
   V.wheels.forEach(w=>{w.pivot.position.y=w.wr+clamp(w.x||0,-c0,top)-S.sink*0.45;w.spin.rotation.x=wheelRot/w.wr;if(w.front)w.pivot.rotation.y=S.delta||0;
-    const load=w.g?w.F/(9.8/nW):0,sq=clamp((load-0.5)*0.07*(1.7-p)+(1-p)*0.22*(w.g?1:0.35),0,0.22);
+    const load=w.g?w.F/(9.8/nW):0;let sq=clamp((load-0.5)*0.07*(1.7-p)+(1-p)*0.22*(w.g?1:0.35),0,0.22);if(FREE&&w===V.wheels[BRK.flat])sq=BRK.rep&&BRK.rep.lift>0.5?0.1:0.3;
     if(w.TD){const rx=w.spin.rotation.x;w.TD.d.value.set(0,-Math.cos(rx),Math.sin(rx));w.TD.f.value+=(sq-w.TD.f.value)*Math.min(1,dt*18);w.squash.scale.set(1,1,1);w.squash.position.y=-w.wr*w.TD.f.value*0.85;}
     else{w.squash.scale.set(1+sq*0.9,1-sq*0.7,1-sq*0.15);w.squash.position.y=-w.wr*sq*0.7;}});
   const dtt=Math.max(dt,0.001),aF=clamp(((S.fwd||0)-S.prevF)/dtt,-40,40),aV=clamp((S.vy-S.prevVy)/dtt,-60,60);S.prevF=S.fwd||0;S.prevVy=S.vy;
@@ -3582,20 +3598,20 @@ function updateEnv(dt){
   starU.op.value=(1-dayF)*(1-Math.min(1,wa))*(1-vis);starU.pr.value=renderer.getPixelRatio();if(starU.band)starU.band.opacity=starU.op.value*0.9;
   moon.position.copy(SUNDIR).multiplyScalar(-4500);moon.material.opacity=sstep(0.6,0.1,dayF)*(1-wa*0.8);
   if(el>-0.06){sun.position.copy(SUNDIR);sun.color.set('#fff3dc').lerp(cTmp.set('#ffae66'),warm);sun.intensity=dayF*1.05*(1-Math.min(1,wa)*0.6)*(1-vis*0.65)*(FILMIC?1.5:1);if(sandA>0)sun.color.lerp(cTmp.set('#e0a060'),sandA*0.7);}
-  else{sun.position.copy(SUNDIR).multiplyScalar(-1);sun.color.set('#9fb4e0');sun.intensity=0.28*(1-wa*0.5);}
-  hemi.color.set('#33406a').lerp(cTmp.set('#cfe3ff'),dayF);hemi.groundColor.set('#1c1a24').lerp(cTmp.set('#8a7350'),dayF);if(sandA>0)hemi.color.lerp(cTmp.set('#e2b483'),sandA*0.6);hemi.intensity=(lerp(0.32,0.6,dayF)+wa*0.07+WX.flash*1.2)*(FILMIC?0.82:1);
+  else{sun.position.copy(SUNDIR).multiplyScalar(-1);sun.color.set('#9fb4e0');sun.intensity=0.28*(1-wa*0.5)*(FREE?0.55:1);}
+  hemi.color.set('#33406a').lerp(cTmp.set('#cfe3ff'),dayF);hemi.groundColor.set('#1c1a24').lerp(cTmp.set('#8a7350'),dayF);if(sandA>0)hemi.color.lerp(cTmp.set('#e2b483'),sandA*0.6);hemi.intensity=(lerp(0.32,0.6,dayF)+wa*0.07+WX.flash*1.2)*(FILMIC?0.82:1)*(FREE?lerp(0.38,1,dayF):1);
   cloudMat.color.set('#ffffff').lerp(cTmp.set('#5d6470'),rainA*0.8).multiplyScalar(0.35+0.65*Math.max(dayF,0.15));
   const auto=dayF<0.5||wa>0.55||vis>0.5;S.lightsOn=S.lightOverride===null?auto:S.lightOverride;if(S.lightOverride!==null&&S.lightOverride===auto)S.lightOverride=null;
   const night=1-dayF,tn=performance.now()/1000;
   lampMat.color.set('#d8d0bd').lerp(cTmp.set('#ffd88a'),night);
   fires.forEach(f=>{const fl=0.85+0.15*Math.sin(tn*11+f.ph)*Math.sin(tn*7.3);if(f.flame)f.flame.scale.set(fl,0.9+0.25*Math.sin(tn*9+f.ph),fl);f.fglow.material.opacity=(f.lamp?night*0.9:0.35+night*0.6)*fl;});
-  if(V){V.spot.intensity=S.lightsOn?(V.rack?3.6:3.0):0;if(V.beamMat)V.beamMat.uniforms.uI.value=S.lightsOn?(0.05+0.14*(1-dayF))*(1+2.2*Math.min(1,wa+vis)):0;
+  if(V){const LIT=S.lightsOn&&!(FREE&&!BRK.lights);V.spot.intensity=LIT?(V.rack?3.6:3.0)*(FREE?1+0.7*(1-dayF):1):0;V.spot.distance=FREE?(V.rack?150:115):(V.rack?95:70);if(V.beamMat)V.beamMat.uniforms.uI.value=LIT?(0.05+0.14*(1-dayF))*(1+2.2*Math.min(1,wa+vis)):0;
     // indicators while turning hard at low speed, hazards when stalled or stuck, reverse lights in reverse
     S.blink+=dt;const blinkOn=(S.blink%0.8)<0.4,haz=S.mode==='play'&&S.engineOn&&S.sink>0.24,turn=Math.abs(wAng)>WLOCK*0.37&&Math.abs(S.v)<12?Math.sign(-wAng):0;
     if(S.mode==='play'&&(haz||turn)&&Math.floor(S.blink/0.4)!==S.lastTick){S.lastTick=Math.floor(S.blink/0.4);SFX.tick();}
-    V.glows.forEach(gl=>{let o=0;if(gl.k==='head')o=S.lightsOn?0.3+night*0.6:0;else if(gl.k==='tail')o=S.brk>0?0.9:S.lightsOn?0.35+night*0.4:0;
+    V.glows.forEach(gl=>{let o=0;if(gl.k==='head')o=LIT?0.3+night*0.6:0;else if(gl.k==='tail')o=S.brk>0?0.9:S.lightsOn?0.35+night*0.4:0;
       else if(gl.k==='amb')o=blinkOn&&(haz||turn===gl.side)?0.95:0;else if(gl.k==='rev')o=S.gear===-1?0.85:0;gl.s.material.opacity=o;});
-    headM.color.set(S.lightsOn?'#fffbe8':'#e8e2cf');tailM.color.set(S.brk>0?'#ff2a1f':S.lightsOn?'#e0362b':'#8c2620');roofLM.color.set(S.lightsOn&&night>0.5?'#fffbe8':'#e7e1cf');}
+    headM.color.set(LIT?'#fffbe8':'#e8e2cf');tailM.color.set(S.brk>0?'#ff2a1f':S.lightsOn?'#e0362b':'#8c2620');roofLM.color.set(S.lightsOn&&night>0.5?'#fffbe8':'#e7e1cf');}
   $('lightBtn').classList.toggle('act',S.lightsOn);
   envT-=dt;const key=Math.round(dayF*12)+'|'+Math.round(warm*6)+'|'+Math.round(wa*5)+'|'+Math.round(sandA*4)+'|'+Math.round(fogA*4);if(envT<=0&&key!==envKey){envT=1;envKey=key;rebuildEnv();}
   return {dayF,rainA,snowA,wa,sandA,fogA,hailA,vis};
@@ -4540,8 +4556,140 @@ function dkBridgeH(x,z){const L=FW.brc&&FW.brc.get(Math.floor(x/32)*65536+Math.f
   for(const k of L){const ax=FW.PX[k],az=FW.PZ[k],vx=FW.PX[k+1]-ax,vz=FW.PZ[k+1]-az,l2=vx*vx+vz*vz||1;let t=((x-ax)*vx+(z-az)*vz)/l2;if(t<-0.05||t>1.05)continue;t=clamp(t,0,1);
     const d=Math.hypot(x-ax-vx*t,z-az-vz*t);if(d<bd){bd=d;best=FW.PH[k]+(FW.PH[k+1]-FW.PH[k])*t;}}return best;}
 function dkOnSpan(x,z){if(!FW.brc)return false;const L=FW.brc.get(Math.floor(x/32)*65536+Math.floor(z/32));if(!L)return false;for(const k of L){if(!FW.span[k])continue;if(Math.hypot(x-FW.PX[k],z-FW.PZ[k])<9)return true;}return false;}
+
+/* ---------- Breakdowns on the free maps, and fixing them by hand ----------
+   A tyre can go flat on rocks or a hard landing: the car sits low on that corner, pulls and slows, until you jack it up,
+   undo the nuts, pull the wheel, fit the spare and do it all back up. The engine heats up climbing hard at low speed: past
+   the red it loses power, then boils and stops; it cools by itself with the engine off, or at once with water from a river.
+   A hard knock can break the headlights; at night on the free maps it is really dark, so you need them (or the moon).
+   While you fix things the driver is out of the car doing the work. */
+function brkOn(){return FREE&&S.mode==='play'&&!RIDE.pid&&V&&V.type!=='tank'&&V.type!=='crawler';}
+function brkReset(){if(typeof BRK!=='object')return;if(BRK.rep)repEnd(true);BRK.flat=-1;BRK.heat=0.45;BRK.lights=true;BRK.hotWarn=false;BRK.spare=1;}
+function puncture(){const L=V.wheels.map((w,i)=>w.g?i:-1).filter(i=>i>=0);if(!L.length)return;BRK.flat=L[Math.floor(Math.random()*L.length)];
+  tone(3200,1.0,0.02,'sawtooth',1800);SFX.hit(3);toast(tr_('پنچر شد! بایست و با دکمهٔ آچار چرخ را عوض کن'));brkUI();}
+function brkHit(v){if(!brkOn())return;if(v>7&&BRK.lights&&Math.random()<0.55){BRK.lights=false;tone(2600,0.12,0.04,'square',1900);toast(tr_('چراغ‌های جلو شکست'));brkUI();}
+  if(v>9&&BRK.flat<0&&!(BRK.grace>0)&&Math.random()<0.35)puncture();}
+function brkHeat(dt){const run=S.engineOn&&S.mode==='play',air=clamp(Math.abs(S.v||0)/14,0,1),load=run?S.gas*clamp((S.rpm||800)/5500,0.25,1.2):0;
+  let d=load*0.0105*(1.35-air*0.85);if(run&&BRK.heat<0.45)d+=0.004;
+  if(BRK.heat>0.45||!run)d-=(run?0.003+0.0065*air:0.0095)*(BRK.heat>0.45?1:0.3);
+  BRK.heat=clamp(BRK.heat+d*dt,0.3,1.02);
+  if(BRK.heat>0.86&&!BRK.hotWarn){BRK.hotWarn=true;toast(tr_('موتور داغ کرده! آرام‌تر برو، بایست یا آب بریز'));brkUI();}
+  if(BRK.heat<0.75&&BRK.hotWarn){BRK.hotWarn=false;brkUI();}
+  if(BRK.heat>=1&&S.engineOn){stall(tr_('موتور جوش آورد و خاموش شد'));tone(2600,2.2,0.015,'sawtooth',1200);}}
+function brkStep(dt){if(!brkOn()){$('tempRow').hidden=true;$('fixBtn').hidden=true;return;}
+  BRK.grace=Math.max(0,(BRK.grace||0)-dt);
+  if(BRK.flat<0&&S.ground>0&&BRK.grace<=0){const sp=Math.abs(S.v);let ch=0;if(S.maxCd>5.5)ch+=0.16*(S.maxCd-5.5);if((S.surf==='rock'||S.surf==='gravel')&&sp>7)ch+=dt*0.002*(sp-7);if(Math.random()<ch)puncture();}
+  brkHeat(dt);
+  if(BRK.spare<1&&FW&&FW.pois.some(Q=>Math.hypot(S.x-Q.x,S.z-Q.z)<45)){BRK.spare=1;toast(tr_('یک زاپاس نو گرفتی'));}
+  BRK.uiT=(BRK.uiT||0)-dt;if(BRK.uiT<=0){BRK.uiT=0.25;brkUI();}
+  if(BRK.heat>0.88)brkSteam(dt,1);else brkSteam(dt,0);}
+function brkUI(){const on=brkOn();$('tempRow').hidden=!on;if(!on)return;$('tempFill').style.width=Math.round(clamp((BRK.heat-0.3)/0.7,0,1)*100)+'%';
+  $('tempRow').classList.toggle('hot',BRK.heat>0.86);const f=BRK.flat>=0||BRK.heat>0.8||!BRK.lights;$('fixBtn').hidden=!f;$('fixBtn').classList.toggle('alert',f);}
+// steam out of the bonnet
+let steamP=null;
+function brkSteam(dt,amt){if(!steamP){steamP=[];for(let i=0;i<14;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:mistTex,color:0xf4f4f4,transparent:true,depthWrite:false,opacity:0}));s.visible=false;scene.add(s);steamP.push({s,life:0});}}
+  if(amt>0&&V&&Math.random()<dt*14*amt){const p=steamP.find(q=>q.life<=0);if(p){const hz=(V.frontZ||1.9)-0.5,v=V.body.localToWorld(new THREE.Vector3((Math.random()-0.5)*0.6,1.4,hz));p.s.position.copy(v);p.life=1;p.s.visible=true;p.vx=(Math.random()-0.5)*0.4;p.vz=(Math.random()-0.5)*0.4;}}
+  for(const p of steamP){if(p.life<=0)continue;p.life-=dt*0.7;p.s.position.y+=dt*(1.4+0.6*(1-p.life));p.s.position.x+=p.vx*dt;p.s.position.z+=p.vz*dt;const sc=0.6+(1-p.life)*2.2;p.s.scale.set(sc,sc,1);p.s.material.opacity=Math.max(0,p.life)*0.55;if(p.life<=0)p.s.visible=false;}}
+function nearWater(){for(const r of [3,6,10,14])for(let a=0;a<8;a++){const x=S.x+Math.cos(a*0.785)*r,z=S.z+Math.sin(a*0.785)*r;if(waterAt(x,z)>Hf(x,z)-0.3)return true;}return false;}
+
+// ---- the mechanic: the driver, in a long shirt, a waistcoat and a cap, built of simple shapes with joints so he can work
+let MECH=null;
+function mechBuild(){const g=new THREE.Group(),M=c=>new THREE.MeshLambertMaterial({color:c}),skin=M('#c08a64'),shirt=M('#d9d3c4'),vest=M('#3b4652'),trou=M('#cfc8b6'),shoe=M('#2b2622'),hair=M('#1d1a18'),cap=M('#e8e4da');
+  const box=(w,h,d,m,y)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.y=y;o.castShadow=true;return o;},cyl=(r1,r2,h,m,y)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,10),m);o.position.y=y;o.castShadow=true;return o;};
+  const hips=new THREE.Group();hips.position.y=0.92;g.add(hips);
+  const torso=new THREE.Group();hips.add(torso);
+  torso.add(cyl(0.17,0.2,0.62,shirt,0.31));torso.add(cyl(0.175,0.185,0.42,vest,0.42));torso.add(cyl(0.2,0.24,0.3,shirt,-0.05));
+  const neck=cyl(0.05,0.055,0.08,skin,0.66);torso.add(neck);
+  const head=new THREE.Group();head.position.y=0.8;torso.add(head);
+  const hd=new THREE.Mesh(new THREE.SphereGeometry(0.11,14,12),skin);hd.scale.set(1,1.15,1.05);hd.castShadow=true;head.add(hd);
+  const hr=new THREE.Mesh(new THREE.SphereGeometry(0.115,14,10,0,Math.PI*2,0,Math.PI*0.5),hair);hr.position.y=0.02;head.add(hr);
+  const cp=cyl(0.118,0.12,0.06,cap,0.08);head.add(cp);const beard=new THREE.Mesh(new THREE.SphereGeometry(0.085,10,8,0,Math.PI*2,Math.PI*0.5,Math.PI*0.5),hair);beard.position.set(0,-0.03,0.035);head.add(beard);
+  const limb=(x,y,len,r,m,m2,len2,r2,endM)=>{const a=new THREE.Group();a.position.set(x,y,0);const u=cyl(r,r*0.85,len,m,-len/2);a.add(u);const b=new THREE.Group();b.position.y=-len;a.add(b);b.add(cyl(r2,r2*0.8,len2,m2,-len2/2));const e=endM;e.position.y=-len2-0.03;b.add(e);return {a,b};};
+  const hand=()=>{const o=new THREE.Mesh(new THREE.SphereGeometry(0.045,8,6),skin);o.castShadow=true;return o;},foot=()=>{const o=box(0.1,0.07,0.22,shoe,0);o.position.z=0.05;return o;};
+  const LA=limb(0.22,0.58,0.3,0.055,shirt,shirt,0.28,0.048,hand()),RA=limb(-0.22,0.58,0.3,0.055,shirt,shirt,0.28,0.048,hand());torso.add(LA.a);torso.add(RA.a);
+  const LL=limb(0.1,-0.02,0.44,0.075,trou,trou,0.44,0.06,foot()),RL=limb(-0.1,-0.02,0.44,0.075,trou,trou,0.44,0.06,foot());hips.add(LL.a);hips.add(RL.a);
+  // tools: a wheel brace in the right hand, a jerrycan for water, a spare wheel to carry
+  const brace=new THREE.Group();brace.add(cyl(0.012,0.012,0.45,M('#55595e'),0));const tb=cyl(0.012,0.012,0.3,M('#55595e'),0);tb.rotation.z=Math.PI/2;tb.position.y=0.22;brace.add(tb);brace.position.y=-0.32;brace.rotation.x=Math.PI/2;RA.b.add(brace);
+  const can=box(0.18,0.26,0.1,M('#2f6b3a'),0);can.position.set(0,-0.42,0.08);RA.b.add(can);
+  const wheel=new THREE.Mesh(new THREE.TorusGeometry(0.3,0.11,8,18),M('#1e1e1e'));wheel.castShadow=true;wheel.position.set(0,0.35,0.3);torso.add(wheel);
+  scene.add(g);g.visible=false;return {g,hips,torso,head,LA,RA,LL,RL,brace,can,wheel};}
+// poses: stand, kneel at a wheel working the brace, pump the jack, carry a wheel, pour water, reach into the lamp
+function mechPose(kind,t){const m=MECH,s=Math.sin(t*7),s2=Math.sin(t*3.5);
+  const set=(o,x,y,z)=>{o.rotation.set(x||0,y||0,z||0);};
+  m.brace.visible=kind==='nuts';m.can.visible=kind==='pour';m.wheel.visible=kind==='carry';
+  m.hips.position.y=0.92;set(m.torso);set(m.head);set(m.LA.a,0,0,0.1);set(m.LA.b);set(m.RA.a,0,0,-0.1);set(m.RA.b);set(m.LL.a);set(m.LL.b);set(m.RL.a);set(m.RL.b);
+  if(kind==='nuts'||kind==='lamp0'){m.hips.position.y=0.52;set(m.LL.a,-1.5);set(m.LL.b,1.55);set(m.RL.a,0.1);set(m.RL.b,1.4);set(m.torso,0.25);
+    set(m.RA.a,-1.25+0.25*s,0,-0.1);set(m.RA.b,-0.4);set(m.LA.a,-1.1,0,0.2);set(m.LA.b,-0.5);m.head.rotation.x=0.2;}
+  else if(kind==='jack'){m.hips.position.y=0.55;set(m.LL.a,-1.5);set(m.LL.b,1.55);set(m.RL.a,0.1);set(m.RL.b,1.4);set(m.torso,0.45);
+    const p=0.35*Math.max(0,s);set(m.RA.a,-0.6-p);set(m.LA.a,-0.6-p);set(m.RA.b,-0.5);set(m.LA.b,-0.5);}
+  else if(kind==='carry'){set(m.RA.a,-0.9,0,-0.25);set(m.LA.a,-0.9,0,0.25);set(m.RA.b,-0.9);set(m.LA.b,-0.9);set(m.LL.a,0.35*s2);set(m.RL.a,-0.35*s2);set(m.LL.b,0.2*Math.max(0,-s2));set(m.RL.b,0.2*Math.max(0,s2));}
+  else if(kind==='pour'){set(m.torso,0.35);set(m.RA.a,-1.3,0,-0.2);set(m.RA.b,-0.3+0.05*s);set(m.LA.a,-1.2,0,0.3);set(m.LA.b,-0.4);}
+  else if(kind==='lamp'){set(m.torso,0.4);set(m.RA.a,-1.2+0.1*s);set(m.RA.b,-0.6);set(m.LA.a,-1.1,0,0.2);set(m.LA.b,-0.6);}
+  else if(kind==='wait'){set(m.RA.a,-0.3,0,-0.4);set(m.RA.b,-1.6);set(m.LA.a,0.1,0,0.15);m.head.rotation.y=0.3*s2*0.3;}}
+function mechPlace(){const R=BRK.rep,m=MECH;let x,z,face;
+  if(R.job==='tyre'){const w=V.wheels[R.wi],p=w.pivot.getWorldPosition(new THREE.Vector3()),dx=p.x-S.x,dz=p.z-S.z,l=Math.hypot(dx,dz)||1;
+    const off=R.step==='pull'||R.step==='spare'?1.6:0.85;x=p.x+dx/l*off;z=p.z+dz/l*off;face=Math.atan2(-dx,-dz);
+    if(R.step==='spare'&&R.carry<1){const bx=S.x-Math.sin(S.th)*3.4,bz=S.z-Math.cos(S.th)*3.4,k=R.carry;x=bx+(x-bx)*k;z=bz+(z-bz)*k;face=Math.atan2(x-bx,z-bz);}}
+  else{const f=(V.frontZ||2)+0.9;x=S.x+Math.sin(S.th)*f;z=S.z+Math.cos(S.th)*f;face=S.th+Math.PI;if(R.step==='wait'){x+=Math.cos(S.th)*1.4;z-=Math.sin(S.th)*1.4;face=S.th+Math.PI*0.7;}}
+  m.g.position.set(x,Hd(x,z),z);m.g.rotation.y=face;}
+
+// ---- the repair: each job is a few hands-on steps on the panel, with the camera on the work and the driver doing it
+const REPSTEPS={tyre:['jack','off','pull','spare','on','down'],light:['bulb'],heat:['hood','pour']};
+const REPTXT={jack:'جک را زیر ماشین بگذار و بالا بزن — دکمه را نگه دار',off:'مهره‌های چرخ را یکی‌یکی باز کن — روی هر مهره بزن',pull:'چرخ پنچر را بکش بیرون — چرخ را به چپ بکش',spare:'زاپاس را بیاور و جا بزن — زاپاس را به راست بکش',
+  on:'مهره‌ها را محکم ببند — روی هر مهره بزن',down:'جک را پایین بیاور — دکمه را نگه دار',bulb:'گروپ‌های شکسته را عوض کن — روی هر چراغ بزن',hood:'کاپوت را باز کن',pour:'از رود آب بیاور و در رادیاتور بریز — دکمه را نگه دار',
+  wait:'آب نزدیک نیست. موتور خاموش است؛ صبر کن تا سرد شود (یا کنار رود برو و آب بریز)'};
+function openRepair(){if(!brkOn())return;if(Math.abs(S.v)>0.6){toast(tr_('اول کامل بایست'));return;}
+  const L=[];if(BRK.flat>=0)L.push(['tyre',tr_('تعویض چرخ پنچر')]);if(BRK.heat>0.8)L.push(['heat',tr_('سرد کردن موتور')]);if(!BRK.lights)L.push(['light',tr_('تعویض گروپ چراغ')]);
+  if(!L.length)return;if(L.length===1){repStart(L[0][0]);return;}
+  $('repPanel').hidden=false;$('repTitle').textContent=tr_('چه چیزی را درست کنی؟');$('repStep').textContent='';$('repAct').innerHTML=L.map(j=>'<button class="rbtn" data-job="'+j[0]+'">'+j[1]+'</button>').join('');}
+function repStart(job){if(job==='tyre'&&BRK.spare<1){toast(tr_('زاپاس نداری! آرام تا نزدیک‌ترین روستا یا جای پیداشده برو'));$('repPanel').hidden=true;return;}
+  if(S.engineOn){S.engineOn=false;}S.sel='P';selUI&&selUI();
+  BRK.rep={job,steps:job==='heat'&&!nearWater()?['wait']:REPSTEPS[job].slice(),i:0,lift:0,nuts:0,hold:false,t:0,carry:1,wi:BRK.flat,base:{y:S.y,roll:S.roll,pitch:S.pitch}};
+  if(!MECH)MECH=mechBuild();MECH.g.visible=true;SFX.door();document.body.classList.add('repairing');repRender();}
+function repStepName(){const R=BRK.rep;return R.steps[R.i];}
+function repNext(){const R=BRK.rep;R.i++;R.nuts=0;R.t=0;if(R.i>=R.steps.length){repDone();return;}if(repStepName()==='spare')R.carry=0;SFX.click();repRender();}
+function repDone(){const R=BRK.rep;if(R.job==='tyre'){BRK.flat=-1;BRK.spare=0;toast(tr_('چرخ عوض شد. زاپاس نداری تا به یک روستا برسی'));}
+  else if(R.job==='light'){BRK.lights=true;toast(tr_('چراغ‌ها درست شد'));}else{toast(tr_('موتور سرد شد؛ می‌توانی روشنش کنی'));}repEnd(false);}
+function repEnd(cancel){const R=BRK.rep;if(!R)return;S.y=R.base.y;S.roll=R.base.roll;S.pitch=R.base.pitch;if(R.job==='tyre'&&V.wheels[R.wi])V.wheels[R.wi].spin.visible=true;
+  BRK.rep=null;BRK.grace=6;S.vy=0;if(MECH)MECH.g.visible=false;$('repPanel').hidden=true;document.body.classList.remove('repairing');brkUI();if(!cancel)SFX.door();}
+function repRender(){const R=BRK.rep,st=repStepName();$('repPanel').hidden=false;
+  $('repTitle').textContent=R.job==='tyre'?tr_('تعویض چرخ'):R.job==='light'?tr_('تعمیر چراغ‌ها'):tr_('سرد کردن موتور');
+  $('repStep').textContent=fa(R.i+1)+'/'+fa(R.steps.length)+' · '+tr_(REPTXT[st]);const A=$('repAct');
+  if(st==='jack'||st==='down'||st==='pour'){A.innerHTML='<div class="rbar"><i id="repFill"></i></div><button class="rbtn hold" id="repHold">'+(st==='pour'?tr_('آب ریختن'):st==='jack'?tr_('بالا زدن جک'):tr_('پایین آوردن جک'))+'</button>';
+    const b=$('repHold'),on=e=>{e.preventDefault();BRK.rep&&(BRK.rep.hold=true);},off=()=>{BRK.rep&&(BRK.rep.hold=false);};
+    b.addEventListener('pointerdown',on);['pointerup','pointerleave','pointercancel'].forEach(k=>b.addEventListener(k,off));}
+  else if(st==='off'||st==='on'||st==='bulb'){const n=st==='bulb'?2:5;let h='<div class="nuts'+(st==='bulb'?' lamps':'')+'">';
+    for(let k=0;k<n;k++){const a=k/n*6.283-1.57,x=st==='bulb'?(k?62:-62):Math.cos(a)*40,y=st==='bulb'?0:Math.sin(a)*40;h+='<button class="nut'+(st==='on'?' loose':'')+'" data-n="'+k+'" style="left:calc(50% + '+x+'px);top:calc(50% + '+y+'px)"></button>';}
+    A.innerHTML=h+'</div>';A.querySelectorAll('.nut').forEach(b=>b.addEventListener('click',()=>{if(b.classList.contains('done'))return;b.classList.add('done');R.nuts++;
+      if(st==='bulb')tone(1400,0.05,0.03,'square');else tone(1100,0.07,0.03,'square',900);if(R.nuts>=n)setTimeout(repNext,350);}));}
+  else if(st==='pull'||st==='spare'){const dir=st==='pull'?-1:1;A.innerHTML='<div class="dragZone"><span class="dz'+(dir<0?' l':' r')+'"></span><div class="dragW'+(st==='spare'?' spare':'')+'" id="repDrag"></div></div>';
+    const d=$('repDrag'),base=st==='spare'?-95:0;let x0=null,dx=0;d.addEventListener('pointerdown',e=>{x0=e.clientX;d.setPointerCapture(e.pointerId);});
+    d.addEventListener('pointermove',e=>{if(x0===null)return;dx=e.clientX-x0;d.style.transform='translateX('+(base+dx)+'px)';});
+    d.addEventListener('pointerup',()=>{if(x0===null)return;x0=null;if(dx*dir>75){if(st==='pull')V.wheels[R.wi].spin.visible=false;else V.wheels[R.wi].spin.visible=true;SFX.clunk(3);repNext();}else{d.style.transform=base?'translateX('+base+'px)':'';}dx=0;});}
+  else if(st==='hood'){A.innerHTML='<button class="rbtn" id="repTap">'+tr_('باز کردن کاپوت')+'</button>';$('repTap').addEventListener('click',()=>{tone(520,0.1,0.03,'square',380);repNext();});}
+  else if(st==='wait'){A.innerHTML='<div class="rbar"><i id="repFill"></i></div>';}}
+function repFrame(dt){const R=BRK.rep;S.vx=S.vz=S.vy=S.w=0;S.gas=0;S.v=S.fwd=0;R.t+=dt;brkHeat(dt);const st=repStepName();
+  if(st==='jack'&&R.hold){R.lift=Math.min(1,R.lift+dt/2.2);if((R.t*4|0)!==(R.tk|0)){R.tk=R.t*4;tone(420,0.03,0.02,'square');}if(R.lift>=1){R.hold=false;repNext();}}
+  if(st==='down'&&R.hold){R.lift=Math.max(0,R.lift-dt/1.6);if(R.lift<=0){R.hold=false;repNext();return;}}
+  if(st==='pour'&&R.hold){BRK.heat=Math.max(0.4,BRK.heat-dt*0.22);if(Math.random()<dt*6)tone(700+Math.random()*400,0.12,0.01,'triangle',400);brkSteam(dt,1.5);if(BRK.heat<=0.42){R.hold=false;repNext();return;}}
+  if(st==='wait'&&BRK.heat<0.6){repNext();return;}
+  if(st==='spare')R.carry=Math.min(1,R.carry+dt/1.8);
+  const f=$('repFill');if(f)f.style.width=Math.round((st==='jack'?R.lift:st==='down'?1-R.lift:clamp((1-BRK.heat)/0.6,0,1))*100)+'%';
+  // the car rises on the jack at that corner
+  if(R.job==='tyre'){const w=V.wheels[R.wi],lf=R.lift*R.lift*(3-2*R.lift);S.y=R.base.y+lf*0.22;S.roll=R.base.roll+Math.sign(w.w)*lf*0.07;S.pitch=R.base.pitch-Math.sign(w.u)*lf*0.035;}
+  brkSteam(dt,BRK.heat>0.88?1:0);
+  const pose=st==='jack'||st==='down'?'jack':st==='off'||st==='on'?'nuts':st==='pull'||st==='spare'?(st==='spare'&&R.carry<1?'carry':'nuts'):st==='pour'?(R.hold?'pour':'wait'):st==='hood'||st==='bulb'?'lamp':'wait';
+  mechPlace();mechPose(pose,R.t);}
+setTimeout(()=>{$('fixBtn').addEventListener('click',openRepair);$('repClose').addEventListener('click',()=>{if(BRK.rep)repEnd(true);else $('repPanel').hidden=true;});
+  $('repAct').addEventListener('click',e=>{const b=e.target.closest('[data-job]');if(b)repStart(b.dataset.job);});window.__BRK={BRK,puncture,openRepair,repStart};},0);
+function repCam(){const R=BRK.rep;let tx,ty,tz,cx,cy,cz;
+  if(R.job==='tyre'){const p=V.wheels[R.wi].pivot.getWorldPosition(new THREE.Vector3()),dx=p.x-S.x,dz=p.z-S.z,l=Math.hypot(dx,dz)||1,fx=Math.sin(S.th),fz=Math.cos(S.th);
+    tx=p.x;ty=p.y+0.3;tz=p.z;cx=p.x+dx/l*4.6+fx*1.6;cz=p.z+dz/l*4.6+fz*1.6;cy=p.y+2.1;}
+  else{const fx=Math.sin(S.th),fz=Math.cos(S.th),f=(V.frontZ||2);tx=S.x+fx*f;tz=S.z+fz*f;ty=S.y+1.1;cx=S.x+fx*(f+5.5)+fz*2.5;cz=S.z+fz*(f+5.5)-fx*2.5;cy=S.y+2.6;}
+  const g=Hd(cx,cz)+0.6;camera.position.set(cx,Math.max(cy,g),cz);camera.lookAt(tx,ty,tz);}
+
 // switching between the stage road and the free map
-function setWorld(fw,map){fw=!!fw;if(fw&&map&&map!==FMAP){if(FW&&FW.group)FW.group.visible=false;if(FW)FWS[FMAP]=FW;FMAP=map;dkConsts();FW=FWS[map]||null;FSNOWQ=null;if(FREE){FREE=false;dkClearHouses();}}
+function setWorld(fw,map){brkReset();fw=!!fw;if(fw&&map&&map!==FMAP){if(FW&&FW.group)FW.group.visible=false;if(FW)FWS[FMAP]=FW;FMAP=map;dkConsts();FW=FWS[map]||null;FSNOWQ=null;if(FREE){FREE=false;dkClearHouses();}}
   if(fw)freeInit();noSnowP.value=fw&&FMAP==='dayk'?1:0;if(fw===FREE)return;if(!fw)dkClearHouses();FREE=fw;FW.group&&(FW.group.visible=FREE);
   mhCache.clear();treeCache.clear();for(const [,T] of tiles)disposeTile(T);tiles.clear();blkBuild();tileQueue=[];pTile=[1e9,1e9];
   for(const [,rc] of roadChunks)rc.meshes.forEach(m=>{scene.remove(m);if(m.geometry&&!m.userData.shared)m.geometry.dispose();});roadChunks.clear();roadCiLast=1e9;
@@ -5153,7 +5301,7 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
   S.portrait=portraitMQ.matches;const playing=S.mode==='play'&&!S.modal&&!S.portrait;
   if(!wHeld){const ret=S.mode==='play'?Math.min(6,Math.abs(S.v||0)*0.32):7;wAng*=Math.exp(-dt*ret);if(Math.abs(wAng)<0.01)wAng=0;}wheelImg.style.transform='rotate('+wAng+'rad)';
   if(S.mode==='play')sleepStep(dt,playing);
-  if(playing&&dt>0.0005){if(RIDE.pid)rideStep(dt);else if(SLEEP.on){}else{physics(dt);addTracks();if(FREE)freeFrame(dt);else stageFrame(dt);}}else{S.gas=0;if(S.mode!=='play')S.rpm+=(850-S.rpm)*Math.min(1,dt*3);}
+  if(playing&&dt>0.0005){if(RIDE.pid)rideStep(dt);else if(SLEEP.on){}else if(BRK.rep){repFrame(dt);}else{physics(dt);addTracks();if(FREE)freeFrame(dt);else stageFrame(dt);}}else{S.gas=0;if(S.mode!=='play')S.rpm+=(850-S.rpm)*Math.min(1,dt*3);}
   scanT-=dt;if(scanT<=0){scanT=0.25;scanTiles(false);updateRoad(false);}
   processTiles(5);updateGrass(dt);
   const env=updateEnv(dt);renderVehicle(dt);cabinLight(env);netFrame(dt);trafficStep(dt,playing);snowStep(dt,playing);
@@ -5183,6 +5331,7 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
   {const wn=S.cam===4&&S.mode==='play'?0.12:0.3;if(camera.near!==wn){camera.near=wn;camera.updateProjectionMatrix();}}
   if(Math.abs(fov-lastFov)>0.05){lastFov+=(fov-lastFov)*Math.min(1,dt*4);camera.fov=lastFov;camera.updateProjectionMatrix();}
   if(SLEEP.on){const a=SLEEP.a0+SLEEP.t*0.32,cx=SLEEP.cx,cz=SLEEP.cz;camera.position.set(cx+Math.sin(a)*14,0,cz+Math.cos(a)*14);camera.position.y=Math.max(SLEEP.cy+5.5,Hd(camera.position.x,camera.position.z)+2);camera.lookAt(cx,SLEEP.cy+1,cz);}
+  if(BRK.rep&&!window.__camOv)repCam();
   if(window.__camOv){const o=window.__camOv;camera.position.set(o[0],o[1],o[2]);camera.lookAt(o[3],o[4],o[5]);}
   skyGroup.position.copy(camera.position);
   {const gx=Math.round(S.x/2)*2,gz=Math.round(S.z/2)*2;sun.position.multiplyScalar(220).add(tmpV.set(gx,S.y,gz));sun.target.position.set(gx,S.y,gz);sun.target.updateMatrixWorld();}
