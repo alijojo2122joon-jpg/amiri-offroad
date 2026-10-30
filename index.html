@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=131</script>
+<script>window.GAME_CODE=132</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -3345,7 +3345,7 @@ function physStep(h,inp){
   let drive=0,brake=0,hold=false;
   // automatic gearbox: P holds the car, R drives backwards, N lets it roll, D drives forward; the brake only brakes
   const sel=S.sel||'D';
-  if(inp.engineOk&&inp.gas>0){if(sel==='D')drive=ST.acc*(DKON()?0.7:1)*inp.gas*clamp(1-Math.pow(Math.max(0,vF)/(ST.maxV*(DKON()?0.5:1)),1.6),0,1);else if(sel==='R')drive=-ST.acc*0.7*inp.gas*clamp(1-Math.max(0,-vF)/7,0,1);}
+  if(inp.engineOk&&inp.gas>0){if(sel==='D')drive=ST.acc*(DKON()?0.9:1)*inp.gas*clamp(1-Math.pow(Math.max(0,vF)/(ST.maxV*(DKON()?0.8:1)),1.6),0,1);else if(sel==='R')drive=-ST.acc*0.7*inp.gas*clamp(1-Math.max(0,-vF)/7,0,1);}
   if(inp.brk>0)brake=ST.brake*inp.brk;
   if(sel==='P'){brake=Math.max(brake,ST.brake);if(Math.abs(vF)<1.2)hold=true;}
   // low range (دنده کمکی): a crawl of about 8 km/h with great pulling power and grip, to climb almost anything
@@ -3504,7 +3504,7 @@ function physics(dt){
   const zk=zoneOf(S.z);if(zk!==S.zone){if(S.zone>=0||S.z>200)zoneCard(zk);S.zone=zk;}
   const spd=Math.abs(S.v)+S.slipNow*(S.gas>0.3?7:0);let gear,ratio;
   if(!S.engineOn){gear=0;ratio=0;}else if(S.v<-0.5){gear=-1;ratio=Math.abs(S.v)/8;}else if(spd<0.6){gear=0;ratio=0;}
-  else{const MV=ST.maxV*(DKON()?0.5:1);gear=1;while(gear<5&&spd>GEARS[gear]*MV)gear++;const lo=GEARS[gear-1]*MV,hi=GEARS[gear]*MV;ratio=clamp((spd-lo)/(hi-lo),0,1);}
+  else{const MV=ST.maxV*(DKON()?0.8:1);gear=1;while(gear<5&&spd>GEARS[gear]*MV)gear++;const lo=GEARS[gear-1]*MV,hi=GEARS[gear]*MV;ratio=clamp((spd-lo)/(hi-lo),0,1);}
   const tgt=!S.engineOn?0:gear===0?820+S.gas*3300:1100+ratio*4800+S.gas*300;
   if(gear>S.gear&&S.gear>0){S.rpm*=0.72;SFX.shift();}
   S.gear=gear;S.rpm+=(tgt-S.rpm)*Math.min(1,dt*(S.engineOn?(gear===0?5:7):2));
