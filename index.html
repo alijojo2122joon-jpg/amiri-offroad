@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=130</script>
+<script>window.GAME_CODE=131</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -90,6 +90,12 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 #fixBtn{color:#ffd27a}#fixBtn.alert{background:rgba(214,73,63,.6);animation:hotb .8s infinite alternate}
 #repPanel{position:fixed;right:12px;bottom:12px;width:min(330px,46vw);z-index:45;padding:12px 14px;pointer-events:auto;display:grid;gap:8px}
 #repPanel .rtop{display:flex;justify-content:space-between;align-items:center}#repPanel .rtop b{color:var(--amber);font:800 15px var(--body)}#repStep{font:600 12px var(--body);color:var(--paper);line-height:1.7}
+#evPanel{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 112px);width:min(380px,80vw);z-index:46;padding:12px 14px;display:grid;gap:9px;pointer-events:auto}
+#evPanel .rtop{display:flex;justify-content:space-between;align-items:center}#evPanel .rtop b{color:var(--amber);font:800 15px var(--body)}#evText{font:600 13px var(--body);color:var(--paper);line-height:1.8}
+#evAct{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}#evAct .rbtn{min-width:120px;padding:10px 14px;font-size:13px}#evAct .rbtn[data-a=no]{background:rgba(255,255,255,.14);color:var(--paper)}#evAct .rbtn.off{opacity:.45}
+#evHud{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 66px);z-index:44;padding:6px 12px;display:flex;gap:10px;align-items:center;font:700 12px var(--body);color:var(--paper);white-space:nowrap;pointer-events:none}
+#evHud b{color:#7df0a0}#evHud .late{color:#ff8a7a}.evArr{display:inline-block;font-style:normal;color:#7df0a0;font-size:14px}.evC i{display:inline-block;width:54px;height:7px;border-radius:4px;background:rgba(255,255,255,.18);vertical-align:middle;overflow:hidden}
+.evC s{display:block;height:100%;background:linear-gradient(90deg,#e0544a,#f0c14a 50%,#5fd88a);text-decoration:none}.evC.hurt i{box-shadow:0 0 0 2px #e0544a}
 #repAct{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}.rbtn{font:800 14px var(--body);padding:12px 18px;border-radius:12px;border:none;background:var(--amber);color:#1b1306;min-width:140px;touch-action:none;user-select:none}.rbtn.hold:active{filter:brightness(1.2);transform:scale(.97)}
 .rbar{width:100%;height:8px;border-radius:4px;background:rgba(255,255,255,.15);overflow:hidden}.rbar i{display:block;height:100%;width:0;background:#8fc46a}
 .nuts{position:relative;width:132px;height:132px;border-radius:50%;background:radial-gradient(circle,#555a60 0 30%,#2a2c2f 31% 70%,#151515 71%)}.nuts.lamps{width:220px;border-radius:14px;background:#2a2c2f}
@@ -348,6 +354,8 @@ body.editing #comms{pointer-events:auto;outline:2px dashed var(--amber);outline-
     </div>
   </div>
 </div>
+<div id="evPanel" class="panel" hidden><div class="rtop"><b id="evTitle"></b><button class="mx" id="evClose" aria-label="بستن">×</button></div><div id="evText"></div><div id="evAct"></div></div>
+<div id="evHud" class="panel" hidden></div>
 <div id="repPanel" class="panel" hidden><div class="rtop"><b id="repTitle"></b><button class="mx" id="repClose" aria-label="بستن">×</button></div><div id="repStep"></div><div id="repAct"></div></div>
 <div id="zoneCard"><small id="zcKm"></small><b id="zcName"></b><em id="zcWarn"></em></div>
 
@@ -558,7 +566,7 @@ SET.cam=SET.cam.map(c=>Object.assign(CAM0(),c||{}));
 let saved={};try{saved=JSON.parse(localStorage.getItem(SAVE)||'{}')||{};}catch(e){saved={};}
 try{if(window.AndroidApp&&AndroidApp.loadData){const f=JSON.parse(AndroidApp.loadData()||'{}');if(f&&(f.t||0)>(saved.t||0))saved=f;}}catch(e){}
 
-var BRK={flat:-1,heat:0.45,lights:true,hotWarn:false,spare:1,rep:null};var FREE=false,FW=null,FS=null,FMAP='island',DK={vz:0},dkObst=[];
+var BRK={flat:-1,heat:0.45,lights:true,hotWarn:false,spare:1,rep:null};var FREE=false,FW=null,FS=null,FMAP='island',DK={vz:0},dkObst=[],evObst=[];
 /* ---------- The road: eight lands. The first three are a short paved highway; from the Red Canyon on it is the wild 30 km-per-land track ---------- */
 // Lands are laid out in "design" metres (30 km each); the first three are squeezed into PAVE real metres of two-track dirt road.
 const ZONE=30000,NZONE=8,DESLEN=ZONE*NZONE,PAVE=3000,KZ=3*ZONE/PAVE,ROADLEN=DESLEN-3*ZONE+PAVE,HALFW=2.6,SNOWALT=400,AW=3.9;
@@ -1352,7 +1360,7 @@ function processTiles(budgetMs){
   }
   blkBuild();
 }
-function nearObst(x,z){const out=[roadObst,cabObst,dkObst];const ix=Math.floor(x/TILE),iz=Math.floor(z/TILE);for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const T=tiles.get((ix+i)+','+(iz+j));if(T&&T.obst)out.push(T.obst);}return out;}
+function nearObst(x,z){const out=[roadObst,cabObst,dkObst,evObst];const ix=Math.floor(x/TILE),iz=Math.floor(z/TILE);for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const T=tiles.get((ix+i)+','+(iz+j));if(T&&T.obst)out.push(T.obst);}return out;}
 
 /* Grass and flowers only right around the car */
 const GP=64,grass=new Map();let grassT=0;
@@ -2955,7 +2963,7 @@ function playBuf(n,vol,rate,pan,rev,delay){if(n==='wiper'&&AU.ac&&!SND.buf.wiper
 // a soft sine blip for buttons (pure tone, no noise)
 function tone(freq,dur,vol,type,slideTo,delay){const ac=AU.ac;if(!ac||ac.state!=='running')return;try{const t0=ac.currentTime+(delay||0),o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.setValueAtTime(freq,t0);if(slideTo)o.frequency.exponentialRampToValueAtTime(slideTo,t0+dur);
   g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(vol,t0+Math.min(0.012,dur*0.25));g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);o.connect(g);g.connect(AU.master);o.start(t0);o.stop(t0+dur+0.03);}catch(e){}}
-function hornOn(on){const H=SND.loops&&SND.loops.horn;if(H)setT(H.g.gain,on&&S.mode==='play'?0.32:0,on?0.02:0.05);hornEl.classList.toggle('act',!!on);}
+function hornOn(on){if(on&&typeof evtHonk==='function')evtHonk();const H=SND.loops&&SND.loops.horn;if(H)setT(H.g.gain,on&&S.mode==='play'?0.32:0,on?0.02:0.05);hornEl.classList.toggle('act',!!on);}
 const SFX={
   click:()=>tone(820,0.05,0.025),
   whoosh:()=>tone(520,0.16,0.02,'sine',880),
@@ -4566,11 +4574,13 @@ function dkOnSpan(x,z){if(!FW.brc)return false;const L=FW.brc.get(Math.floor(x/3
    While you fix things the driver is out of the car doing the work. */
 setTimeout(()=>{try{mechLoad();}catch(e){}},20000);
 function brkOn(){return FREE&&S.mode==='play'&&!RIDE.pid&&V&&V.type!=='tank'&&V.type!=='crawler';}
-function brkReset(){if(typeof BRK!=='object')return;if(BRK.rep)repEnd(true);BRK.flat=-1;BRK.heat=0.45;BRK.lights=true;BRK.hotWarn=false;BRK.spare=1;}
+function brkReset(){if(typeof BRK!=='object')return;if(BRK.rep)repEnd(true);BRK.flat=-1;BRK.heat=0.45;BRK.lights=true;BRK.hotWarn=false;BRK.spare=1;BRK.odo=0;
+  // only one to three punctures in a whole drive, at random places along the way
+  const n=1+Math.floor(Math.random()*3);BRK.marks=[];for(let i=0;i<n;i++)BRK.marks.push(1500+Math.random()*(FMAP==='dayk'?32000:14000));BRK.marks.sort((a,b)=>a-b);}
 function puncture(){const L=V.wheels.map((w,i)=>w.g?i:-1).filter(i=>i>=0);if(!L.length)return;BRK.flat=L[Math.floor(Math.random()*L.length)];
   tone(3200,1.0,0.02,'sawtooth',1800);SFX.hit(3);toast(tr_('پنچر شد! بایست و با دکمهٔ آچار چرخ را عوض کن'));brkUI();}
-function brkHit(v){if(!brkOn())return;if(v>7&&BRK.lights&&Math.random()<0.55){BRK.lights=false;tone(2600,0.12,0.04,'square',1900);toast(tr_('چراغ‌های جلو شکست'));brkUI();}
-  if(v>9&&BRK.flat<0&&!(BRK.grace>0)&&Math.random()<0.35)puncture();}
+function brkHit(v){if(typeof evtHit==='function')evtHit(v);if(!brkOn())return;if(v>7&&BRK.lights&&Math.random()<0.55){BRK.lights=false;tone(2600,0.12,0.04,'square',1900);toast(tr_('چراغ‌های جلو شکست'));brkUI();}
+}
 function brkHeat(dt){const run=S.engineOn&&S.mode==='play',air=clamp(Math.abs(S.v||0)/14,0,1),load=run?S.gas*clamp((S.rpm||800)/5500,0.25,1.2):0;
   let d=load*0.0105*(1.35-air*0.85);if(run&&BRK.heat<0.45)d+=0.004;
   if(BRK.heat>0.45||!run)d-=(run?0.003+0.0065*air:0.0095)*(BRK.heat>0.45?1:0.3);
@@ -4580,7 +4590,7 @@ function brkHeat(dt){const run=S.engineOn&&S.mode==='play',air=clamp(Math.abs(S.
   if(BRK.heat>=1&&S.engineOn){stall(tr_('موتور جوش آورد و خاموش شد'));tone(2600,2.2,0.015,'sawtooth',1200);}}
 function brkStep(dt){if(!brkOn()){$('tempRow').hidden=true;$('fixBtn').hidden=true;return;}
   BRK.grace=Math.max(0,(BRK.grace||0)-dt);
-  if(BRK.flat<0&&S.ground>0&&BRK.grace<=0){const sp=Math.abs(S.v);let ch=0;if(S.maxCd>5.5)ch+=0.16*(S.maxCd-5.5);if((S.surf==='rock'||S.surf==='gravel')&&sp>7)ch+=dt*0.002*(sp-7);if(Math.random()<ch)puncture();}
+  BRK.odo=(BRK.odo||0)+Math.abs(S.v||0)*dt;if(BRK.flat<0&&S.ground>0&&BRK.grace<=0&&BRK.marks&&BRK.marks.length&&BRK.odo>=BRK.marks[0]&&Math.abs(S.v||0)>3){BRK.marks.shift();puncture();}
   brkHeat(dt);
   BRK.uiT=(BRK.uiT||0)-dt;if(BRK.uiT<=0){BRK.uiT=0.25;brkUI();}
   if(BRK.heat>0.88)brkSteam(dt,1);else brkSteam(dt,0);}
@@ -4597,7 +4607,7 @@ function nearWater(){for(const r of [3,6,10,14])for(let a=0;a<8;a++){const x=S.x
 
 // ---- the mechanic: the driver, in a long shirt, a waistcoat and a cap, built of simple shapes with joints so he can work
 let MECH=null;
-function mechBuild(){const g=new THREE.Group(),M=c=>new THREE.MeshLambertMaterial({color:c}),skin=M('#c08a64'),shirt=M('#d9d3c4'),vest=M('#3b4652'),trou=M('#cfc8b6'),shoe=M('#2b2622'),hair=M('#1d1a18'),cap=M('#e8e4da');
+function mechBuild(o){o=o||{};const g=new THREE.Group(),M=c=>new THREE.MeshLambertMaterial({color:c}),skin=M('#c08a64'),shirt=M(o.shirt||'#d9d3c4'),vest=M(o.vest||'#3b4652'),trou=M(o.trou||'#cfc8b6'),shoe=M('#2b2622'),hair=M('#1d1a18'),cap=M(o.cap||'#e8e4da');
   const box=(w,h,d,m,y)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.y=y;o.castShadow=true;return o;},cyl=(r1,r2,h,m,y)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,10),m);o.position.y=y;o.castShadow=true;return o;};
   const hips=new THREE.Group();hips.position.y=0.92;g.add(hips);
   const torso=new THREE.Group();hips.add(torso);
@@ -4638,22 +4648,32 @@ let MECHM=null;
 function mechLoad(){if(MECHM!==null||!THREE.GLTFLoader)return;MECHM=false;const url=(window.__glb&&window.__glb.mech)||'models/mech.glb';
   new THREE.GLTFLoader().load(url,gl=>{try{MECHM=mechRig(gl.scene);if(MECH&&MECH.g.visible){const v=true;MECH.g.visible=false;MECH=MECHM;MECH.g.visible=v;}}catch(e){console.error('mech',e);}},undefined,e=>console.error('mech',e));}
 function mechRig(root){const g=new THREE.Group(),inner=new THREE.Group();g.add(inner);inner.add(root);inner.scale.setScalar(0.0103);root.updateMatrixWorld(true);
-  root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.frustumCulled=false;const mm=Array.isArray(o.material)?o.material:[o.material];mm.forEach(m=>{if(m.map&&FILMIC)m.map.encoding=THREE.sRGBEncoding;m.needsUpdate=true;});}});
-  const bone=n=>{let b=null;root.traverse(o=>{if(!b&&o.isBone&&o.name==='Scavenger__'+n)b=o;});return b;};
-  const MAP={torso:'Spine1',head:'Head',LA:'L_UpperArm',LB:'L_Forearm',RA:'R_UpperArm',RB:'R_Forearm',LL:'L_Thigh',LK:'L_Calf',RL:'R_Thigh',RK:'R_Calf'},B={};
-  const rq=new THREE.Quaternion(),inv=new THREE.Quaternion();root.updateMatrixWorld(true);root.getWorldQuaternion(inv);inv.invert();
-  for(const k in MAP){const b=bone(MAP[k]);if(!b)continue;const pw=new THREE.Quaternion();b.parent.getWorldQuaternion(pw);pw.premultiply(inv);B[k]={b,rest:b.quaternion.clone(),pw,pwi:pw.clone().invert()};}
+  root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.frustumCulled=false;o.geometry.deleteAttribute('color');['_uv3','_uv4','_uv5'].forEach(k=>o.geometry.deleteAttribute(k));const mm=Array.isArray(o.material)?o.material:[o.material];mm.forEach(m=>{m.vertexColors=false;if(m.map&&FILMIC)m.map.encoding=THREE.sRGBEncoding;m.needsUpdate=true;});}});
+  const bone=n=>{let b=null;root.traverse(o=>{if(!b&&o.isBone&&(o.name==='Scavenger__'+n||o.name==='Scavenger__'+n+'_1'))b=o;});return b;};
   const all=[];root.traverse(o=>{if(o.isBone)all.push([o,o.quaternion.clone()]);});
-  const e=new THREE.Euler(),q=new THREE.Quaternion();
-  const J=(k,x,y,z)=>{const X=B[k];if(!X)return;e.set(x||0,y||0,z||0);q.setFromEuler(e);X.b.quaternion.copy(X.pwi).multiply(q).multiply(X.pw).multiply(X.rest);};
-  J.reset=()=>{for(const [o,r] of all)o.quaternion.copy(r);inner.position.y=0;};
+  // the pose is set on a hidden simple figure; then each real bone is turned so it points the same way as that figure's limb
+  // (this works whatever the bones' own axes are)
+  const PX=mechBuild();scene.remove(PX.g);g.updateMatrixWorld(true);
+  const lx=(bone('L_UpperArm')||{getWorldPosition:v=>v.set(1,0,0)}).getWorldPosition(new THREE.Vector3()).x,sw=lx<g.position.x;
+  const pl=sw?{L:PX.RA,R:PX.LA,LL:PX.RL,RL:PX.LL}:{L:PX.LA,R:PX.RA,LL:PX.LL,RL:PX.RL};
+  const SEG=[['Spine1','Neck',PX.torso,PX.head],
+    ['L_UpperArm','L_Forearm',pl.L.a,pl.L.b],['L_Forearm','L_Hand',pl.L.b,pl.L.b.children[1]],['R_UpperArm','R_Forearm',pl.R.a,pl.R.b],['R_Forearm','R_Hand',pl.R.b,pl.R.b.children[1]],
+    ['L_Thigh','L_Calf',pl.LL.a,pl.LL.b],['L_Calf','L_Foot',pl.LL.b,pl.LL.b.children[1]],['R_Thigh','R_Calf',pl.RL.a,pl.RL.b],['R_Calf','R_Foot',pl.RL.b,pl.RL.b.children[1]]]
+    .map(([a,b,pa,pb])=>({b:bone(a),e:bone(b),pa,pb})).filter(x=>x.b&&x.e&&x.pa&&x.pb);
+  const t1=new THREE.Vector3(),t2=new THREE.Vector3(),dv=new THREE.Vector3(),gq=new THREE.Quaternion(),bq=new THREE.Quaternion(),pq=new THREE.Quaternion(),dq=new THREE.Quaternion();
+  const retarget=()=>{PX.g.position.set(0,0,0);PX.g.rotation.set(0,0,0);PX.g.updateMatrixWorld(true);g.updateMatrixWorld(true);g.getWorldQuaternion(gq);
+    for(const X of SEG){X.pa.getWorldPosition(t1);X.pb.getWorldPosition(t2);dv.subVectors(t2,t1).normalize().applyQuaternion(gq);
+      X.b.getWorldPosition(t1);X.e.getWorldPosition(t2);t2.sub(t1).normalize();dq.setFromUnitVectors(t2,dv);
+      X.b.getWorldQuaternion(bq);bq.premultiply(dq);X.b.parent.getWorldQuaternion(pq);X.b.quaternion.copy(pq.invert().multiply(bq));X.b.updateMatrixWorld(true);}};
+  const J=(k,x,y,z)=>PX.J(k,x,y,z);
+  J.reset=()=>{PX.J.reset();for(const [o,r] of all)o.quaternion.copy(r);inner.position.y=0;};
   const hand=bone('R_Hand'),tools=new THREE.Group();g.add(tools);
   const M=c=>new THREE.MeshLambertMaterial({color:c}),cyl=(r,h,m)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,8),m);o.castShadow=true;return o;};
   const brace=new THREE.Group(),b1=cyl(0.013,0.45,M('#55595e'));b1.rotation.x=Math.PI/2;b1.position.z=0.2;brace.add(b1);const b2=cyl(0.013,0.3,M('#55595e'));b2.rotation.z=Math.PI/2;b2.position.z=0.42;brace.add(b2);tools.add(brace);
   const can=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.26,0.1),M('#2f6b3a'));can.castShadow=true;tools.add(can);
   const wheel=new THREE.Mesh(new THREE.TorusGeometry(0.3,0.11,8,18),M('#1e1e1e'));wheel.castShadow=true;g.add(wheel);wheel.position.set(0,1.15,0.35);
   const hv=new THREE.Vector3();
-  J.done=()=>{if(!hand)return;g.updateMatrixWorld(true);hand.getWorldPosition(hv);g.worldToLocal(hv);brace.position.copy(hv);can.position.copy(hv).add(new THREE.Vector3(0,-0.12,0.05));};
+  J.done=()=>{retarget();if(!hand)return;g.updateMatrixWorld(true);hand.getWorldPosition(hv);g.worldToLocal(hv);brace.position.copy(hv);can.position.copy(hv).add(new THREE.Vector3(0,-0.12,0.05));};
   const drop=h=>{inner.position.y=-h;};
   scene.add(g);g.visible=false;return {g,J,drop,brace,can,wheel,real:true};}
 function mechPlace(){const R=BRK.rep,m=MECH;let x,z,face;
@@ -4709,7 +4729,9 @@ function repFrame(dt){const R=BRK.rep;S.vx=S.vz=S.vy=S.w=0;S.gas=0;S.v=S.fwd=0;R
   if(st==='spare')R.carry=Math.min(1,R.carry+dt/1.8);
   const f=$('repFill');if(f)f.style.width=Math.round((st==='jack'?R.lift:st==='down'?1-R.lift:clamp((1-BRK.heat)/0.6,0,1))*100)+'%';
   // the car rises on the jack at that corner
-  if(R.job==='tyre'){const w=V.wheels[R.wi],lf=R.lift*R.lift*(3-2*R.lift);S.y=R.base.y+lf*0.22;S.roll=R.base.roll+Math.sign(w.w)*lf*0.07;S.pitch=R.base.pitch-Math.sign(w.u)*lf*0.035;}
+  if(R.job==='tyre'){const w=V.wheels[R.wi],lf=R.lift*R.lift*(3-2*R.lift),h=0.26*lf,dy=h*0.4,dr=Math.sign(w.w)*h*0.45/Math.max(0.5,Math.abs(w.w)),dp=Math.sign(w.u)*h*0.2/Math.max(0.8,Math.abs(w.u));
+    S.y=R.base.y+dy;S.roll=R.base.roll+dr;S.pitch=R.base.pitch+dp;if(!R.wx)R.wx=V.wheels.map(q=>q.x||0);
+    V.wheels.forEach((q,i)=>{const up=dy+q.w*Math.sin(dr)+q.u*Math.sin(dp);q.x=i===R.wi?R.wx[i]:R.wx[i]-up;});}
   brkSteam(dt,BRK.heat>0.88?1:0);
   const pose=st==='jack'||st==='down'?'jack':st==='off'||st==='on'?'nuts':st==='pull'||st==='spare'?(st==='spare'&&R.carry<1?'carry':'nuts'):st==='pour'?(R.hold?'pour':'wait'):st==='hood'||st==='bulb'?'lamp':'wait';
   mechPlace();mechPose(pose,R.t);}
@@ -4721,8 +4743,194 @@ function repCam(){const R=BRK.rep;let tx,ty,tz,cx,cy,cz;
   else{const fx=Math.sin(S.th),fz=Math.cos(S.th),f=(V.frontZ||2);tx=S.x+fx*f;tz=S.z+fz*f;ty=S.y+1.1;cx=S.x+fx*(f+5.5)+fz*2.5;cz=S.z+fz*(f+5.5)-fx*2.5;cy=S.y+2.6;}
   const g=Hd(cx,cz)+0.6;camera.position.set(cx,Math.max(cy,g),cz);camera.lookAt(tx,ty,tz);}
 
+/* ---------- Life by the road on the free maps ----------
+   Now and then, somewhere ahead on the road:
+   · a car broken down at the side, its driver waving for help: give him your spare tyre, or tow him to the next village;
+   · a family by the road in a village with someone very ill: take them to the clinic in Sheikh Miran or the hospital in Nili,
+     quickly but gently (every bump hurts the patient);
+   · a shepherd taking his flock across the road: wait for them to cross; the horn scatters the sheep and angers him.
+   Helping is paid in coins, in thanks and in a small present from the people you helped. */
+const EVT={cur:null,mis:null,cool:35,kheyr:0,tst:0};
+try{EVT.kheyr=+localStorage.getItem('amiri_kheyr')||0;}catch(e){}
+const EV_GIFTS=['یک کاسه قروت','نان تازهٔ تنوری','یک کیسه توت خشک','یک مشت بادام','یک کیسه کشمش','یک ظرف شیر تازه','یک دستمال سیب','دعای خیر مادرش'];
+function evtOk(){return FREE&&FW&&FW.PX&&FW.PX.length>10&&S.mode==='play'&&!BRK.rep&&!RIDE.pid&&!SLEEP.on;}
+// a point on the road: position, height, heading and the side normal
+function evRP(k){const n=FW.PX.length;k=clamp(k,0,n-1.001);const i=Math.floor(k),t=k-i,x=FW.PX[i]+(FW.PX[i+1]-FW.PX[i])*t,z=FW.PZ[i]+(FW.PZ[i+1]-FW.PZ[i])*t,hd=freeHeading(i);
+  return {k,x,z,hd,nx:Math.cos(hd),nz:-Math.sin(hd)};}
+// where the player is on the road and which way along it they are going
+function evWhere(){const q=trailQ(S.x,S.z,40);if(!q)return null;const k=q.s,hd=freeHeading(Math.floor(k)),sp=Math.hypot(S.vx,S.vz);
+  const f=sp>1.5?Math.sin(hd)*S.vx+Math.cos(hd)*S.vz:Math.sin(hd)*Math.sin(S.th)+Math.cos(hd)*Math.cos(S.th);
+  const T=FW.trails.find(t=>k>=t.i0&&k<=t.i1)||FW.trails[0];return {k,dir:f>=0?1:-1,T};}
+function evAhead(W,m){const k=W.k+W.dir*m/2;if(k<W.T.i0+5||k>W.T.i1-5)return null;return k;}
+// which side of the road is flatter (the shoulder): +1 or -1
+function evSide(P,off){const r=Hf(P.x+P.nx*off,P.z+P.nz*off),l=Hf(P.x-P.nx*off,P.z-P.nz*off),h=Hf(P.x,P.z);return Math.abs(r-h)<=Math.abs(l-h)?1:-1;}
+function villageAt(x,z){if(FW&&FW.pois&&FW.pois.some(Q=>Q.k==='camp'&&Math.hypot(x-Q.x,z-Q.z)<120))return true;if(!FW||!FW.hc)return false;let n=0;const ci=Math.floor(x/32),cj=Math.floor(z/32);
+  for(let j=-3;j<=3;j++)for(let i=-3;i<=3;i++){const L=FW.hc.get((ci+i)*65536+cj+j);if(L)n+=L.length;}return n>=5;}
+function evHosp(){if(!FW.dk)return [];return FW.pois.filter(Q=>/درمانگاه|شهر نیلی/.test(DK.poi[Q.i].n)).map(Q=>{const q=trailQ(Q.x,Q.z,120);return {x:Q.x,z:Q.z,k:q?q.s:0,n:/درمانگاه/.test(DK.poi[Q.i].n)?tr_('درمانگاه شیخ میران'):tr_('بیمارستان نیلی')};});}
+// people by the road (the same simple figure as the mechanic, in their own clothes)
+function evPerson(o){const F=mechBuild(o);F.brace.visible=F.can.visible=F.wheel.visible=false;F.keep=true;
+  if(o&&o.staff){const st=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.022,1.7,6),new THREE.MeshLambertMaterial({color:'#6b4a2a'}));st.position.set(0,-0.3,0.05);F.RA.b.add(st);F.staff=st;}
+  F.g.visible=true;return F;}
+function evPose(F,kind,t){const J=F.J,s=Math.sin(t*8),s2=Math.sin(t*3.6);J.reset();
+  if(kind==='wave'){J('RA',-2.75,0,-0.25+0.38*s);J('RB',-0.35);J('LA',0,0,0.1);J('head',-0.1);}
+  else if(kind==='wave2'){J('RA',-2.75,0,-0.25+0.38*s);J('LA',-2.75,0,0.25-0.38*s);J('RB',-0.3);J('LB',-0.3);}
+  else if(kind==='angry'){J('RA',-2.4+0.45*Math.sin(t*12),0,-0.2);J('RB',-0.5);J('LA',-1.2,0,0.4);J('LB',-1.2);J('head',-0.15,0.25*Math.sin(t*5));}
+  else if(kind==='sit'){F.drop(0.78);J('LL',-1.45);J('RL',-1.4);J('LK',0.15);J('RK',0.2);J('torso',-0.25);J('head',0.45,0.1*s2);J('LA',-0.3,0,0.25);J('RA',-0.6,0,-0.1);J('RB',-1.1);}
+  else if(kind==='walk'){J('LL',0.4*s2);J('RL',-0.4*s2);J('LK',0.3*Math.max(0,-s2));J('RK',0.3*Math.max(0,s2));J('LA',-0.3*s2,0,0.1);J('RA',F.staff?-0.5:0.3*s2,0,-0.1);}
+  else if(kind==='kneel'){F.drop(0.4);J('LL',-1.5);J('LK',1.55);J('RL',0.1);J('RK',1.4);J('torso',0.25);J('RA',-1.25+0.25*s,0,-0.1);J('RB',-0.4);J('LA',-1.1,0,0.2);J('LB',-0.5);J('head',0.2);}
+  else{J('LA',0,0,0.1);J('RA',F.staff?-0.35:0,0,-0.1);}J.done&&J.done();}
+function evPlace(F,x,z,face){F.g.position.set(x,meshH(x,z),z);F.g.rotation.y=face;}
+function evFace(x,z){return Math.atan2(S.x-x,S.z-z);}
+function evDrop(o){if(!o)return;if(o.g)scene.remove(o.g);else if(o.parent)o.parent.remove(o);}
+function evClear(E){if(!E)return;(E.figs||[]).forEach(F=>scene.remove(F.g));if(E.car)scene.remove(E.car.g);if(E.rope){scene.remove(E.rope);E.rope.geometry.dispose();}
+  (E.sheep||[]).forEach(a=>scene.remove(a.g));if(E.beam)scene.remove(E.beam);evObst.length=0;}
+function evReset(){evClear(EVT.cur);EVT.cur=null;evClear(EVT.mis);EVT.mis=null;EVT.cool=35;$('evPanel').hidden=true;$('evHud').hidden=true;}
+function evPay(n,msg,gift){S.coins=Math.max(0,S.coins+n);EVT.kheyr+=n>0?1:0;try{localStorage.setItem('amiri_kheyr',EVT.kheyr);}catch(e){}
+  const g=gift?EV_GIFTS[Math.floor(Math.random()*EV_GIFTS.length)]:'';SFX.whoosh();toast(tr_(msg)+(n?' · '+(n>0?'+':'−')+fa(Math.abs(n))+tr_(' سکه'):'')+(g?tr_(' · هدیه: ')+tr_(g):''));save&&save();}
+function evSay(msg,cd){const now=performance.now()/1000;if(cd&&now<EVT.tst)return;EVT.tst=now+(cd||0);toast(tr_(msg));}
+
+// ---- spawning ahead
+function evSpawn(type,at){const W=evWhere();if(!W)return null;let k=at!==undefined?at:evAhead(W,FW.dk?230+Math.random()*120:320+Math.random()*160);if(k===null)return null;
+  if(!type){const r=Math.random(),pat=FW.dk&&!EVT.mis;type=pat&&r<0.3?'pat':r<0.62?'car':'sheep';}
+  let E=null;if(type==='car')E=evCar(k,W.dir);else if(type==='sheep')E=evSheep(k,W.dir);else if(type==='pat')E=evPat(W);
+  if(E){E.type=type;E.t=0;E.seen=false;EVT.cur=E;}return E;}
+function evCar(k,dir){const P=evRP(k),sd=evSide(P,4),off=sd*(FW.dk?2.3:4.6),x=P.x+P.nx*off,z=P.z+P.nz*off,th=P.hd+(dir<0?Math.PI:0);
+  const L=NPCV.map((v,i)=>i).filter(i=>!/amb|cop/.test(NPCV[i].n));if(!L.length)return null;const vi=L[Math.floor(Math.random()*L.length)];
+  const spec=Object.assign({},NPCV[vi],{lite:true,noInt:true}),cu={paint:pick(TR_PAINT),rim:null,bar:0,snork:0,rack:0,flag:0,roof:0,crate:0,tire:1};
+  const Vc=buildVehicle(spec,cu,null);Vc.g.traverse(o=>{if(o.isMesh)o.castShadow=true;});scene.add(Vc.g);
+  const bl=Vc.bodyPts[0][0],bw=Vc.bodyPts[0][1],hz=new THREE.MeshBasicMaterial({color:'#ffae2a'}),HZ=[];
+  for(const [u,w] of [[bl+0.02,bw*0.82],[bl+0.02,-bw*0.82],[-bl-0.02,bw*0.82],[-bl-0.02,-bw*0.82]]){const m=new THREE.Mesh(new THREE.SphereGeometry(0.075,8,6),hz);m.position.set(w,Vc.bodyBot+0.45,u);Vc.g.add(m);HZ.push(m);}
+  const prob=Math.random()<0.6?'tyre':'engine',E={car:Vc,x,z,th,bl,bw,k,dir,off,HZ,prob,state:'wait',figs:[]};evCarPose(E);
+  const dr=evPerson({shirt:'#d8d0bd',vest:'#4a3b2c',cap:'#f0ece2'});E.figs.push(dr);E.dr=dr;
+  E.px=x+P.nx*sd*(bw+0.9)*-1+Math.sin(th)*(bl+1.4);E.pz=z+P.nz*sd*(bw+0.9)*-1+Math.cos(th)*(bl+1.4);return E;}
+function evCarPose(E){const y=Hd(E.x,E.z),f=Hd(E.x+Math.sin(E.th)*E.bl,E.z+Math.cos(E.th)*E.bl),b=Hd(E.x-Math.sin(E.th)*E.bl,E.z-Math.cos(E.th)*E.bl);
+  E.car.g.position.set(E.x,y,E.z);E.car.g.rotation.set(-Math.atan2(f-b,E.bl*2),E.th,E.prob==='tyre'&&E.state==='wait'?0.05:0,'YXZ');}
+function evSheep(k,dir){const P=aniProto('sheep');if(!P)return null;const R=evRP(k),sd=Math.random()<0.5?1:-1,n=11+Math.floor(Math.random()*6),sheep=[];
+  for(let i=0;i<n;i++){const g=P.clone(true),s=0.8+Math.random()*0.35;g.scale.setScalar(s);scene.add(g);const LU=aniLegs(g,P.userData.legs);
+    const a0=(Math.random()-0.5)*10,l0=-sd*(8+Math.random()*7),l1=sd*(12+Math.random()*7),x=R.x+R.nx*l0+Math.sin(R.hd)*a0,z=R.z+R.nz*l0+Math.cos(R.hd)*a0;
+    sheep.push({g,LU,s,x,z,th:0,v:0,ph:Math.random()*6,del:i*0.55+Math.random()*1.6,tx:R.x+R.nx*l1+Math.sin(R.hd)*(a0+(Math.random()-0.5)*5),tz:R.z+R.nz*l1+Math.cos(R.hd)*(a0+(Math.random()-0.5)*5),run:0,down:0,hit:false});}
+  const sh=evPerson({shirt:'#b9a98a',vest:'#6b4a2e',cap:'#3a3a3a',staff:true});
+  const E={k,dir,R,sd,sheep,figs:[sh],sh,shx:R.x-R.nx*sd*17,shz:R.z-R.nz*sd*17,state:'idle',go:false,waited:false,rude:false,honked:false,hits:0,angry:0};return E;}
+function evPat(W){const hs=evHosp();if(!hs.length)return null;
+  for(let m=220;m<1100;m+=30){const k=evAhead(W,m);if(k===null)break;const P=evRP(k);if(!villageAt(P.x,P.z))continue;
+    let best=null,bd=1e9;for(const H of hs){const d=Math.abs(H.k-k)*2;if(d<bd){bd=d;best=H;}}if(!best||bd<400||bd>9000)continue;
+    const sd=evSide(P,4),x=P.x+P.nx*sd*3.2,z=P.z+P.nz*sd*3.2;
+    const pt=evPerson({shirt:'#f1eee6',vest:'#7a6a55',cap:'#ffffff'}),rl=evPerson({shirt:'#e8e2d4',vest:'#2f4a3a',cap:'#e8e4da'});
+    return {k,P,x,z,sd,H:best,road:bd,figs:[pt,rl],pt,rl,state:'wait'};}
+  return null;}
+
+// ---- every frame
+function evtStep(dt){
+  if(!evtOk()){if(!FREE&&(EVT.cur||EVT.mis))evReset();$('evPanel').hidden=true;return;}
+  const sp=Math.hypot(S.vx,S.vz);
+  if(!EVT.cur){if(sp>2.5)EVT.cool-=dt;if(EVT.cool<=0){EVT.cool=8;if(evSpawn())EVT.cool=60+Math.random()*80;}}
+  const E=EVT.cur;if(E){E.t+=dt;const d=Math.hypot((E.x!==undefined?E.x:E.R.x)-S.x,(E.z!==undefined?E.z:E.R.z)-S.z);
+    if(E.type==='car')evCarStep(E,dt,d,sp);else if(E.type==='sheep')evSheepStep(E,dt,d,sp);else evPatStep(E,dt,d,sp);
+    if(EVT.cur===E&&(d>(E.tow?1e9:700)||(E.done&&d>220))){evClear(E);EVT.cur=null;if(!E.done)EVT.cool=Math.min(EVT.cool,30);$('evPanel').hidden=true;}}
+  if(EVT.mis)evMisStep(EVT.mis,dt,sp);
+  evPanel();}
+function evNear(E,d,sp){return d<15&&sp<0.8&&!E.declined&&E.state==='wait';}
+function evCarStep(E,dt,d,sp){const blink=(E.t%1)<0.5;
+  if(!E.seen&&d<170){E.seen=true;evSay('ماشینی کنار راه خراب شده؛ راننده‌اش دست تکان می‌دهد',0);}
+  if(E.declined&&d>40)E.declined=false;
+  if(E.state==='wait'){E.HZ.forEach(m=>m.visible=blink);if(E.t%1.1<dt)tone(880,0.04,0.012,'square');evPlace(E.dr,E.px,E.pz,evFace(E.px,E.pz));evPose(E.dr,d<60?'wave':'stand',E.t);evCarPose(E);}
+  else if(E.state==='fix'){E.ft-=dt;E.HZ.forEach(m=>m.visible=blink);const fx=E.x-Math.sin(E.th)*E.bl*0.6+Math.cos(E.th)*E.side*(E.bw+0.55),fz=E.z-Math.cos(E.th)*E.bl*0.6-Math.sin(E.th)*E.side*(E.bw+0.55);
+    evPlace(E.dr,fx,fz,E.th-E.side*Math.PI/2);evPose(E.dr,'kneel',E.t);if(Math.floor(E.t*3)!==Math.floor((E.t-dt)*3))tone(1100,0.05,0.02,'square',900);
+    if(E.ft<=0){E.state='go';E.v=0;E.dr.g.visible=false;evCarPose(E);tone(420,0.18,0.03,'square');tone(420,0.18,0.03,'square',null,0.25);evPay(600,'راننده: خدا خیرت بده برادر! زندگی‌ام را نجات دادی',true);E.done=true;}}
+  else if(E.state==='go'){E.HZ.forEach(m=>m.visible=false);E.v=Math.min(8,E.v+dt*2);E.k+=E.dir*E.v*dt/2;const P=evRP(E.k),o=E.off*0.4;E.x=P.x+P.nx*o;E.z=P.z+P.nz*o;E.th=P.hd+(E.dir<0?Math.PI:0);evCarPose(E);
+    E.car.wheels&&E.car.wheels.forEach(w=>{if(w.spin)w.spin.rotation.x+=E.v*dt/(w.wr||0.4);});}
+  else if(E.state==='tow')evTowStep(E,dt);
+  else if(E.state==='thanks'){evPlace(E.dr,E.px,E.pz,evFace(E.px,E.pz));evPose(E.dr,'wave2',E.t);E.HZ.forEach(m=>m.visible=false);}
+  // the car is in the way
+  evObst.length=0;if(E.state!=='tow'&&E.state!=='go'&&d<60){const s=Math.sin(E.th),c=Math.cos(E.th);for(const u of [-E.bl*0.6,0,E.bl*0.6])evObst.push({x:E.x+s*u,z:E.z+c*u,r:E.bw*1.02});}}
+function evTowStep(E,dt){const u=hookU(V,-1),s=Math.sin(S.th),c=Math.cos(S.th),hx=S.x+s*u,hz=S.z+c*u,L=5;
+  let fx=E.x+Math.sin(E.th)*(E.bl+0.15),fz=E.z+Math.cos(E.th)*(E.bl+0.15);const dx=hx-fx,dz=hz-fz,d=Math.hypot(dx,dz);
+  if(d>L+14){E.state='wait';E.tow=false;scene.remove(E.rope);E.rope=null;E.declined=true;evSay('طناب بکسل باز شد! برگرد و دوباره ببندش',0);evMisHud();return;}
+  if(d>L){fx=hx-dx/d*L;fz=hz-dz/d*L;E.th=Math.atan2(fx-E.x,fz-E.z);E.x=fx-Math.sin(E.th)*(E.bl+0.15);E.z=fz-Math.cos(E.th)*(E.bl+0.15);
+    const sp=Math.hypot(S.vx,S.vz),k=dt*(0.35+Math.max(0,sp-(FW.dk?7:11))*0.4);S.vx*=1-k;S.vz*=1-k;}
+  evCarPose(E);E.car.wheels&&E.car.wheels.forEach(w=>{if(w.spin)w.spin.rotation.x+=Math.hypot(S.vx,S.vz)*dt/(w.wr||0.4);});E.HZ.forEach(m=>m.visible=(E.t%1)<0.5);
+  // the rope
+  const A=new THREE.Vector3(hx,S.y+u*Math.sin(S.pitch)+V.bodyBot+0.2,hz),B=new THREE.Vector3(fx,Hd(fx,fz)+E.car.bodyBot+0.2,fz),mid=A.clone().add(B).multiplyScalar(0.5);mid.y-=0.12+Math.max(0,L-A.distanceTo(B))*0.5;
+  const g=new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(A,mid,B),12,0.035,5,false);if(E.rope){E.rope.geometry.dispose();E.rope.geometry=g;}else{E.rope=new THREE.Mesh(g,ROPE.mat);E.rope.frustumCulled=false;scene.add(E.rope);}
+  E.towD+=Math.hypot(S.vx,S.vz)*dt;
+  if(E.towD>150&&villageAt(E.x,E.z)&&Math.hypot(S.vx,S.vz)<0.8){E.state='thanks';E.tow=false;scene.remove(E.rope);E.rope.geometry.dispose();E.rope=null;E.done=true;E.dr.g.visible=true;
+    E.px=E.x+Math.cos(E.th)*(E.bw+1.2);E.pz=E.z-Math.sin(E.th)*(E.bw+1.2);evPay(1000,'به روستا رسیدید. راننده: دستت درد نکند، مهمان ما باش!',true);evMisHud();}}
+function evSheepStep(E,dt,d,sp){const R=E.R;
+  if(!E.go&&d<120){E.go=true;E.state='cross';evSay('گله از جاده رد می‌شود؛ صبر کن تا رد شوند',0);}
+  const cs=Math.cos(R.hd),sn=Math.sin(R.hd);let onRoad=0,left=0,lastL=-1e9;const carR=1.7;
+  for(const a of E.sheep){const lat=(a.x-R.x)*R.nx+(a.z-R.z)*R.nz;
+    if(E.go)a.del-=dt;let want=0,tx=a.tx,tz=a.tz;
+    if(a.down>0){a.down-=dt;want=0;}
+    else if(a.run>0){a.run-=dt;want=4;tx=a.rx;tz=a.rz;}
+    else if(E.go&&a.del<=0){const dd=Math.hypot(a.tx-a.x,a.tz-a.z);want=dd>0.8?1.35:0;}
+    // they step away from a car coming through them
+    const dxp=a.x-S.x,dzp=a.z-S.z,dp=Math.hypot(dxp,dzp);
+    if(dp<carR+0.7&&sp>1.2&&!a.hit){a.hit=true;a.down=2.6;a.x+=dxp/dp*1.2;a.z+=dzp/dp*1.2;E.hits++;SFX.hit(3);tone(520,0.3,0.035,'sawtooth',380);
+      evPay(-300,'به گوسفند زدی! چوپان تاوانش را گرفت',false);E.angry=4;}
+    else if(dp<9&&sp>2.5&&a.run<=0&&a.down<=0){a.run=1.6;const an=Math.atan2(dxp,dzp)+(Math.random()-0.5);a.rx=a.x+Math.sin(an)*8;a.rz=a.z+Math.cos(an)*8;if(E.state==='cross'&&!E.rude){E.rude=true;evSay('آرام‌تر! گله وسط جاده است',0);}}
+    a.v+=(want-a.v)*Math.min(1,dt*3);
+    if(a.v>0.05){const ddx=tx-a.x,ddz=tz-a.z,dd=Math.hypot(ddx,ddz)||1;let dth=Math.atan2(ddx,ddz)-a.th;while(dth>Math.PI)dth-=6.283;while(dth<-Math.PI)dth+=6.283;a.th+=clamp(dth,-dt*3,dt*3);
+      a.x+=Math.sin(a.th)*a.v*dt;a.z+=Math.cos(a.th)*a.v*dt;}
+    if(dp<1.4){a.x+=dxp/(dp||1)*(1.4-dp);a.z+=dzp/(dp||1)*(1.4-dp);}
+    a.ph+=dt*(1.5+a.v*2.4);const gy=meshH(a.x,a.z);a.g.position.set(a.x,gy+(a.down>0?0.12:0),a.z);a.g.rotation.set(a.v<0.1&&a.down<=0?0.1:0,a.th,a.down>0?1.35:0,'YXZ');
+    a.LU.ph.value=a.ph;a.LU.amp.value=clamp(a.v*(a.v>2?0.1:0.3),0,0.5);
+    const l2=(a.x-R.x)*R.nx+(a.z-R.z)*R.nz;if(Math.abs(l2)<3.2)onRoad++;if(l2*E.sd<3.5)left++;lastL=Math.max(lastL,-l2*E.sd);
+    if(E.go&&Math.random()<dt*0.04)tone(560+Math.random()*120,0.32,0.012,'sawtooth',430);}
+  // the shepherd walks behind the last of them
+  if(E.go&&E.state==='cross'){const tl=Math.min(E.sd*14,-E.sd*(lastL+2.5)*-1);const lat=clamp(-lastL-2.5,-17,14)*E.sd;E.shx+=(R.x+R.nx*lat-E.shx)*Math.min(1,dt*0.9);E.shz+=(R.z+R.nz*lat-E.shz)*Math.min(1,dt*0.9);}
+  const shf=E.angry>0?evFace(E.shx,E.shz):Math.atan2(R.nx*E.sd,R.nz*E.sd);evPlace(E.sh,E.shx,E.shz,shf);
+  if(E.angry>0){E.angry-=dt;evPose(E.sh,'angry',E.t);}else if(E.state==='thanks')evPose(E.sh,'wave',E.t);else evPose(E.sh,E.go&&E.state==='cross'?'walk':'stand',E.t);
+  if(E.state==='cross'){if(d<45&&sp<1)E.waited=true;
+    if(E.go&&left===0&&onRoad===0&&E.t>4){E.state='thanks';E.done=true;E.tthx=E.t;
+      if(E.waited&&!E.rude&&!E.honked&&!E.hits)evPay(150,'چوپان دست تکان داد: مانده نباشی، خدا خیرت بده!',false);else if(!E.honked&&!E.hits)evSay('گله از جاده رد شد',0);}}
+  evObst.length=0;}
+function evtHonk(){const E=EVT.cur;if(!E||E.type!=='sheep'||!E.go||E.state!=='cross'||E.honked)return;if(Math.hypot(E.R.x-S.x,E.R.z-S.z)>70)return;
+  E.honked=true;E.angry=5;for(const a of E.sheep){a.run=2.5+Math.random()*1.5;const an=Math.random()*6.283;a.rx=a.x+Math.sin(an)*14;a.rz=a.z+Math.cos(an)*14;a.del=Math.min(a.del,0)+2;}
+  tone(600,0.3,0.03,'sawtooth',450);evPay(-100,'چوپان عصبانی شد! با بوق گله را ترساندی',false);}
+function evPatStep(E,dt,d,sp){
+  if(!E.seen&&d<180){E.seen=true;evSay('کسی کنار راه دست تکان می‌دهد؛ انگار کمک می‌خواهد',0);}
+  if(E.declined&&d>40)E.declined=false;
+  if(E.state==='wait'){evPlace(E.pt,E.x,E.z,evFace(E.x,E.z));evPose(E.pt,'sit',E.t);const rx=E.x+E.P.nx*E.sd*-1.1+Math.sin(E.P.hd)*1.2,rz=E.z+E.P.nz*E.sd*-1.1+Math.cos(E.P.hd)*1.2;evPlace(E.rl,rx,rz,evFace(rx,rz));evPose(E.rl,d<70?'wave2':'stand',E.t);}}
+// the patient on board: a timer, how comfortable they are, and the way to the doctor
+function evMisStep(M,dt,sp){M.t-=dt;const aV=(S.vy-(M.pvy||0))/Math.max(dt,0.001);M.pvy=S.vy;let loss=0;
+  if(S.ground>0)loss+=Math.max(0,Math.abs(aV)-6)*dt*1.4;loss+=Math.max(0,Math.abs((S.w||0)*sp)-4.5)*dt*1.6;if(S.air)loss+=dt*9;
+  if(loss>0.02){M.c=Math.max(0,M.c-loss);M.hurt=0.5;if(loss>1.2)evSay(Math.random()<0.5?'آخ! آرام‌تر برو، بیمار درد دارد':'بیمار ناله کرد؛ دست‌انداز را آرام رد شو',5);}
+  else{M.c=Math.min(100,M.c+dt*0.25);M.hurt=Math.max(0,(M.hurt||0)-dt);}
+  if(M.t<0&&!M.late){M.late=true;evSay('دیر شد! هر چه زودتر برسان',0);}
+  const d=Math.hypot(M.H.x-S.x,M.H.z-S.z);
+  if(d<40&&sp<0.8){const ok=M.t>0,r=Math.round((500+1500*M.c/100)*(ok?1:0.45));scene.remove(M.beam);EVT.mis=null;
+    evPay(r,ok?'بیمار را به‌موقع به '+M.H.n+' رساندی! خانواده‌اش دعایت کردند':'بیمار را به '+M.H.n+' رساندی؛ کمی دیر شد ولی زنده ماند',ok);$('evHud').hidden=true;return;}
+  M.beam.material.opacity=0.22+0.1*Math.sin(performance.now()/300);evMisHud(M,d);}
+function evMisHud(M,d){M=M||EVT.mis;const el=$('evHud');if(!M){el.hidden=true;return;}el.hidden=false;
+  const mm=Math.max(0,Math.ceil(M.t)),tt=faD(Math.floor(mm/60)+':'+String(mm%60).padStart(2,'0')),ang=Math.atan2(M.H.x-S.x,M.H.z-S.z)-S.th;
+  el.innerHTML='<i class="evArr" style="transform:rotate('+(-ang)+'rad)">▲</i><b>'+tr_('بیمار → ')+M.H.n+'</b><span>'+(d>1000?fa1(d/1000)+tr_(' کم'):fa(d)+tr_(' م'))+'</span><span class="'+(M.t<30?'late':'')+'">⏱ '+tt+'</span>'+
+    '<span class="evC'+(M.hurt>0?' hurt':'')+'">'+tr_('راحتی')+' <i><s style="width:'+M.c+'%"></s></i></span>';}
+// the panel: what you can do when you have stopped beside them
+function evPanel(){const E=EVT.cur,el=$('evPanel');if(!E||E.done||E.type==='sheep'){el.hidden=true;return;}
+  const d=Math.hypot(E.x-S.x,E.z-S.z),sp=Math.hypot(S.vx,S.vz);if(!evNear(E,d,sp)){el.hidden=true;el.dataset.k='';return;}
+  let key=E.type+(BRK.spare>0?1:0)+(EVT.mis?1:0);if(el.dataset.k===key&&!el.hidden)return;el.dataset.k=key;el.hidden=false;let t,b=[];
+  if(E.type==='car'){t=E.prob==='tyre'?'سلام برادر! لاستیکم پنچر شده و زاپاس ندارم. کمکم می‌کنی؟':'سلام برادر! موتورم خاموش شده و روشن نمی‌شود. تا روستا بکسلم می‌کنی؟';
+    if(E.prob==='tyre')b.push(BRK.spare>0?['spare','زاپاس خودم را بده ('+fa(BRK.spare)+')']:['','زاپاس نداری','off']);b.push(['tow','بکسل تا روستای بعدی']);}
+  else{t='پدرم حالش خیلی بد است! تو را به خدا ما را به '+E.H.n+' برسان ('+fa1(E.road/1000)+' کیلومتر). آرام برو که درد دارد.';
+    b.push(EVT.mis?['','یک بیمار دیگر در ماشین داری','off']:['take','سوارشان کن']);}
+  b.push(['no','ببخش، نمی‌توانم']);
+  $('evTitle').textContent=E.type==='car'?tr_('راننده‌ای در راه مانده'):tr_('بیمار اورژانسی');$('evText').textContent=tr_(t);
+  $('evAct').innerHTML=b.map(x=>'<button class="rbtn'+(x[2]?' off':'')+'" data-a="'+x[0]+'">'+tr_(x[1])+'</button>').join('');}
+function evAct(a){const E=EVT.cur;if(!E||!a)return;$('evPanel').hidden=true;$('evPanel').dataset.k='';SFX.click();
+  if(a==='no'){E.declined=true;if(E.type==='car')evSay('راننده سرش را پایین انداخت…',0);return;}
+  if(a==='spare'&&E.type==='car'){if(BRK.spare<1)return;BRK.spare--;brkUI();E.state='fix';E.ft=5;E.side=(Math.cos(E.th)*(S.x-E.x)-Math.sin(E.th)*(S.z-E.z))>0?1:-1;E.dr.g.visible=true;evSay('زاپاس را دادی؛ راننده چرخ را عوض می‌کند…',0);return;}
+  if(a==='tow'&&E.type==='car'){E.state='tow';E.tow=true;E.towD=0;E.dr.g.visible=false;evObst.length=0;evSay('طناب را بستید. آرام تا نزدیک‌ترین روستا بکسلش کن',0);return;}
+  if(a==='take'&&E.type==='pat'&&!EVT.mis){E.figs.forEach(F=>F.g.visible=false);E.done=true;SFX.door&&SFX.door();
+    const H=E.H,time=Math.round(E.road/(FW.dk?5.2:8)+45),beam=new THREE.Mesh(new THREE.CylinderGeometry(3,3,160,16,1,true),new THREE.MeshBasicMaterial({color:'#5df08a',transparent:true,opacity:0.25,depthWrite:false,side:THREE.DoubleSide}));
+    beam.position.set(H.x,Hf(H.x,H.z)+80,H.z);beam.frustumCulled=false;scene.add(beam);EVT.mis={H,t:time,T:time,c:100,beam,pvy:S.vy};evSay('بیمار سوار شد. زود ولی آرام به '+H.n+' برو؛ ستون سبز را دنبال کن',0);evMisHud();}}
+function evtHit(v){const M=EVT.mis;if(M&&v>2.5){M.c=Math.max(0,M.c-v*2.2);M.hurt=1;evSay('آخ! بیمار به در ماشین خورد؛ آرام‌تر!',4);}}
+document.addEventListener('DOMContentLoaded',()=>{});
+$('evAct').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&!b.classList.contains('off'))evAct(b.dataset.a);});
+$('evClose').addEventListener('click',()=>{const E=EVT.cur;if(E)E.declined=true;$('evPanel').hidden=true;});
+window.__EVT={EVT,evSpawn,evAct,evtStep,evReset,evtHonk,evWhere,evAhead};
+
 // switching between the stage road and the free map
-function setWorld(fw,map){brkReset();fw=!!fw;if(fw&&map&&map!==FMAP){if(FW&&FW.group)FW.group.visible=false;if(FW)FWS[FMAP]=FW;FMAP=map;dkConsts();FW=FWS[map]||null;FSNOWQ=null;if(FREE){FREE=false;dkClearHouses();}}
+function setWorld(fw,map){brkReset();if(typeof evReset==='function'&&(EVT.cur||EVT.mis))evReset();fw=!!fw;if(fw&&map&&map!==FMAP){if(FW&&FW.group)FW.group.visible=false;if(FW)FWS[FMAP]=FW;FMAP=map;dkConsts();FW=FWS[map]||null;FSNOWQ=null;if(FREE){FREE=false;dkClearHouses();}}
   if(fw)freeInit();noSnowP.value=fw&&FMAP==='dayk'?1:0;if(fw===FREE)return;if(!fw)dkClearHouses();FREE=fw;FW.group&&(FW.group.visible=FREE);
   mhCache.clear();treeCache.clear();for(const [,T] of tiles)disposeTile(T);tiles.clear();blkBuild();tileQueue=[];pTile=[1e9,1e9];
   for(const [,rc] of roadChunks)rc.meshes.forEach(m=>{scene.remove(m);if(m.geometry&&!m.userData.shared)m.geometry.dispose();});roadChunks.clear();roadCiLast=1e9;
@@ -4793,7 +5001,7 @@ function freeRoadChunk(ix,iz){const x0=ix*TILE,z0=iz*TILE,x1=x0+TILE,z1=z0+TILE,
   if(im){const zc=ZC[zoneOf(z0+TILE/2)];for(let i=0;i<rocks.length;i++){colT.copy(zc.r1).lerp(zc.r2,R()).multiplyScalar(1.2);im.setColorAt(i,colT);}im.instanceColor.needsUpdate=true;}
   return {meshes,bumps,obst};}
 // finding the places, the weather that comes and goes, and keeping the car on the island
-function freeFrame(dt){if(FW.dk)dkFrame(dt);for(const Q of FW.pois){if(FW.found.has(Q.i))continue;if(Math.hypot(S.x-Q.x,S.z-Q.z)<26){FSC().found.push(Q.i);updateFreeFlags();const prize=1500;S.coins+=prize;SFX.whoosh();
+function freeFrame(dt){if(FW.dk)dkFrame(dt);evtStep(dt);for(const Q of FW.pois){if(FW.found.has(Q.i))continue;if(Math.hypot(S.x-Q.x,S.z-Q.z)<26){FSC().found.push(Q.i);updateFreeFlags();const prize=1500;S.coins+=prize;SFX.whoosh();
     toast(tr_('پیدا شد: ')+Q.n+' · +'+fa(prize)+tr_(' سکه (')+fa(FW.found.size)+tr_(' از ')+fa(FW.pois.length)+')');if(FW.found.size===FW.pois.length){S.coins+=20000;setTimeout(()=>toast(FW.dk?tr_('از شیخ میران تا نیلی رسیدی! +۲۰٬۰۰۰ سکه'):tr_('همهٔ جاهای جزیره را پیدا کردی! +۲۰٬۰۰۰ سکه')),2600);}save();}}}
 function freeWx(dt){FW.wxT-=dt;if(FW.wxT<=0){const v=S.z-FZ,L=FW.dk?['clear']:v>900?['clear','snow','fog','clear','snow']:v<-900?['clear','rain','clear','fog','clear']:['clear','rain','fog','clear','hail','clear'];FW.wx=L[Math.floor(Math.random()*L.length)];FW.wxT=150+Math.random()*180;}return FW.wx;}
 function freeHUD(){const k=zoneOf(S.z);let near=null,bd=1e9;for(const Q of FW.pois){const d=Math.hypot(S.x-Q.x,S.z-Q.z);if(d<bd){bd=d;near=Q;}}
