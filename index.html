@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=129</script>
+<script>window.GAME_CODE=130</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -472,6 +472,7 @@ body.editing #comms{pointer-events:auto;outline:2px dashed var(--amber);outline-
   <p style="font-size:12px;line-height:1.7;color:#3d4a52"><b>سپاس:</b> حیوانات از <b>Zafflex</b> (خرس و بز)، <b>ouz209</b> (اسب)، <b>zinaida</b> (شتر)، <b>MrEliptik</b> (آهو) و <b>The_Cyborg_Lord</b> (گوسفند)؛ کلبه‌ها از <b>somni</b>، <b>MK2468</b> و <b>Igeeig</b>؛ و گربهٔ خوابیده روی داشبورد از <b>Psu</b> است؛ همه با مجوز CC-BY 4.0 از Sketchfab. از همه‌شان صمیمانه سپاسگزاریم.</p>
   <p style="font-size:11px;line-height:1.6;color:#7b6a55;direction:ltr;text-align:left"><b>Animals, cabins and the cat (Sketchfab, CC-BY 4.0):</b> "Low-poly Brown Bear" and "Low-poly Goat" by Zafflex, "Low Poly Horse(Free Download)" by ouz209, "Camel" by zinaida, "Low poly deer" by MrEliptik, "Low Poly Sheep" by The_Cyborg_Lord/Elijah_The_Peacock, "Low Poly Wood Cabin" by somni, "Low Poly Wooden Cabin" by MK2468, "Low poly log cabin" by Igeeig, "Sleeping Cat" by Psu.</p>
   <p style="font-size:11px;line-height:1.6;color:#7b6a55;direction:ltr;text-align:left"><b>Daykundi map:</b> real ground height from AWS Terrain Tiles (SRTM and others); road, places and houses © OpenStreetMap contributors (ODbL); more house footprints from Microsoft Global ML Building Footprints (ODbL).</p>
+  <p style="font-size:11px;line-height:1.6;color:#7b6a55;direction:ltr;text-align:left"><b>Driver character:</b> "Free Scavenger" (Unity Asset Store, used under the Asset Store licence; backpack removed, textures reduced).</p>
   <p style="font-size:11px;line-height:1.6;color:#7b6a55;direction:ltr;text-align:left"><b>Ground textures:</b> photographs from Poly Haven (polyhaven.com), CC0: forrest_ground_01, coast_sand_01, gravel_floor_02, cliff_side, snow_02.</p>
   <p style="font-size:11px;line-height:1.6;color:#7b6a55;direction:ltr;text-align:left"><b>Sounds:</b> real recordings released into the public domain (CC0) on freesound.org and bigsoundbank.com. Thank you jtvdb (Ferrari idle), RutgerMuller (wipers), craigsmith (1972 Porsche 911), EwanPenman11 (start-up), felix.blume (gravel), gecop and ra_gun (cabin road and wind), harrisonlace, qubodup and squareal (impacts), orlandorizo (bumps), tickle_feet_frida, nmscher, xxamoney27xx, greatsoundstube, zoombackcamera, and Joseph Sardin (BigSoundBank).</p>
   <p style="font-size:11px;line-height:1.6;color:#7b6a55;direction:ltr;text-align:left"><b>Sounds:</b> rain, thunder, wind, forest, insects, stream, gravel, road, skid, horn, starter, splash, mud, crow and indicator recordings from BigSoundBank by Joseph Sardin (bigsoundbank.com, CC0). Engines, bumps and crashes are synthesised for the game.</p>
@@ -4563,6 +4564,7 @@ function dkOnSpan(x,z){if(!FW.brc)return false;const L=FW.brc.get(Math.floor(x/3
    the red it loses power, then boils and stops; it cools by itself with the engine off, or at once with water from a river.
    A hard knock can break the headlights; at night on the free maps it is really dark, so you need them (or the moon).
    While you fix things the driver is out of the car doing the work. */
+setTimeout(()=>{try{mechLoad();}catch(e){}},20000);
 function brkOn(){return FREE&&S.mode==='play'&&!RIDE.pid&&V&&V.type!=='tank'&&V.type!=='crawler';}
 function brkReset(){if(typeof BRK!=='object')return;if(BRK.rep)repEnd(true);BRK.flat=-1;BRK.heat=0.45;BRK.lights=true;BRK.hotWarn=false;BRK.spare=1;}
 function puncture(){const L=V.wheels.map((w,i)=>w.g?i:-1).filter(i=>i>=0);if(!L.length)return;BRK.flat=L[Math.floor(Math.random()*L.length)];
@@ -4580,16 +4582,17 @@ function brkStep(dt){if(!brkOn()){$('tempRow').hidden=true;$('fixBtn').hidden=tr
   BRK.grace=Math.max(0,(BRK.grace||0)-dt);
   if(BRK.flat<0&&S.ground>0&&BRK.grace<=0){const sp=Math.abs(S.v);let ch=0;if(S.maxCd>5.5)ch+=0.16*(S.maxCd-5.5);if((S.surf==='rock'||S.surf==='gravel')&&sp>7)ch+=dt*0.002*(sp-7);if(Math.random()<ch)puncture();}
   brkHeat(dt);
-  if(BRK.spare<1&&FW&&FW.pois.some(Q=>Math.hypot(S.x-Q.x,S.z-Q.z)<45)){BRK.spare=1;toast(tr_('یک زاپاس نو گرفتی'));}
   BRK.uiT=(BRK.uiT||0)-dt;if(BRK.uiT<=0){BRK.uiT=0.25;brkUI();}
   if(BRK.heat>0.88)brkSteam(dt,1);else brkSteam(dt,0);}
 function brkUI(){const on=brkOn();$('tempRow').hidden=!on;if(!on)return;$('tempFill').style.width=Math.round(clamp((BRK.heat-0.3)/0.7,0,1)*100)+'%';
-  $('tempRow').classList.toggle('hot',BRK.heat>0.86);const f=BRK.flat>=0||BRK.heat>0.8||!BRK.lights;$('fixBtn').hidden=!f;$('fixBtn').classList.toggle('alert',f);}
+  $('tempRow').classList.toggle('hot',BRK.heat>0.86);const f=BRK.flat>=0||BRK.heat>0.8||!BRK.lights,shop=BRK.spare<2&&Math.abs(S.v||0)<1&&villageNear();$('fixBtn').hidden=!(f||shop);$('fixBtn').classList.toggle('alert',f);}
 // steam out of the bonnet
 let steamP=null;
 function brkSteam(dt,amt){if(!steamP){steamP=[];for(let i=0;i<14;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:mistTex,color:0xf4f4f4,transparent:true,depthWrite:false,opacity:0}));s.visible=false;scene.add(s);steamP.push({s,life:0});}}
   if(amt>0&&V&&Math.random()<dt*14*amt){const p=steamP.find(q=>q.life<=0);if(p){const hz=(V.frontZ||1.9)-0.5,v=V.body.localToWorld(new THREE.Vector3((Math.random()-0.5)*0.6,1.4,hz));p.s.position.copy(v);p.life=1;p.s.visible=true;p.vx=(Math.random()-0.5)*0.4;p.vz=(Math.random()-0.5)*0.4;}}
   for(const p of steamP){if(p.life<=0)continue;p.life-=dt*0.7;p.s.position.y+=dt*(1.4+0.6*(1-p.life));p.s.position.x+=p.vx*dt;p.s.position.z+=p.vz*dt;const sc=0.6+(1-p.life)*2.2;p.s.scale.set(sc,sc,1);p.s.material.opacity=Math.max(0,p.life)*0.55;if(p.life<=0)p.s.visible=false;}}
+function villageNear(){if(FW&&FW.pois&&FW.pois.some(Q=>Math.hypot(S.x-Q.x,S.z-Q.z)<60))return true;if(!FW||!FW.hc)return false;let n=0;const ci=Math.floor(S.x/32),cj=Math.floor(S.z/32);
+  for(let j=-4;j<=4;j++)for(let i=-4;i<=4;i++){const L=FW.hc.get((ci+i)*65536+cj+j);if(L)n+=L.length;}return n>=4;}
 function nearWater(){for(const r of [3,6,10,14])for(let a=0;a<8;a++){const x=S.x+Math.cos(a*0.785)*r,z=S.z+Math.sin(a*0.785)*r;if(waterAt(x,z)>Hf(x,z)-0.3)return true;}return false;}
 
 // ---- the mechanic: the driver, in a long shirt, a waistcoat and a cap, built of simple shapes with joints so he can work
@@ -4612,20 +4615,47 @@ function mechBuild(){const g=new THREE.Group(),M=c=>new THREE.MeshLambertMateria
   const brace=new THREE.Group();brace.add(cyl(0.012,0.012,0.45,M('#55595e'),0));const tb=cyl(0.012,0.012,0.3,M('#55595e'),0);tb.rotation.z=Math.PI/2;tb.position.y=0.22;brace.add(tb);brace.position.y=-0.32;brace.rotation.x=Math.PI/2;RA.b.add(brace);
   const can=box(0.18,0.26,0.1,M('#2f6b3a'),0);can.position.set(0,-0.42,0.08);RA.b.add(can);
   const wheel=new THREE.Mesh(new THREE.TorusGeometry(0.3,0.11,8,18),M('#1e1e1e'));wheel.castShadow=true;wheel.position.set(0,0.35,0.3);torso.add(wheel);
-  scene.add(g);g.visible=false;return {g,hips,torso,head,LA,RA,LL,RL,brace,can,wheel};}
+  const P={torso,head,LA:LA.a,LB:LA.b,RA:RA.a,RB:RA.b,LL:LL.a,LK:LL.b,RL:RL.a,RK:RL.b};
+  const J=(k,x,y,z)=>{const o=P[k];if(o)o.rotation.set(x||0,y||0,z||0);};J.reset=()=>{for(const k in P)P[k].rotation.set(0,0,0);hips.position.y=0.92;};
+  scene.add(g);g.visible=false;return {g,hips,torso,head,LA,RA,LL,RL,brace,can,wheel,J,drop:h=>{hips.position.y=0.92-h;}};}
 // poses: stand, kneel at a wheel working the brace, pump the jack, carry a wheel, pour water, reach into the lamp
 function mechPose(kind,t){const m=MECH,s=Math.sin(t*7),s2=Math.sin(t*3.5);
-  const set=(o,x,y,z)=>{o.rotation.set(x||0,y||0,z||0);};
+  const J=m.J,drop=m.drop;J.reset();
   m.brace.visible=kind==='nuts';m.can.visible=kind==='pour';m.wheel.visible=kind==='carry';
-  m.hips.position.y=0.92;set(m.torso);set(m.head);set(m.LA.a,0,0,0.1);set(m.LA.b);set(m.RA.a,0,0,-0.1);set(m.RA.b);set(m.LL.a);set(m.LL.b);set(m.RL.a);set(m.RL.b);
-  if(kind==='nuts'||kind==='lamp0'){m.hips.position.y=0.52;set(m.LL.a,-1.5);set(m.LL.b,1.55);set(m.RL.a,0.1);set(m.RL.b,1.4);set(m.torso,0.25);
-    set(m.RA.a,-1.25+0.25*s,0,-0.1);set(m.RA.b,-0.4);set(m.LA.a,-1.1,0,0.2);set(m.LA.b,-0.5);m.head.rotation.x=0.2;}
-  else if(kind==='jack'){m.hips.position.y=0.55;set(m.LL.a,-1.5);set(m.LL.b,1.55);set(m.RL.a,0.1);set(m.RL.b,1.4);set(m.torso,0.45);
-    const p=0.35*Math.max(0,s);set(m.RA.a,-0.6-p);set(m.LA.a,-0.6-p);set(m.RA.b,-0.5);set(m.LA.b,-0.5);}
-  else if(kind==='carry'){set(m.RA.a,-0.9,0,-0.25);set(m.LA.a,-0.9,0,0.25);set(m.RA.b,-0.9);set(m.LA.b,-0.9);set(m.LL.a,0.35*s2);set(m.RL.a,-0.35*s2);set(m.LL.b,0.2*Math.max(0,-s2));set(m.RL.b,0.2*Math.max(0,s2));}
-  else if(kind==='pour'){set(m.torso,0.35);set(m.RA.a,-1.3,0,-0.2);set(m.RA.b,-0.3+0.05*s);set(m.LA.a,-1.2,0,0.3);set(m.LA.b,-0.4);}
-  else if(kind==='lamp'){set(m.torso,0.4);set(m.RA.a,-1.2+0.1*s);set(m.RA.b,-0.6);set(m.LA.a,-1.1,0,0.2);set(m.LA.b,-0.6);}
-  else if(kind==='wait'){set(m.RA.a,-0.3,0,-0.4);set(m.RA.b,-1.6);set(m.LA.a,0.1,0,0.15);m.head.rotation.y=0.3*s2*0.3;}}
+  J('LA',0,0,0.1);J('RA',0,0,-0.1);
+  if(kind==='nuts'){drop(0.4);J('LL',-1.5);J('LK',1.55);J('RL',0.1);J('RK',1.4);J('torso',0.25);
+    J('RA',-1.25+0.25*s,0,-0.1);J('RB',-0.4);J('LA',-1.1,0,0.2);J('LB',-0.5);J('head',0.2);}
+  else if(kind==='jack'){drop(0.37);J('LL',-1.5);J('LK',1.55);J('RL',0.1);J('RK',1.4);J('torso',0.45);
+    const p=0.35*Math.max(0,s);J('RA',-0.6-p);J('LA',-0.6-p);J('RB',-0.5);J('LB',-0.5);}
+  else if(kind==='carry'){J('RA',-0.9,0,-0.25);J('LA',-0.9,0,0.25);J('RB',-0.9);J('LB',-0.9);J('LL',0.35*s2);J('RL',-0.35*s2);J('LK',0.2*Math.max(0,-s2));J('RK',0.2*Math.max(0,s2));}
+  else if(kind==='pour'){J('torso',0.35);J('RA',-1.3,0,-0.2);J('RB',-0.3+0.05*s);J('LA',-1.2,0,0.3);J('LB',-0.4);}
+  else if(kind==='lamp'){J('torso',0.4);J('RA',-1.2+0.1*s);J('RB',-0.6);J('LA',-1.1,0,0.2);J('LB',-0.6);}
+  else if(kind==='wait'){J('RA',-0.3,0,-0.4);J('RB',-1.6);J('LA',0.1,0,0.15);J('head',0,0.1*s2);}
+  J.done&&J.done();}
+// the real character (models/mech.glb, from the player's own asset pack): posed bone by bone with the same joint numbers,
+// each turn given about the model's own axes so the bones' odd local axes do not matter
+let MECHM=null;
+function mechLoad(){if(MECHM!==null||!THREE.GLTFLoader)return;MECHM=false;const url=(window.__glb&&window.__glb.mech)||'models/mech.glb';
+  new THREE.GLTFLoader().load(url,gl=>{try{MECHM=mechRig(gl.scene);if(MECH&&MECH.g.visible){const v=true;MECH.g.visible=false;MECH=MECHM;MECH.g.visible=v;}}catch(e){console.error('mech',e);}},undefined,e=>console.error('mech',e));}
+function mechRig(root){const g=new THREE.Group(),inner=new THREE.Group();g.add(inner);inner.add(root);inner.scale.setScalar(0.0103);root.updateMatrixWorld(true);
+  root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.frustumCulled=false;const mm=Array.isArray(o.material)?o.material:[o.material];mm.forEach(m=>{if(m.map&&FILMIC)m.map.encoding=THREE.sRGBEncoding;m.needsUpdate=true;});}});
+  const bone=n=>{let b=null;root.traverse(o=>{if(!b&&o.isBone&&o.name==='Scavenger__'+n)b=o;});return b;};
+  const MAP={torso:'Spine1',head:'Head',LA:'L_UpperArm',LB:'L_Forearm',RA:'R_UpperArm',RB:'R_Forearm',LL:'L_Thigh',LK:'L_Calf',RL:'R_Thigh',RK:'R_Calf'},B={};
+  const rq=new THREE.Quaternion(),inv=new THREE.Quaternion();root.updateMatrixWorld(true);root.getWorldQuaternion(inv);inv.invert();
+  for(const k in MAP){const b=bone(MAP[k]);if(!b)continue;const pw=new THREE.Quaternion();b.parent.getWorldQuaternion(pw);pw.premultiply(inv);B[k]={b,rest:b.quaternion.clone(),pw,pwi:pw.clone().invert()};}
+  const all=[];root.traverse(o=>{if(o.isBone)all.push([o,o.quaternion.clone()]);});
+  const e=new THREE.Euler(),q=new THREE.Quaternion();
+  const J=(k,x,y,z)=>{const X=B[k];if(!X)return;e.set(x||0,y||0,z||0);q.setFromEuler(e);X.b.quaternion.copy(X.pwi).multiply(q).multiply(X.pw).multiply(X.rest);};
+  J.reset=()=>{for(const [o,r] of all)o.quaternion.copy(r);inner.position.y=0;};
+  const hand=bone('R_Hand'),tools=new THREE.Group();g.add(tools);
+  const M=c=>new THREE.MeshLambertMaterial({color:c}),cyl=(r,h,m)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,8),m);o.castShadow=true;return o;};
+  const brace=new THREE.Group(),b1=cyl(0.013,0.45,M('#55595e'));b1.rotation.x=Math.PI/2;b1.position.z=0.2;brace.add(b1);const b2=cyl(0.013,0.3,M('#55595e'));b2.rotation.z=Math.PI/2;b2.position.z=0.42;brace.add(b2);tools.add(brace);
+  const can=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.26,0.1),M('#2f6b3a'));can.castShadow=true;tools.add(can);
+  const wheel=new THREE.Mesh(new THREE.TorusGeometry(0.3,0.11,8,18),M('#1e1e1e'));wheel.castShadow=true;g.add(wheel);wheel.position.set(0,1.15,0.35);
+  const hv=new THREE.Vector3();
+  J.done=()=>{if(!hand)return;g.updateMatrixWorld(true);hand.getWorldPosition(hv);g.worldToLocal(hv);brace.position.copy(hv);can.position.copy(hv).add(new THREE.Vector3(0,-0.12,0.05));};
+  const drop=h=>{inner.position.y=-h;};
+  scene.add(g);g.visible=false;return {g,J,drop,brace,can,wheel,real:true};}
 function mechPlace(){const R=BRK.rep,m=MECH;let x,z,face;
   if(R.job==='tyre'){const w=V.wheels[R.wi],p=w.pivot.getWorldPosition(new THREE.Vector3()),dx=p.x-S.x,dz=p.z-S.z,l=Math.hypot(dx,dz)||1;
     const off=R.step==='pull'||R.step==='spare'?1.6:0.85;x=p.x+dx/l*off;z=p.z+dz/l*off;face=Math.atan2(-dx,-dz);
@@ -4639,16 +4669,19 @@ const REPTXT={jack:'جک را زیر ماشین بگذار و بالا بزن �
   on:'مهره‌ها را محکم ببند — روی هر مهره بزن',down:'جک را پایین بیاور — دکمه را نگه دار',bulb:'گروپ‌های شکسته را عوض کن — روی هر چراغ بزن',hood:'کاپوت را باز کن',pour:'از رود آب بیاور و در رادیاتور بریز — دکمه را نگه دار',
   wait:'آب نزدیک نیست. موتور خاموش است؛ صبر کن تا سرد شود (یا کنار رود برو و آب بریز)'};
 function openRepair(){if(!brkOn())return;if(Math.abs(S.v)>0.6){toast(tr_('اول کامل بایست'));return;}
-  const L=[];if(BRK.flat>=0)L.push(['tyre',tr_('تعویض چرخ پنچر')]);if(BRK.heat>0.8)L.push(['heat',tr_('سرد کردن موتور')]);if(!BRK.lights)L.push(['light',tr_('تعویض گروپ چراغ')]);
+  const L=[];if(BRK.flat>=0)L.push(['tyre',tr_('تعویض چرخ پنچر')+(BRK.spare<1?tr_(' (زاپاس نداری)'):'')]);if(BRK.heat>0.8)L.push(['heat',tr_('سرد کردن موتور')]);if(!BRK.lights)L.push(['light',tr_('تعویض گروپ چراغ')]);if(BRK.spare<2&&villageNear())L.push(['buy',tr_('خرید لاستیک زاپاس از روستا')+' · '+fa(TYRE_PRICE)+tr_(' سکه')]);
+  if(L.length===1&&L[0][0]==='buy'){$('repPanel').hidden=false;$('repTitle').textContent=tr_('دکان روستا');$('repStep').textContent=tr_('زاپاس داری: ')+fa(BRK.spare)+tr_(' از ۲');$('repAct').innerHTML='<button class="rbtn" data-job="buy">'+L[0][1]+'</button>';return;}
   if(!L.length)return;if(L.length===1){repStart(L[0][0]);return;}
   $('repPanel').hidden=false;$('repTitle').textContent=tr_('چه چیزی را درست کنی؟');$('repStep').textContent='';$('repAct').innerHTML=L.map(j=>'<button class="rbtn" data-job="'+j[0]+'">'+j[1]+'</button>').join('');}
-function repStart(job){if(job==='tyre'&&BRK.spare<1){toast(tr_('زاپاس نداری! آرام تا نزدیک‌ترین روستا یا جای پیداشده برو'));$('repPanel').hidden=true;return;}
+const TYRE_PRICE=250;
+function repStart(job){if(job==='buy'){if(S.coins<TYRE_PRICE){toast(tr_('سکه کافی نداری'));return;}S.coins-=TYRE_PRICE;BRK.spare=Math.min(2,BRK.spare+1);SFX.click();toast(tr_('یک لاستیک زاپاس خریدی؛ حالا ')+fa(BRK.spare)+tr_(' زاپاس داری'));if(BRK.spare>=2||!villageNear())$('repPanel').hidden=true;else openRepair();brkUI();save&&save();return;}
+  if(job==='tyre'&&BRK.spare<1){toast(tr_('زاپاس نداری! آرام تا روستای بعدی برو و از دکان لاستیک بخر'));$('repPanel').hidden=true;return;}
   if(S.engineOn){S.engineOn=false;}S.sel='P';selUI&&selUI();
   BRK.rep={job,steps:job==='heat'&&!nearWater()?['wait']:REPSTEPS[job].slice(),i:0,lift:0,nuts:0,hold:false,t:0,carry:1,wi:BRK.flat,base:{y:S.y,roll:S.roll,pitch:S.pitch}};
-  if(!MECH)MECH=mechBuild();MECH.g.visible=true;SFX.door();document.body.classList.add('repairing');repRender();}
+  mechLoad();if(!MECH)MECH=MECHM||mechBuild();if(MECHM&&MECH!==MECHM){MECH.g.visible=false;MECH=MECHM;}MECH.g.visible=true;SFX.door();document.body.classList.add('repairing');repRender();}
 function repStepName(){const R=BRK.rep;return R.steps[R.i];}
 function repNext(){const R=BRK.rep;R.i++;R.nuts=0;R.t=0;if(R.i>=R.steps.length){repDone();return;}if(repStepName()==='spare')R.carry=0;SFX.click();repRender();}
-function repDone(){const R=BRK.rep;if(R.job==='tyre'){BRK.flat=-1;BRK.spare=0;toast(tr_('چرخ عوض شد. زاپاس نداری تا به یک روستا برسی'));}
+function repDone(){const R=BRK.rep;if(R.job==='tyre'){BRK.flat=-1;BRK.spare=Math.max(0,BRK.spare-1);toast(BRK.spare?tr_('چرخ عوض شد. یک زاپاس دیگر داری'):tr_('چرخ عوض شد. زاپاس نداری؛ در روستای بعدی بخر'));}
   else if(R.job==='light'){BRK.lights=true;toast(tr_('چراغ‌ها درست شد'));}else{toast(tr_('موتور سرد شد؛ می‌توانی روشنش کنی'));}repEnd(false);}
 function repEnd(cancel){const R=BRK.rep;if(!R)return;S.y=R.base.y;S.roll=R.base.roll;S.pitch=R.base.pitch;if(R.job==='tyre'&&V.wheels[R.wi])V.wheels[R.wi].spin.visible=true;
   BRK.rep=null;BRK.grace=6;S.vy=0;if(MECH)MECH.g.visible=false;$('repPanel').hidden=true;document.body.classList.remove('repairing');brkUI();if(!cancel)SFX.door();}
