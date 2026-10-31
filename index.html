@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=158</script>
+<script>window.GAME_CODE=159</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1007,6 +1007,8 @@ function surfaceAt(x,z){
   if(waterAt(x,z)-h>0.15)return 'water';
   const ad=Math.abs(lateral(x,z)),k=zoneOf(z);
   // the island's trails are packed dirt: they hold the tyres on a climb
+  // the Bamiyan highway is asphalt where the real road is
+  if(FREE&&FW&&FW.pv&&ad<(FW.rw||3.2)){const q=trailQ(x,z,6);if(q&&FW.pv[Math.floor(q.s)])return 'asphalt';}
   if(FREE&&ad<3.2)return snowU.value>0.45?'snow':'gravel';
   for(const E of fb(z).e){if(z<E.z0||z>E.z1)continue;if(E.type==='ice'&&ad<E.w/2+2)return 'ice';if(E.type==='dunes'&&ad<14)return snowU.value>0.45?'snow':'sand';if(E.type==='mud'&&ad<9)return 'bog';}
   if(asphF(z)>0.5&&ad<AW)return snowU.value>0.6?'snow':'asphalt';
@@ -3467,6 +3469,8 @@ function physStep(h,inp){
   const delta=S.steer*0.6/(S.kbd?1+vF*vF/300:1)*(S.diff?0.82:1);S.delta=delta;
   let fxW=0,fzW=0,fyW=0,Fu=0,Fw=0,Tp=0,Tr=0,Ty=0,ground=0,slip=0,maxCd=0;
   const sp=Math.sin(S.pitch),sr=Math.sin(S.roll),upY=Math.cos(S.pitch)*Math.cos(S.roll);
+  // on Bamiyan's asphalt the tyres hold: hardly any sliding (about a twentieth of what it was)
+  const HWY=FREE&&FMAP==='bamir'&&S.surf==='asphalt';
   let wg=ST.grip*(WX.type==='rain'?1-0.12*WX.amt:1)*(loose?1+(1-p)*0.7:1-(1-p)*0.1)*(S.diff&&loose?1.18:1);
   let drive=0,brake=0,hold=false;
   // automatic gearbox: P holds the car, R drives backwards, N lets it roll, D drives forward; the brake only brakes
@@ -3499,12 +3503,12 @@ function physStep(h,inp){
     fxW+=F*nx;fzW+=F*nz;fyW+=F*ny;Tp+=F*ny*u;Tr+=F*ny*w;
     const vu=vF-S.w*w,vw=vL+S.w*u,st=wh.front?delta:0,cs=Math.cos(st),sn=Math.sin(st),vxw=vu*cs+vw*sn,vyw=-vu*sn+vw*cs;
     const wl=waterAt(wx,wz),dep=wl-hgr;
-    let mu=(MU[S.surf]||0.8)*wg*(wh===FLATW?0.55:1);if(dep>0.2)mu=Math.min(mu,0.6*wg);
+    let mu=(MU[S.surf]||0.8)*wg*(wh===FLATW?0.55:1)*(HWY?2.8:1);if(dep>0.2)mu=Math.min(mu,0.6*wg);
     const maxF=mu*F;
     let fx=drive*HP/nW-vxw*(0.008+drag+(wh===FLATW?0.09:0));
     if(brake>0)fx-=Math.sign(vxw)*Math.min(brake/nW,Math.abs(vxw)*10);
     if(hold)fx-=clamp(vxw*40,-7/nW,7/nW);
-    let fy=-vyw*(loose?4.2:5.5)-clamp(vyw*40,-1.5,1.5);
+    let fy=-vyw*(loose?4.2:HWY?10:5.5)-clamp(vyw*40,-1.5,1.5);
     const tot=Math.hypot(fx,fy);if(tot>maxF&&tot>0){const s=maxF/tot;fx*=s;fy*=s;slip+=Math.min(1,(tot-maxF)/(maxF+0.5));}
     if(dep>0.3){fx-=vxw*0.3*dep;fy-=vyw*0.3*dep;}
     const fu=fx*cs-fy*sn,fw=fx*sn+fy*cs;Fu+=fu;Fw+=fw;Ty+=u*fw-w*fu;
