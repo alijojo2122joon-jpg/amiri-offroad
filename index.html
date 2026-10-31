@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=145</script>
+<script>window.GAME_CODE=146</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -2951,7 +2951,10 @@ const SND={buf:{},base:'snd/',loading:false,loops:null,eng:null,engType:null};
 const PADS=2048/44100;
 // real-recording engines: each layer is a recorded loop, the rpm it was recorded at, and the rpm where the next layer
 // takes over (with a fade that wide). Ferrari V8 idle and fast idle below, a 1972 911 flat-six at speed above.
-const REALENG={f6:{L:[['r_idle',1000],['r_fast',1560],['r_high',3400],['r_high2',4420]],B:[[1300,380],[2900,700],[4700,900]]},
+// the cars' engine: a small four-cylinder sedan recorded from inside (Amir's pick, Pixabay "Car Acceleration Inside Car"):
+// five stretches of it, each held at one steady engine note (the take is read faster or slower as its note rises), so every
+// layer is the real engine at that speed and none has to be pitched far
+const REALENG={f6:{L:[['e_c0',1440],['e_c1',1890],['e_c2',2700],['e_c3',3720],['e_c4',4140]],B:[[1650,300],[2300,500],[3200,700],[3950,400]]},
   // the trucks' V8: the same recordings played slower and deeper
   v8r:{L:[['r_idle',1200],['r_fast',1900],['r_high',4300],['r_high2',5600]],B:[[1400,420],[3000,800],[4900,1000]]}};
 const ENGRPM={i4:[800,1400,2200,3200,4400,5800],i6:[800,1400,2200,3200,4400,5800],v8:[750,1300,2100,3100,4300,5600],d6:[600,900,1300,1800,2400,3000]};
