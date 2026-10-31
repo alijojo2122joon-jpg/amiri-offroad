@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=152</script>
+<script>window.GAME_CODE=153</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1367,7 +1367,7 @@ function treeList(ix,iz){
     if(ad<AW+4&&paveF(z)>0.01)continue;
     if(nearGorgeOrPad(z,ad))continue;
     if(BC&&z>-400&&z<1100){const ca=(x-BC.x0)*BC.ux+(z-BC.z0)*BC.uz,cc=(x-BC.x0)*BC.nx+(z-BC.z0)*BC.nz;if(ca>-20&&ca<BC.L+20&&cc>-6&&cc<BC.D+8)continue;}
-    if(DKON()){const v=dkVil(x,z);if(v<0.35||R()>v)continue;if(dkHouseAt(x,z,3))continue;}else if(vnoise(x*0.008+40,z*0.008-20)<0.38&&R()>0.2)continue;
+    if(DKON()){const v=DK.drape?dkVeg(x,z)*1.3:dkVil(x,z);if(v<0.35||R()>v)continue;if(dkHouseAt(x,z,3))continue;}else if(vnoise(x*0.008+40,z*0.008-20)<0.38&&R()>0.2)continue;
     const h=Hf(x,z);if(h>SNL(z)+35)continue;const wl=h<80?waterAt(x,z):-1e9;if(h<wl+0.6)continue;
     const sl=Math.abs(Hf(x+2,z)-Hf(x-2,z))/4+Math.abs(Hf(x,z+2)-Hf(x,z-2))/4;if(sl>(DKON()?0.32:0.9))continue;
     let r=R(),kind=kinds[0];const KS=DKON()?DKTREE:kinds;kind=KS[0];for(const kk of KS){if(r<kk[1]){kind=kk;break;}r-=kk[1];}
@@ -1462,7 +1462,7 @@ function updateGrass(dt,force){
     const N=Math.round(QV([180,380,760,1150])*gr);
     for(let a=0;a<N*1.6&&A.length<N;a++){const x=ix*GP+R()*GP,z=iz*GP+R()*GP,ad=Math.abs(lateral(x,z));if(paveF(z)>0.01&&ad<AW+0.6&&(RUTD(ad)<0.4||asphF(z)>0.01))continue;const h=Hf(x,z);
       if(h>SNL(z)-15)continue;if(h<waterAt(x,z)+0.2)continue;if(Math.abs(Hf(x+1.5,z)-h)>1.3)continue;
-      if(DKON()&&dkVil(x,z)<0.65)continue;const m=vnoise(x*0.03,z*0.03);if(m<0.3&&R()>0.3)continue;
+      if(DKON()&&(DK.drape?dkVeg(x,z)<0.45:dkVil(x,z)<0.65))continue;const m=vnoise(x*0.03,z*0.03);if(m<0.3&&R()>0.3)continue;
       groundColor(x,z,h,0.95,ad,colT);colT.multiplyScalar(1.15+R()*0.1);A.push([x,h-0.03,z,0.75+R()*0.8,R()*6.28,colT.getHex()]);
       if(R()<0.05){groundColor(x,z,h,0.6,ad,colT);colT.multiplyScalar(0.8+R()*0.35);PB.push([x+R()-0.5,h-0.04,z+R()-0.5,0.08+R()*R()*0.32,R()*6.28,colT.getHex()]);}
       if(m>0.45&&ad>HW(z)+1&&R()<0.035){colT.setHSL(0.27+R()*0.05,0.42,0.3+R()*0.12);FE.push([x,h-0.03,z,0.8+R()*0.9,R()*6.28,colT.getHex()]);}
@@ -4343,7 +4343,7 @@ function trailQ(x,z,md){const c=FCELL,gx=Math.floor((x-FW.x0)/c),gz=Math.floor((
       const dx=x-ax-vx*t,dz=z-az-vz*t,d=Math.sqrt(dx*dx+dz*dz);if(d<bd){bd=d;best=s;bt=t;}}}
   if(best<0)return null;return {d:bd,h:FW.PH[best]+(FW.PH[best+1]-FW.PH[best])*bt,s:best+bt};}
 function freeHf(x,z){let h=freeBase(x,z);if(!FW)return h;if(FW.dk&&FW.rc){const q=dkRiv(x,z);if(q){const W=q.w;h+=(q.h+(vnoise(x*0.05,z*0.05)-0.5)*0.5-h)*sstep(W+3.5+3*vnoise(x*0.02,z*0.02),W,q.d);const cw=q.c;if(q.dc<cw+1.5)h-=0.55*sstep(cw+1.5,cw*0.4,q.dc);}
-    if(FW.lg){const l=dkLake(x,z);if(l){if(l.sd<0)h=Math.min(h,l.lv-Math.min(16,0.8+(-l.sd)*0.32)+(vnoise(x*0.04,z*0.04)-0.5)*0.8);else{const t=l.lv+0.35+0.25*vnoise(x*0.09,z*0.09);if(h<t)h+=(t-h)*sstep(18,3,l.sd);}}}
+    if(FW.lg){const l=dkLake(x,z);if(l){if(l.sd<0)h=Math.min(h,l.lv-Math.min(40,0.6+(-l.sd)*0.45)+(vnoise(x*0.04,z*0.04)-0.5)*0.8);else{const t=l.lv+0.3+0.25*vnoise(x*0.09,z*0.09);if(h<t)h+=(t-h)*sstep(12,2.5,l.sd);else if(l.sd<6)h+=(t+0.4-h)*sstep(6,0,l.sd)*0.5;}}}
     if(FW.pads){const L=FW.hc.get(Math.floor(x/32)*65536+Math.floor(z/32));if(L)for(const H of L){if(H.ph===undefined)continue;const dx=x-H.x,dz=z-H.z,u=Math.abs(dx*H.ca+dz*H.sa)-H.w/2,w=Math.abs(-dx*H.sa+dz*H.ca)-H.d/2,e=Math.max(u,w);if(e<3){h+=(H.ph-h)*sstep(3,0.6,e);}}}}
   for(const P of FW.pois){if(!P.fin)continue;const dx=x-P.x,dz=z-P.z;if(dx*dx+dz*dz<900){const d=Math.sqrt(dx*dx+dz*dz);h+=(P.h-h)*sstep(28,16,d);}}
   if(FW.cells.size){const q=trailMix(x,z);if(q){if(FW.dk&&FW.br&&dkOnSpan(x,z)){}else if(FW.dk){const dh=Math.abs(q.h-h),rw=FW.rw||2.7;h+=(q.h-h)*sstep(rw+dh*1.3+0.8,rw,q.d);}else h+=(q.h-h)*q.w;}}
@@ -4492,11 +4492,12 @@ function dkConsts(){if(RMAP(FMAP)){DK=DKM[FMAP]||DK;DKS=DKSM[FMAP];FX=DK.cx;FZ=D
 function dkLoad(map){map=map||'dayk';const T=DKM[map]||(DKM[map]={vz:0});if(T.H)return Promise.resolve();
   const src=map==='dayk'?Promise.resolve().then(()=>JSON.parse(document.getElementById('daykJSON').textContent)):fetch('maps/'+map+'.json').then(r=>{if(!r.ok)throw new Error('map '+map);return r.json();});
   const pix=(url,w,h)=>new Promise((ok,bad)=>{const img=new Image();img.onload=()=>{try{const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0);ok(x.getImageData(0,0,w,h).data);}catch(e){bad(e);}};img.onerror=bad;img.src=url;});
-  return src.then(D=>{Object.assign(T,D);return Promise.all([pix(T.dem,T.nx,T.nz),T.lg?pix(T.lg.img,T.lg.nx,T.lg.nz):null]);}).then(([px,lp])=>{
+  return src.then(D=>{Object.assign(T,D);return Promise.all([pix(T.dem,T.nx,T.nz),T.lg?pix(T.lg.img,T.lg.nx,T.lg.nz):null,T.drape?pix(T.drape.img,T.drape.nx,T.drape.nz):null,T.fdrape?pix(T.fdrape.img,T.fdrape.nx,T.fdrape.nz):null]);}).then(([px,lp,dp,fp])=>{
+    for(const [Q,a] of [[T.drape,dp],[T.fdrape,fp]])if(Q&&a){const m=Q.nx*Q.nz,rgb=new Uint8Array(m*3);for(let i=0;i<m;i++){rgb[i*3]=a[i*4];rgb[i*3+1]=a[i*4+1];rgb[i*3+2]=a[i*4+2];}Q.px=rgb;Q.img=null;}
     const n=T.nx*T.nz,H=new Float32Array(n);for(let i=0;i<n;i++)H[i]=(px[i*4]*256+px[i*4+1])/10+1000-T.eb;T.H=H;T.dem=null;
     T.cx=T.x0+(T.nx-1)*T.cell/2;T.cz=T.z0+(T.nz-1)*T.cell/2;T.fr=Math.max(T.nx,T.nz)*T.cell/2;
     // the lakes: signed distance to the shore every 8 m (negative in the water) and which lake
-    if(lp){const m=T.lg.nx*T.lg.nz,sd=new Float32Array(m),id=new Uint8Array(m);for(let i=0;i<m;i++){sd[i]=lp[i*4]-128;id[i]=Math.round(lp[i*4+1]/30);}T.lg.sd=sd;T.lg.id=id;T.lg.img=null;}
+    if(lp){const m=T.lg.nx*T.lg.nz,sd=new Int8Array(m),id=new Uint8Array(m);for(let i=0;i<m;i++){sd[i]=lp[i*4]-128;id[i]=Math.round(lp[i*4+1]/30);}T.lg.sd=sd;T.lg.id=id;T.lg.img=null;}
     // the roads: stored every 4 m in decimetres; the game wants a point every 2 m. The main road first, then any other
     T.PX=[];T.PZ=[];T.PH=[];T.trs=[];T.pv=[];
     for(const r of [T.route,T.route2]){if(!r)continue;const m=r.dx.length+1,X=new Float64Array(m),Z=new Float64Array(m),Hh=new Float64Array(m);X[0]=r.x0;Z[0]=r.z0;Hh[0]=r.h0;
@@ -4506,8 +4507,14 @@ function dkLoad(map){map=map||'dayk';const T=DKM[map]||(DKM[map]={vz:0});if(T.H)
       T.trs.push([i0,T.PX.length-1]);}
     // which of the road's lands the real map borrows its plants, grass and animals from: the windy plateau
     const f=FREE;FREE=false;const zs=[];for(let z=0;z<ROADLEN;z+=400)if(zoneOf(z)===4)zs.push(z);FREE=f;T.vz=zs.length?zs[zs.length>>1]:120000;});}
+const _sat=[0,0,0];
+function dkSat(x,z){for(const Q of [DK.fdrape,DK.drape]){if(!Q||!Q.px)continue;const fx=(x-Q.x0)/Q.c,fz=(z-Q.z0)/Q.c;if(fx<0||fz<0||fx>=Q.nx-1||fz>=Q.nz-1)continue;
+    const i=Math.floor(fx),j=Math.floor(fz),u=fx-i,v=fz-j,k=(j*Q.nx+i)*3,k2=k+Q.nx*3,P=Q.px;
+    for(let c=0;c<3;c++)_sat[c]=(P[k+c]*(1-u)+P[k+3+c]*u)*(1-v)+(P[k2+c]*(1-u)+P[k2+3+c]*u)*v;return _sat;}return null;}
+// green from the satellite picture: fields, orchards and poplar rows (0 = bare ground)
+function dkVeg(x,z){const c=dkSat(x,z);if(!c)return 0;const r=c[0],g=c[1],b=c[2];return clamp((g-Math.max(r,b*1.05))/18+0.2,0,1)*sstep(330,250,r+g+b);}
 // the lake round a point: how far inside (negative) or outside its shore, and its water level
-function dkLake(x,z){const L=DK.lg;if(!L||!L.sd)return null;const fx=(x-L.x0)/L.c,fz=(z-L.z0)/L.c;if(fx<0||fz<0||fx>=L.nx-1||fz>=L.nz-1)return null;
+function dkLake(x,z){const L=DK.lg;if(!L||!L.sd)return null;const fx=(x-L.x0)/(L.cx||L.c),fz=(z-L.z0)/(L.cz||L.c);if(fx<0||fz<0||fx>=L.nx-1||fz>=L.nz-1)return null;
   const i=Math.floor(fx),j=Math.floor(fz),u=fx-i,v=fz-j,k=j*L.nx+i,S=L.sd,sd=(S[k]*(1-u)+S[k+1]*u)*(1-v)+(S[k+L.nx]*(1-u)+S[k+L.nx+1]*u)*v;if(sd>60)return null;
   const id=L.id[k+(u>0.5?1:0)+(v>0.5?L.nx:0)]||L.id[k];if(!id)return null;const lk=DK.lakes[id-1];return {sd,lv:lk.lv,i:id-1};}
 // the real height, joined smoothly (Catmull-Rom) between the 30 m samples, with fine relief of its own
@@ -4520,7 +4527,7 @@ function dkH(x,z){const D=DK,c=D.cell,fx=(x-D.x0)/c,fz=(z-D.z0)/c,nx=D.nx,nz=D.n
 // colours of the land as in the photos: dry tan slopes, grey-brown layered rock, green fields and orchards round the villages
 const DKC={dry1:new THREE.Color('#968470'),dry2:new THREE.Color('#857463'),hi:new THREE.Color('#8f8579'),rk1:new THREE.Color('#9a846c'),rk2:new THREE.Color('#7d6b5a'),
   fld:new THREE.Color('#7e9b4a'),fld2:new THREE.Color('#9aa858'),road:new THREE.Color('#c4ae8b')},dkT=new THREE.Color();
-function dkGround(x,z,h,ny,ad,out){const n1=vnoise(x*0.02+3,z*0.02-8),n2=vnoise(x*0.07,z*0.07),n3=vnoise(x*0.004-2,z*0.004+5);
+function dkGround(x,z,h,ny,ad,out){if(DK.drape&&DK.drape.px)return dkGroundSat(x,z,h,ny,ad,out);const n1=vnoise(x*0.02+3,z*0.02-8),n2=vnoise(x*0.07,z*0.07),n3=vnoise(x*0.004-2,z*0.004+5);
   out.copy(DKC.dry1).lerp(DKC.dry2,clamp(n1*1.4-0.2,0,1));out.lerp(DKC.hi,sstep(500,1000,h)*0.6);
   dkT.copy(DKC.rk1).lerp(DKC.rk2,n2);out.lerp(dkT,sstep(0.88,0.66,ny)*(0.75+0.25*n3));
   const rq=FW&&FW.rc?dkRiv(x,z):null;if(rq&&rq.d<rq.w+4){dkT.set('#97928a').lerp(DKC.road,0.15*n2);out.lerp(dkT,sstep(rq.w+4,rq.w-2,rq.d));}
@@ -4529,6 +4536,11 @@ function dkGround(x,z,h,ny,ad,out){const n1=vnoise(x*0.02+3,z*0.02-8),n2=vnoise(
   if(FW&&FW.lg){const l=dkLake(x,z);if(l){if(l.sd<0){dkT.set('#a9b7ae');out.lerp(dkT,sstep(0,-4,l.sd));}else{dkT.set('#d9cdb2').lerp(DKC.road,0.2*n2);out.lerp(dkT,sstep(30,4,l.sd)*(0.7+0.3*n1));}}}
   {const rw=FW&&FW.rw?FW.rw+0.1:2.6;if(ad<rw)out.lerp(DKC.road,0.75*sstep(rw,rw-1.3,ad));}
   out.offsetHSL(0,-0.04,(n2-0.5)*0.05);return out;}
+function dkGroundSat(x,z,h,ny,ad,out){const c=dkSat(x,z);if(!c){out.copy(DKC.dry1);return out;}
+  const n2=vnoise(x*0.07,z*0.07);out.setRGB(Math.pow(c[0]/255,2.3)*0.84,Math.pow(c[1]/255,2.3)*0.84,Math.pow(c[2]/255,2.3)*0.84);out.offsetHSL(0,0.1,0);
+  if(FW&&FW.lg){const l=dkLake(x,z);if(l&&l.sd<0){dkT.set('#c9d2c8');out.lerp(dkT,sstep(0,-6,l.sd));}}
+  {const rw=FW&&FW.rw?FW.rw+0.1:2.6;if(ad<rw){dkT.set('#c4b49a');out.lerp(dkT,0.6*sstep(rw,rw-1.3,ad));}}
+  out.offsetHSL(0,0,(n2-0.5)*0.03);return out;}
 // how much of a village is round a point (0 = bare mountain, 1 = among the houses), from the houses themselves
 function dkVil(x,z){const V=DK.vil;if(V&&FW&&FW.rc){const q=dkRiv(x,z);if(q&&q.d>q.w+1&&q.d<q.w+70){const b=sstep(q.w+70,q.w+12,q.d)*0.8;const i=Math.floor((x-DK.x0)/40),j=Math.floor((z-DK.z0)/40);const a=(i<0||j<0||i>=V.nx||j>=V.nz)?0:V.a[j*V.nx+i];return Math.max(a,b);}}if(!V)return 0;const i=Math.floor((x-DK.x0)/40),j=Math.floor((z-DK.z0)/40);if(i<0||j<0||i>=V.nx||j>=V.nz)return 0;return V.a[j*V.nx+i];}
 function dkHouseAt(x,z,m){if(!FW||!FW.hc)return false;const L=FW.hc.get(Math.floor(x/32)*65536+Math.floor(z/32));if(!L)return false;
@@ -4562,7 +4574,7 @@ function dkInit(){const t0=performance.now();
     for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const key=i*65536+j;let L=FW.rc.get(key);if(!L)FW.rc.set(key,L=[]);L.push(ri,k);}}});
   dkRoadBed();
   for(const H of FW.houses){let s=0;for(const [u,w] of [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5],[0,0]])s+=freeHf(H.x+u*H.w*H.ca-w*H.d*H.sa,H.z+u*H.w*H.sa+w*H.d*H.ca);H.ph=s/5;}FW.pads=true;
-  freeBuildScene();for(const B of FW.br)FW.group.add(B.mesh);dkRiverMeshes();if(FMAP==='dayk')dkSchoolWall();else FW.walls=[];dkLakeMeshes();dkAsphalt();FW.ms=Math.round(performance.now()-t0);}
+  freeBuildScene();for(const B of FW.br)FW.group.add(B.mesh);dkRiverMeshes();if(FMAP==='dayk')dkSchoolWall();else FW.walls=[];dkLakeMeshes();dkFalls();dkAsphalt();FW.ms=Math.round(performance.now()-t0);}
 // the nearest river: distance to the bed's middle, to the water channel (which wanders inside the bed), and the bed height there
 function dkChan(Rv,ri,s){let o=(Rv.w-Rv.c-2)*0.55*Math.sin(s/90+ri)*Math.min(1,s/60);if(Rv.pins)for(const P of Rv.pins){const w=sstep(160,30,Math.abs(s-P.s));o+=(P.o-o)*w;}return o;}
 function dkRiv(x,z){const L=FW.rc.get(Math.floor(x/32)*65536+Math.floor(z/32));if(!L)return null;let best=null,bd=1e9;
@@ -4579,12 +4591,40 @@ function dkRiverMeshes(){const P=[],I=[],U=[];for(const Rv of FW.riv){const n=Rv
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);g.computeVertexNormals();
   const m=new THREE.Mesh(g,new THREE.MeshPhongMaterial({color:'#6b5d4c',specular:0x2a2218,shininess:40}));m.frustumCulled=false;FW.group.add(m);}
 // ---- Band-e Amir: each lake's water lies flat at its own level inside its real shore, deep ultramarine blue as it is
-const lakeMat=waterize(new THREE.MeshPhongMaterial({normalMap:waterNrm,normalScale:new THREE.Vector2(0.3,0.3),color:'#07337a',emissive:'#05214f',specular:0xffffff,shininess:220,transparent:true,opacity:0.95,envMap:carEnv,reflectivity:0.14,combine:THREE.MixOperation,depthWrite:false,side:THREE.DoubleSide}),0.05,'0.03,0.24,0.55');
-function dkLakeMeshes(){if(!DK.lakes)return;for(const L of DK.lakes){const p=L.p,pts=[];for(let i=0;i<p.length;i+=2)pts.push(new THREE.Vector2(p[i],p[i+1]));
-    if(pts.length>3&&pts[0].distanceTo(pts[pts.length-1])<0.5)pts.pop();if(pts.length<3)continue;let tris;try{tris=THREE.ShapeUtils.triangulateShape(pts,[]);}catch(e){continue;}
-    const P=[],N=[],U=[],I=[];for(const v of pts){P.push(v.x,L.lv,v.y);N.push(0,1,0);U.push(v.x/40,v.y/40);}for(const t of tris)I.push(t[0],t[1],t[2]);
-    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);
-    const m=new THREE.Mesh(g,lakeMat);m.renderOrder=1;FW.group.add(m);}}
+const lakeMat=waterize(new THREE.MeshPhongMaterial({normalMap:waterNrm,normalScale:new THREE.Vector2(0.3,0.3),vertexColors:true,color:'#ffffff',emissive:'#010714',specular:0xffffff,shininess:220,transparent:true,opacity:0.95,envMap:carEnv,reflectivity:0.14,combine:THREE.MixOperation,depthWrite:false,side:THREE.DoubleSide}),0.05,'0.03,0.24,0.55');
+function dkLakeMeshes(){const L=DK.lg;if(!DK.lakes||!L||!L.sd)return;const st=2,cx=(L.cx||L.c)*st,cz=(L.cz||L.c)*st,nx=Math.floor((L.nx-1)/st)+1,nz=Math.floor((L.nz-1)/st)+1;
+  const deep=new THREE.Color(0.006,0.05,0.24),turq=new THREE.Color(0.02,0.36,0.45),cc=new THREE.Color();
+  DK.lakes.forEach((lk,li)=>{const P=[],C=[],U=[],I=[],vid=new Int32Array(nx*nz).fill(-1);
+    const sdAt=(i,j)=>{const k=(j*st)*L.nx+i*st;return L.id[k]===li+1||(L.sd[k]>0&&L.id[k]===li+1)?L.sd[k]:127;};
+    const vert=(i,j)=>{const q=j*nx+i;if(vid[q]>=0)return vid[q];const x=L.x0+i*cx,z=L.z0+j*cz;vid[q]=P.length/3;P.push(x,lk.lv,z);U.push(x/40,z/40);
+      const c=dkSat(x,z);let t=0.3;if(c){const bright=(c[0]+c[1]+c[2])/3;t=clamp((c[1]-c[0]*0.9-8)/55,0,1)*sstep(120,60,bright)+clamp((c[1]-35)/80,0,1)*0.35;}
+      cc.copy(deep).lerp(turq,clamp(t,0,1));const k=(j*st)*L.nx+i*st,sd=L.sd[k];if(sd>-12)cc.lerp(turq,sstep(-12,0,sd)*0.6);C.push(cc.r,cc.g,cc.b);return vid[q];};
+    for(let j=0;j<nz-1;j++)for(let i=0;i<nx-1;i++){const k=(j*st)*L.nx+i*st,k2=((j+1)*st)*L.nx+(i+1)*st;
+      // a cell is water if any corner is this lake's water or within a few metres of its shore (the rim then hides the edge)
+      let ok=false;for(const kk of [k,k+st,k2,k2-st])if(L.id[kk]===li+1&&L.sd[kk]<4){ok=true;break;}if(!ok)continue;
+      const a=vert(i,j),b=vert(i+1,j),c=vert(i+1,j+1),d=vert(i,j+1);I.push(a,d,b,b,d,c);}
+    if(!I.length)return;const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
+    const N=new Float32Array(P.length);for(let q=1;q<N.length;q+=3)N[q]=1;g.setAttribute('normal',new THREE.BufferAttribute(N,3));g.setIndex(I);g.computeBoundingSphere();
+    const m=new THREE.Mesh(g,lakeMat);m.renderOrder=1;FW.group.add(m);});}
+// ---- the waterfalls: where each lake spills over its travertine dam toward the next lake down, a sheet of white water
+// runs down the face of the dam (streaked and moving)
+const fallTex=(function(){const c=document.createElement('canvas');c.width=64;c.height=256;const g=c.getContext('2d'),R=mulberry32(9);g.fillStyle='rgba(255,255,255,0.0)';g.fillRect(0,0,64,256);
+  for(let i=0;i<260;i++){const x=R()*64,y=R()*256,l=20+R()*70,a=0.25+R()*0.6;g.strokeStyle='rgba(255,255,255,'+a+')';g.lineWidth=1+R()*2.5;g.beginPath();g.moveTo(x,y);g.lineTo(x+(R()-0.5)*3,y+l);g.stroke();}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;})();
+const fallMat=new THREE.MeshBasicMaterial({map:fallTex,transparent:true,depthWrite:false,color:0xf4fbff,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
+fallMat.onBeforeCompile=sh=>{sh.uniforms.uT=timeU;sh.vertexShader='uniform float uT;\n'+sh.vertexShader.replace('#include <uv_vertex>','#include <uv_vertex>\nvUv.y-=uT*0.9;');};
+function dkFalls(){const L=DK.lg;if(!DK.lakes||!L||!L.sd||DK.lakes.length<2)return;const cx=L.cx||L.c,cz=L.cz||L.c;
+  for(let li=0;li<DK.lakes.length-1;li++){const A=DK.lakes[li],B=DK.lakes[li+1];
+    // the shore of this lake nearest the lower one, and the way down to it
+    let bx=0,bz=0,bn=0;for(let j=0;j<L.nz;j+=3)for(let i=0;i<L.nx;i+=3){const k=j*L.nx+i;if(L.id[k]===li+2&&L.sd[k]<0){bx+=L.x0+i*cx;bz+=L.z0+j*cz;bn++;}}if(!bn)continue;bx/=bn;bz/=bn;
+    let best=null,bd=1e18;for(let j=0;j<L.nz;j+=2)for(let i=0;i<L.nx;i+=2){const k=j*L.nx+i;if(L.id[k]!==li+1||L.sd[k]>=0||L.sd[k]<-6)continue;const x=L.x0+i*cx,z=L.z0+j*cz,d=(x-bx)*(x-bx)+(z-bz)*(z-bz);if(d<bd){bd=d;best=[x,z];}}
+    if(!best)continue;let dx=bx-best[0],dz=bz-best[1];const dl=Math.hypot(dx,dz)||1;dx/=dl;dz/=dl;const nx=dz,nz=-dx,P=[],U=[],I=[];let drop=0,prev=A.lv;
+    for(let s=0;s<=70;s+=2){const x=best[0]+dx*s,z=best[1]+dz*s,h=Math.max(freeHf(x,z),s<3?A.lv:-1e9);const y=(s<3?A.lv:h)+0.12;drop=Math.max(drop,A.lv-y);
+      const w=2.6+Math.min(3,s*0.05);for(const e of [-w,w]){P.push(x+nx*e,y,z+nz*e);U.push(e>0?1:0,s/6);}
+      if(s>0){const a=P.length/3-4;I.push(a,a+2,a+1,a+1,a+2,a+3);}
+      if(s>10&&(h<=B.lv+0.3||(dkLake(x,z)||{}).sd<0&&(dkLake(x,z)||{}).i===li+1))break;prev=y;}
+    if(drop<2)continue;const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);g.computeBoundingSphere();
+    FW.group.add(new THREE.Mesh(g,fallMat));}}
 // ---- the asphalt road: a smooth dark ribbon on the road bed where the real road is paved, worn white edge lines and a dashed middle
 const asphTex=(function(){const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d'),R=mulberry32(5);g.fillStyle='#808080';g.fillRect(0,0,128,128);
   for(let i=0;i<2600;i++){const v=R();g.fillStyle=v<0.5?'rgba(40,40,40,'+(0.15+R()*0.25)+')':'rgba(200,200,200,'+(0.08+R()*0.18)+')';g.fillRect(R()*128,R()*128,1+R()*1.6,1+R()*1.6);}
