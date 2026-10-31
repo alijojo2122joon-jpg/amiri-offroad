@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=154</script>
+<script>window.GAME_CODE=155</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -4344,7 +4344,9 @@ function trailQ(x,z,md){const c=FCELL,gx=Math.floor((x-FW.x0)/c),gz=Math.floor((
       const dx=x-ax-vx*t,dz=z-az-vz*t,d=Math.sqrt(dx*dx+dz*dz);if(d<bd){bd=d;best=s;bt=t;}}}
   if(best<0)return null;return {d:bd,h:FW.PH[best]+(FW.PH[best+1]-FW.PH[best])*bt,s:best+bt};}
 function freeHf(x,z){let h=freeBase(x,z);if(!FW)return h;if(FW.dk&&FW.rc){const q=dkRiv(x,z);if(q){const W=q.w;h+=(q.h+(vnoise(x*0.05,z*0.05)-0.5)*0.5-h)*sstep(W+3.5+3*vnoise(x*0.02,z*0.02),W,q.d);const cw=q.c;if(q.dc<cw+1.5)h-=0.55*sstep(cw+1.5,cw*0.4,q.dc);}
-    if(FW.lg){const l=dkLake(x,z);if(l){if(l.sd<0)h=Math.min(h,l.lv-Math.min(40,0.6+(-l.sd)*0.45)+(vnoise(x*0.04,z*0.04)-0.5)*0.8);else{const t=l.lv+0.3+0.25*vnoise(x*0.09,z*0.09);if(h<t)h+=(t-h)*sstep(7.5,3.5,l.sd);else if(l.sd<6)h+=(t+0.4-h)*sstep(6,0,l.sd)*0.5;}}}
+    if(FW.lg){const l=dkLake(x,z);if(l){if(l.sd<0)h=Math.min(h,l.lv-Math.min(40,0.6+(-l.sd)*0.45)+(vnoise(x*0.04,z*0.04)-0.5)*0.8);else{const t=l.lv+0.3+0.25*vnoise(x*0.09,z*0.09);if(h<t)h+=(t-h)*sstep(7.5,3.5,l.sd);else if(l.sd<6)h+=(t+0.4-h)*sstep(6,0,l.sd)*0.5;
+      // where the land falls away below the lake the travertine stands as a wall: the ground at the foot is brought right up to the rim
+      if(l.sd>3&&l.sd<34&&FW.dk){const L=DK.lg,cx=L.cx||L.c,cz=L.cz||L.c,fi=(x-L.x0)/cx,fj=(z-L.z0)/cz,i=Math.round(fi),j=Math.round(fj),g=(a,b)=>L.sd[clamp(b,0,L.nz-1)*L.nx+clamp(a,0,L.nx-1)];let gx=g(i+1,j)-g(i-1,j),gz=g(i,j+1)-g(i,j-1);const gl=Math.hypot(gx,gz);if(gl>0.3){gx/=gl;gz/=gl;const r=36-l.sd,hf=dkH(x+gx*r,z+gz*r);if(hf<l.lv-4&&hf<h)h+=(hf-h)*sstep(4,8,l.sd);}}}}}
     if(FW.pads){const L=FW.hc.get(Math.floor(x/32)*65536+Math.floor(z/32));if(L)for(const H of L){if(H.ph===undefined)continue;const dx=x-H.x,dz=z-H.z,u=Math.abs(dx*H.ca+dz*H.sa)-H.w/2,w=Math.abs(-dx*H.sa+dz*H.ca)-H.d/2,e=Math.max(u,w);if(e<3){h+=(H.ph-h)*sstep(3,0.6,e);}}}}
   for(const P of FW.pois){if(!P.fin)continue;const dx=x-P.x,dz=z-P.z;if(dx*dx+dz*dz<900){const d=Math.sqrt(dx*dx+dz*dz);h+=(P.h-h)*sstep(28,16,d);}}
   if(FW.cells.size){const q=trailMix(x,z);if(q){if(FW.dk&&FW.br&&dkOnSpan(x,z)){}else if(FW.dk){const dh=Math.abs(q.h-h),rw=FW.rw||2.7;h+=(q.h-h)*sstep(rw+dh*1.3+0.8,rw,q.d);}else h+=(q.h-h)*q.w;}}
@@ -4508,7 +4510,7 @@ function dkLoad(map){map=map||'dayk';const T=DKM[map]||(DKM[map]={vz:0});if(T.H)
       T.trs.push([i0,T.PX.length-1]);}
     // which of the road's lands the real map borrows its plants, grass and animals from: the windy plateau
     const f=FREE;FREE=false;const zs=[];for(let z=0;z<ROADLEN;z+=400)if(zoneOf(z)===4)zs.push(z);FREE=f;T.vz=zs.length?zs[zs.length>>1]:120000;});}
-const _sat=[0,0,0];
+const _sat=[0,0,0],_trv=new THREE.Color();
 function dkSat(x,z){for(const Q of [DK.fdrape,DK.drape]){if(!Q||!Q.px)continue;const fx=(x-Q.x0)/Q.c,fz=(z-Q.z0)/Q.c;if(fx<0||fz<0||fx>=Q.nx-1||fz>=Q.nz-1)continue;
     const i=Math.floor(fx),j=Math.floor(fz),u=fx-i,v=fz-j,k=(j*Q.nx+i)*3,k2=k+Q.nx*3,P=Q.px;
     for(let c=0;c<3;c++)_sat[c]=(P[k+c]*(1-u)+P[k+3+c]*u)*(1-v)+(P[k2+c]*(1-u)+P[k2+3+c]*u)*v;return _sat;}return null;}
@@ -4539,7 +4541,8 @@ function dkGround(x,z,h,ny,ad,out){if(DK.drape&&DK.drape.px)return dkGroundSat(x
   out.offsetHSL(0,-0.04,(n2-0.5)*0.05);return out;}
 function dkGroundSat(x,z,h,ny,ad,out){const c=dkSat(x,z);if(!c){out.copy(DKC.dry1);return out;}
   const n2=vnoise(x*0.07,z*0.07);out.setRGB(Math.pow(c[0]/255,2.3)*0.74,Math.pow(c[1]/255,2.3)*0.74,Math.pow(c[2]/255,2.3)*0.74);out.offsetHSL(0,0.1,0);
-  if(FW&&FW.lg){const l=dkLake(x,z);if(l&&l.sd<0){dkT.set('#c9d2c8');out.lerp(dkT,sstep(0,-6,l.sd));}}
+  if(FW&&FW.lg){const l=dkLake(x,z);if(l&&l.sd<0){dkT.set('#c9d2c8');out.lerp(dkT,sstep(0,-6,l.sd));}
+    else if(l&&l.sd<16&&ny<0.75){const st=vnoise(x*0.9,z*0.9+h*0.05),rs=vnoise(x*0.25+h*0.3,z*0.25);dkT.setRGB(0.62,0.56,0.45).lerp(_trv.setRGB(0.5,0.33,0.18),sstep(0.55,0.8,rs)*0.6).multiplyScalar(0.85+0.3*st);out.lerp(dkT,sstep(16,8,l.sd)*sstep(0.75,0.5,ny));}}
   {const rw=FW&&FW.rw?FW.rw+0.1:2.6;if(ad<rw){dkT.set('#c4b49a');out.lerp(dkT,0.6*sstep(rw,rw-1.3,ad));}}
   out.offsetHSL(0,0,(n2-0.5)*0.03);return out;}
 // how much of a village is round a point (0 = bare mountain, 1 = among the houses), from the houses themselves
@@ -4614,8 +4617,12 @@ const fallTex=(function(){const c=document.createElement('canvas');c.width=64;c.
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;})();
 const fallMat=new THREE.MeshBasicMaterial({map:fallTex,transparent:true,depthWrite:false,color:0xf4fbff,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
 fallMat.onBeforeCompile=sh=>{sh.uniforms.uT=timeU;sh.vertexShader='uniform float uT;\n'+sh.vertexShader.replace('#include <uv_vertex>','#include <uv_vertex>\nvUv.y-=uT*0.9;');};
-function dkFalls(){if(!DK.falls||!DK.lakes)return;const P=[],U=[],I=[];
-  for(const [x0,z0,dx,dz,li] of DK.falls){const lk=DK.lakes[li];if(!lk)continue;const nx=dz,nz=-dx;let rows=0,base=P.length/3,hPrev=lk.lv+0.08;
+function dkFalls(){if(!DK.falls||!DK.lakes)return;const P=[],U=[],I=[],list=DK.falls.slice();
+  {const L=DK.lg,f=DK.falls[0],lk=DK.lakes[f[4]],cx=L.cx||L.c,cz=L.cz||L.c,g=(a,b)=>L.sd[clamp(b,0,L.nz-1)*L.nx+clamp(a,0,L.nx-1)];const cand=[];
+    const i0=Math.round((f[0]-L.x0)/cx),j0=Math.round((f[1]-L.z0)/cz);for(let j=j0-36;j<=j0+36;j++)for(let i=i0-36;i<=i0+36;i++){if(i<1||j<1||i>=L.nx-1||j>=L.nz-1)continue;const k=j*L.nx+i;if(L.id[k]!==f[4]+1||L.sd[k]>0||L.sd[k]<-2)continue;
+      let gx=g(i+1,j)-g(i-1,j),gz=g(i,j+1)-g(i,j-1);const gl=Math.hypot(gx,gz);if(gl<0.3)continue;gx/=gl;gz/=gl;const x=L.x0+i*cx,z=L.z0+j*cz;if(dkH(x+gx*30,z+gz*30)<lk.lv-5)cand.push([x,z,gx,gz]);}
+    for(const c of cand){if(list.length>=DK.falls.length+9)break;if(list.some(q=>Math.hypot(q[0]-c[0],q[1]-c[1])<16))continue;list.push([c[0],c[1],c[2],c[3],f[4]]);}}
+  for(const [x0,z0,dx,dz,li] of list){const lk=DK.lakes[li];if(!lk)continue;const nx=dz,nz=-dx;let rows=0,base=P.length/3,hPrev=lk.lv+0.08;
     // from the lip, down the face of the travertine wall to where the ground levels out
     for(let s=-2;s<=70;s+=1.5){const x=x0+dx*s,z=z0+dz*s;let h=s<=0.5?lk.lv+0.08:freeHf(x,z)+0.15;h=Math.min(h,hPrev);const w=2.2+Math.max(0,s)*0.06;
       for(const e of [-w,w]){P.push(x+nx*e,h,z+nz*e);U.push(e>0?1:0,s/5);}if(rows>0){const a=base+(rows-1)*2;I.push(a,a+2,a+1,a+1,a+2,a+3);}rows++;hPrev=h;
