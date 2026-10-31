@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=133</script>
+<script>window.GAME_CODE=134</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -96,6 +96,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 #evHud{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 66px);z-index:44;padding:6px 12px;display:flex;gap:10px;align-items:center;font:700 12px var(--body);color:var(--paper);white-space:nowrap;pointer-events:none}
 #evHud b{color:#7df0a0}#evHud .late{color:#ff8a7a}.evArr{display:inline-block;font-style:normal;color:#7df0a0;font-size:14px}.evC i{display:inline-block;width:54px;height:7px;border-radius:4px;background:rgba(255,255,255,.18);vertical-align:middle;overflow:hidden}
 .evC s{display:block;height:100%;background:linear-gradient(90deg,#e0544a,#f0c14a 50%,#5fd88a);text-decoration:none}.evC.hurt i{box-shadow:0 0 0 2px #e0544a}
+body.filming>*:not(canvas):not(#vign){visibility:hidden!important}
 #repAct{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}.rbtn{font:800 14px var(--body);padding:12px 18px;border-radius:12px;border:none;background:var(--amber);color:#1b1306;min-width:140px;touch-action:none;user-select:none}.rbtn.hold:active{filter:brightness(1.2);transform:scale(.97)}
 .rbar{width:100%;height:8px;border-radius:4px;background:rgba(255,255,255,.15);overflow:hidden}.rbar i{display:block;height:100%;width:0;background:#8fc46a}
 .nuts{position:relative;width:132px;height:132px;border-radius:50%;background:radial-gradient(circle,#555a60 0 30%,#2a2c2f 31% 70%,#151515 71%)}.nuts.lamps{width:220px;border-radius:14px;background:#2a2c2f}
@@ -5537,8 +5538,56 @@ const clock=new THREE.Clock();
 let orbit=0,hudT=0,lastFov=60,scanT=0;window.__orbit=v=>{orbit=v;};
 const camPos=new THREE.Vector3(),look=new THREE.Vector3(),tmpV=new THREE.Vector3(),tmpV2=new THREE.Vector3();
 const portraitMQ=window.matchMedia('(orientation: portrait)');
+/* ---------- Film mode: a hidden one-tap film crew for making promo videos ----------
+   Hold the map for a second and a half. After a 3-second count (time to start the phone's screen recorder) every button
+   and label leaves the screen, the car drives itself along the road, and the camera films it from nine angles, five
+   seconds each: behind, at the front wheel, from the driver's seat, alongside, in front looking back, from a drone, at
+   the rear wheel, circling round, and from the bonnet. Then the screen comes back. Tap anywhere to stop early.
+   Roadside events and breakdowns are held off while filming so nothing gets in the way. */
+const DIR={on:false,t:0,i:0,cnt:0,saved:null,stuck:0,top:1.8};
+const DIR_SHOTS=['chase','wheelF','inside','side','front','drone','wheelR','orbit','bonnet'],DIR_LEN=5;
+function dirArm(){if(DIR.on||DIR.cnt>0||S.mode!=='play'||!V)return;DIR.cnt=3.2;SFX.click();toast(tr_('فیلم‌برداری: ضبط صفحهٔ گوشی را روشن کن؛ ۳ ثانیه دیگر شروع می‌شود'));}
+function dirStart(){DIR.on=true;DIR.t=0;DIR.i=0;DIR.stuck=0;DIR.saved={cam:S.cam,cool:typeof EVT==='object'?EVT.cool:0,grace:BRK.grace||0};
+  if(typeof EVT==='object')EVT.cool=1e9;BRK.grace=1e9;document.body.classList.add('filming');S.engineOn=true;S.sel='D';selUI&&selUI();dirShot();}
+function dirStop(){if(!DIR.on)return;DIR.on=false;window.__camOv=undefined;K.gas=K.brake=false;wHeld=false;const s=DIR.saved||{};S.cam=s.cam||0;
+  if(typeof EVT==='object')EVT.cool=Math.min(s.cool||60,60);BRK.grace=6;document.body.classList.remove('filming');toast(tr_('فیلم‌برداری تمام شد؛ ضبط صفحه را قطع کن و فایل را بفرست'));}
+function dirShot(){const k=DIR_SHOTS[DIR.i];S.cam=k==='inside'?4:0;window.__camOv=undefined;DIR.a0=Math.random()*6.283;
+  // the wheels to film: the front one and the rear one on the side the camera is on
+  const ws=V.wheels.slice().sort((a,b)=>b.u-a.u);DIR.wf=ws[0];DIR.wr=ws[ws.length-1];DIR.side=Math.random()<0.5?1:-1;
+  const pick=(arr)=>arr.find(w=>Math.sign(w.w)===DIR.side)||arr[0];DIR.wf=pick(ws.slice(0,2));DIR.wr=pick(ws.slice(-2));
+  V.g.updateMatrixWorld(true);DIR.top=new THREE.Box3().setFromObject(V.g).max.y-S.y;}
+// keeps the car on the road: aims at a point a little ahead on it and holds a steady speed
+function dirDrive(dt){let tx,tz;const la=5+Math.abs(S.v)*0.6;
+  if(FREE&&FW&&FW.PX){const q=trailQ(S.x,S.z,60);if(!q)return;const hd=freeHeading(Math.floor(q.s)),dir=Math.sin(hd)*Math.sin(S.th)+Math.cos(hd)*Math.cos(S.th)>=0?1:-1;
+    const kk=clamp(Math.round(q.s+dir*la),0,FW.PX.length-1);tx=FW.PX[kk];tz=FW.PZ[kk];}
+  else{tz=S.z+la;tx=roadX(tz)-1.9;}
+  let e=Math.atan2(tx-S.x,tz-S.z)-S.th;while(e>Math.PI)e-=6.283;while(e<-Math.PI)e+=6.283;
+  wAng=clamp(-e*2.2,-1,1)*WLOCK;wHeld=true;S.engineOn=true;S.sel='D';const vt=FREE&&FW&&FW.dk?8:10;K.gas=Math.abs(S.v)<vt;K.brake=Math.abs(S.v)>vt+2;
+  // stuck: put the car back on the road a little further on
+  DIR.stuck=Math.abs(S.v)<0.6?DIR.stuck+dt:0;if(DIR.stuck>3){DIR.stuck=0;if(FREE&&FW&&FW.PX){const q=trailQ(S.x,S.z,80);if(q){const k=clamp(Math.round(q.s+15),0,FW.PX.length-1);placeAt(FW.PX[k],FW.PZ[k],freeHeading(k));}}else{const z=S.z+30,dx=roadDX(z);placeAt(roadX(z)-1.9,z,Math.atan2(dx,1));}}}
+function dirCam(){const k=DIR_SHOTS[DIR.i],u=DIR.t/DIR_LEN,s=Math.sin(S.th),c=Math.cos(S.th),sd=DIR.side,g=(x,z)=>Hd(x,z);
+  const wpos=w=>[S.x+s*w.u+c*w.w,S.z+c*w.u-s*w.w];let P=null,L=null;
+  if(k==='wheelF'||k==='wheelR'){const w=k==='wheelF'?DIR.wf:DIR.wr,[wx,wz]=wpos(w),sw=Math.sign(w.w)||sd,back=k==='wheelF'?1.7-u*0.5:-1.7+u*0.5;
+    P=[wx+c*sw*1.5+s*back,0,wz-s*sw*1.5+c*back];P[1]=Math.max(g(P[0],P[2])+0.5,S.y-0.1);L=[wx,g(wx,wz)+0.4,wz];}
+  else if(k==='side'){const d=2.4-u*1.2;P=[S.x+c*sd*3.8+s*d,0,S.z-s*sd*3.8+c*d];P[1]=Math.max(g(P[0],P[2])+0.6,S.y+0.1);L=[S.x+s*0.6,S.y+0.8,S.z+c*0.6];}
+  else if(k==='front'){const d=11-u*2;P=[S.x+s*d+c*sd*1.6,0,S.z+c*d-s*sd*1.6];P[1]=Math.max(g(P[0],P[2])+0.7,S.y);L=[S.x,S.y+0.9,S.z];}
+  else if(k==='drone'){const a=S.th+Math.PI+sd*(0.5+u*0.4);P=[S.x+Math.sin(a)*24,0,S.z+Math.cos(a)*24];P[1]=Math.max(g(P[0],P[2]),S.y)+13-u*3;L=[S.x+s*4,S.y+1,S.z+c*4];}
+  else if(k==='orbit'){const a=DIR.a0+u*Math.PI*1.1,r=7.5;P=[S.x+Math.sin(a)*r,0,S.z+Math.cos(a)*r];P[1]=Math.max(g(P[0],P[2])+1.2,S.y+1.6);L=[S.x,S.y+0.8,S.z];}
+  else if(k==='bonnet'){const f=(V.frontZ||2)*0.25;P=[S.x+s*f,S.y+DIR.top+0.25,S.z+c*f];L=[S.x+s*40,S.y+0.5+(g(S.x+s*40,S.z+c*40)-S.y)*0.6,S.z+c*40];}
+  window.__camOv=P?[P[0],P[1],P[2],L[0],L[1],L[2]]:undefined;}
+function dirStep(dt){
+  if(DIR.cnt>0){DIR.cnt-=dt;if(DIR.cnt<=0){DIR.cnt=0;if(S.mode==='play')dirStart();}return;}
+  if(!DIR.on)return;if(S.mode!=='play'||!V||BRK.rep||RIDE.pid){dirStop();return;}
+  DIR.t+=dt;if(DIR.t>=DIR_LEN){DIR.t=0;DIR.i++;if(DIR.i>=DIR_SHOTS.length){dirStop();return;}dirShot();}
+  S.lightsOn=SKY_DAYF()<0.35;dirDrive(dt);dirCam();}
+function SKY_DAYF(){const h=((S.tod%1)+1)%1;return h>0.27&&h<0.77?1:0;}
+(function(){const m=$('mini');let t=0;const off=()=>clearTimeout(t);
+  m.addEventListener('pointerdown',()=>{off();t=setTimeout(dirArm,1500);});['pointerup','pointerleave','pointercancel'].forEach(e=>m.addEventListener(e,off));
+  document.addEventListener('pointerdown',e=>{if(DIR.on&&DIR.t>0.4){e.preventDefault();dirStop();}},true);})();
+window.__DIR={DIR,dirArm,dirStart,dirStop};
+
 function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.offset.y=(performance.now()/1000*0.007)%1;
-  const rawDt=clock.getDelta(),dt=Math.min(rawDt,0.05);timeU.value+=dt;perfStep(rawDt);if(SET.fps){FPSC.n++;FPSC.t+=rawDt;if(FPSC.t>0.5){$('fpsTag').textContent='FPS '+Math.round(FPSC.n/FPSC.t)+tr_(' · کیفیت ')+QL();FPSC.n=0;FPSC.t=0;}}
+  const rawDt=clock.getDelta(),dt=Math.min(rawDt,0.05);dirStep(dt);timeU.value+=dt;perfStep(rawDt);if(SET.fps){FPSC.n++;FPSC.t+=rawDt;if(FPSC.t>0.5){$('fpsTag').textContent='FPS '+Math.round(FPSC.n/FPSC.t)+tr_(' · کیفیت ')+QL();FPSC.n=0;FPSC.t=0;}}
   S.portrait=portraitMQ.matches;const playing=S.mode==='play'&&!S.modal&&!S.portrait;
   if(!wHeld){const ret=S.mode==='play'?Math.min(6,Math.abs(S.v||0)*0.32):7;wAng*=Math.exp(-dt*ret);if(Math.abs(wAng)<0.01)wAng=0;}wheelImg.style.transform='rotate('+wAng+'rad)';
   if(S.mode==='play')sleepStep(dt,playing);
