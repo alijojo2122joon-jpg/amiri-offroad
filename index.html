@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=156</script>
+<script>window.GAME_CODE=157</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -3471,7 +3471,7 @@ function physStep(h,inp){
   let drive=0,brake=0,hold=false;
   // automatic gearbox: P holds the car, R drives backwards, N lets it roll, D drives forward; the brake only brakes
   const sel=S.sel||'D';
-  if(inp.engineOk&&inp.gas>0){if(sel==='D')drive=ST.acc*(DKON()?1:1)*inp.gas*clamp(1-Math.pow(Math.max(0,vF)/(ST.maxV*(DKON()?1:1)),1.6),0,1);else if(sel==='R')drive=-ST.acc*0.7*inp.gas*clamp(1-Math.max(0,-vF)/7,0,1);}
+  if(inp.engineOk&&inp.gas>0){if(sel==='D')drive=ST.acc*Math.min(mapSpeedK(),1.35)*inp.gas*clamp(1-Math.pow(Math.max(0,vF)/(ST.maxV*mapSpeedK()),1.6),0,1);else if(sel==='R')drive=-ST.acc*0.7*inp.gas*clamp(1-Math.max(0,-vF)/7,0,1);}
   if(inp.brk>0)brake=ST.brake*inp.brk;
   if(sel==='P'){brake=Math.max(brake,ST.brake);if(Math.abs(vF)<1.2)hold=true;}
   // low range (دنده کمکی): a crawl of about 8 km/h with great pulling power and grip, to climb almost anything
@@ -3630,7 +3630,7 @@ function physics(dt){
   const zk=zoneOf(S.z);if(zk!==S.zone){if(S.zone>=0||S.z>200)zoneCard(zk);S.zone=zk;}
   const spd=Math.abs(S.v)+S.slipNow*(S.gas>0.3?7:0);let gear,ratio;
   if(!S.engineOn){gear=0;ratio=0;}else if(S.v<-0.5){gear=-1;ratio=Math.abs(S.v)/8;}else if(spd<0.6){gear=0;ratio=0;}
-  else{const MV=ST.maxV*(DKON()?1:1);gear=1;while(gear<5&&spd>GEARS[gear]*MV)gear++;const lo=GEARS[gear-1]*MV,hi=GEARS[gear]*MV;ratio=clamp((spd-lo)/(hi-lo),0,1);}
+  else{const MV=ST.maxV*mapSpeedK();gear=1;while(gear<5&&spd>GEARS[gear]*MV)gear++;const lo=GEARS[gear-1]*MV,hi=GEARS[gear]*MV;ratio=clamp((spd-lo)/(hi-lo),0,1);}
   const tgt=!S.engineOn?0:gear===0?820+S.gas*3300:1100+ratio*4800+S.gas*300;
   if(gear>S.gear&&S.gear>0){S.rpm*=0.72;SFX.shift();}
   S.gear=gear;S.rpm+=(tgt-S.rpm)*Math.min(1,dt*(S.engineOn?(gear===0?5:7):2));
@@ -4180,7 +4180,7 @@ function placeWipers(){if(!V||!V.ws)return false;V.g.updateMatrixWorld(true);cam
   if(cp!==WS.clip){WS.clip=cp;WS.fog.style.clipPath=WS.wipe.style.clipPath=cp;WS.fog.style.webkitClipPath=WS.wipe.style.webkitClipPath=cp;}
   return true;}
 // the blade sweeps as far as the glass allows: its tip never goes past the windscreen's side
-function drawGauge(G){const kmh=Math.abs(S.v||0)*3.6,mx=Math.max(40,Math.ceil(ST.maxV*3.6/20)*20),rpm=S.rpm||0,gr=!S.engineOn?'-':S.sel==='D'?(S.gear>0?'D'+S.gear:'D'):S.sel,odo=(S.odo||0)/1000;
+function drawGauge(G){const kmh=Math.abs(S.v||0)*3.6,mx=Math.max(40,Math.ceil(ST.maxV*mapSpeedK()*3.6/20)*20),rpm=S.rpm||0,gr=!S.engineOn?'-':S.sel==='D'?(S.gear>0?'D'+S.gear:'D'):S.sel,odo=(S.odo||0)/1000;
   const key=Math.round(kmh)+'|'+Math.round(rpm/100)+'|'+gr+'|'+odo.toFixed(1)+'|'+(S.lightsOn?1:0);if(key===G.last)return;G.last=key;const x=G.ctx,W=320,H=128;
   x.fillStyle='#0c0d0f';x.fillRect(0,0,W,H);const glow=S.lightsOn?'#ffb35a':'#e8e4da';
   const dial=(cx,v,vmax,label,step)=>{const r=52;x.strokeStyle='#2a2c30';x.lineWidth=3;x.beginPath();x.arc(cx,70,r,Math.PI*0.75,Math.PI*2.25);x.stroke();
@@ -4488,6 +4488,8 @@ const FWS={},ISL={FX:40000,FZ:-20000,FR:2600,FG:20,FSNOWH:230};
 const DKSM={};for(const m of ['dayk','bamir']){const o=Object.assign({found:[0],x:null,z:null,th:0},saved[m]&&typeof saved[m]==='object'?saved[m]:{});if(!Array.isArray(o.found))o.found=[0];DKSM[m]=o;}let DKS=DKSM.dayk;
 function FSC(){return RMAP(FMAP)?DKS:FS;}
 function DKON(){return FREE&&RMAP(FMAP);}
+// top speed by map: the stages and the island as they are, Daykundi's mountain road slower, Bamiyan's highway much faster
+function mapSpeedK(){return !FREE?1:FMAP==='bamir'?1.7:FMAP==='dayk'?0.8:1;}
 // round the villages: small round almond and apricot trees on the slopes, poplars by the houses
 const DKTREE=[['dkpop',0.62,0.85,1.25],['dkorch',0.38,0.8,1.2]];
 function dkConsts(){if(RMAP(FMAP)){DK=DKM[FMAP]||DK;DKS=DKSM[FMAP];FX=DK.cx;FZ=DK.cz;FR=DK.fr;FG=60;FSNOWH=DK.sn||1450;}else{FX=ISL.FX;FZ=ISL.FZ;FR=ISL.FR;FG=ISL.FG;FSNOWH=ISL.FSNOWH;}}
@@ -4651,17 +4653,26 @@ const asphTex=(function(){const c=document.createElement('canvas');c.width=c.hei
   for(let i=0;i<10;i++){g.strokeStyle='rgba(30,30,30,.35)';g.lineWidth=1;g.beginPath();let x=R()*128,y=R()*128;g.moveTo(x,y);for(let k=0;k<5;k++){x+=(R()-0.5)*26;y+=(R()-0.5)*26;g.lineTo(x,y);}g.stroke();}
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;return t;})();
 const asphMat=new THREE.MeshLambertMaterial({vertexColors:true,map:asphTex,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
-function dkAsphalt(){const pv=FW.pv,tid=FW.tid;if(!pv)return;const n=FW.PX.length,W=3.4;let k=0;
+const kmMat={w:new THREE.MeshLambertMaterial({color:'#f2f0ea'}),r:new THREE.MeshLambertMaterial({color:'#c4302a'})};
+function dkAsphalt(){const pv=FW.pv,tid=FW.tid;if(!pv)return;const n=FW.PX.length,W=3.4,TRS0=FW.trails[0].i0;let k=0;
   while(k<n-1){if(!pv[k]||tid[k]!==tid[k+1]){k++;continue;}const a=k;while(k<n-1&&pv[k+1]&&tid[k+1]===tid[a]&&k-a<300)k++;const b=k;if(b-a<3){k++;continue;}
-    const P=[],C=[],U=[],I=[],LP=[],LC=[],LI=[];
+    const P=[],C=[],U=[],I=[],LP=[],LC=[],LI=[],GP=[],GI=[],posts=[],kms=[];const gRun={0:-9,1:-9};
     for(let i=a;i<=b;i++){const ip=Math.max(a,i-1),inx=Math.min(b,i+1),tx=FW.PX[inx]-FW.PX[ip],tz=FW.PZ[inx]-FW.PZ[ip],tl=Math.hypot(tx,tz)||1,nx=tz/tl,nz=-tx/tl,x=FW.PX[i],z=FW.PZ[i],y=FW.PH[i]+0.05,u=i*0.25;
       for(const e of [-W-0.25,-W,0,W,W+0.25]){const ed=Math.abs(e)>W-0.01;P.push(x+nx*e,y-(ed?0.04:0)-(Math.abs(e)>W+0.1?0.06:0),z+nz*e);const nn=0.27+0.05*hash2(i,Math.round(e*3)),c=Math.abs(e)>W+0.1?nn*1.25:nn;C.push(c,c,c*1.02);U.push(e*0.25,u);}
       if(i<b){const o=(i-a)*5;for(let q=0;q<4;q++)I.push(o+q,o+5+q,o+q+1,o+q+1,o+5+q,o+5+q+1);}
+      // steel guard rails where the land drops away beside the road, posts every 4 m; and a kilometre stone every kilometre
+      if((i-a)%2===0)for(const [si,sd] of [[0,-1],[1,1]]){const ex=x+nx*sd*(W+0.75),ez=z+nz*sd*(W+0.75),drop=y-freeHf(x+nx*sd*(W+5),z+nz*sd*(W+5));
+        if(drop>2.6&&!(FW.span&&FW.span[i])){posts.push([ex,y,ez]);const c=GP.length/3;GP.push(ex,y+0.5,ez,ex,y+0.82,ez);if(gRun[si]===i-2&&gRun['p'+si]!==undefined){const q=gRun['p'+si];GI.push(q,c,q+1,q+1,c,c+1);}gRun['p'+si]=c;gRun[si]=i;}}
+      if(tid[i]===0&&(i-TRS0)%500===0&&i>TRS0){const ex=x+nx*(W+1.3),ez=z+nz*(W+1.3);kms.push([ex,freeHf(ex,ez),ez,Math.atan2(tx,tz)]);}
       // painted lines: the two edges, and the middle in 4 m dashes with 4 m gaps
       const wear=0.55+0.35*vnoise(i*0.01,3),lines=[[-W+0.35,0.12],[W-0.35,0.12]];if(Math.floor(i/2)%2===0)lines.push([0,0.07]);
       for(const [o,hw] of lines){const lb=LP.length/3;for(const e of [o-hw,o+hw]){LP.push(x+nx*e,y+0.012,z+nz*e);const cc=0.62+0.3*wear;LC.push(cc,cc,cc*0.97);}
         if(i<b){const j=i+1,jp=Math.max(a,j-1),jn=Math.min(b,j+1),sx=FW.PX[jn]-FW.PX[jp],sz=FW.PZ[jn]-FW.PZ[jp],sl=Math.hypot(sx,sz)||1,mx=sz/sl,mz=-sx/sl,X=FW.PX[j],Zz=FW.PZ[j],Y=FW.PH[j]+0.062;
           for(const e of [o-hw,o+hw]){LP.push(X+mx*e,Y,Zz+mz*e);LC.push(0.62+0.3*wear,0.62+0.3*wear,(0.62+0.3*wear)*0.97);}LI.push(lb,lb+2,lb+1,lb+1,lb+2,lb+3);}}}
+    if(GI.length){const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.Float32BufferAttribute(GP,3));gg.setIndex(GI);gg.computeVertexNormals();gg.computeBoundingSphere();const gm=new THREE.Mesh(gg,railMat);gm.castShadow=true;FW.group.add(gm);}
+    if(posts.length){const im=new THREE.InstancedMesh(dkBox,railMat,posts.length),mt=new THREE.Matrix4();posts.forEach((q,n)=>{mt.makeScale(0.12,1.0,0.12);mt.setPosition(q[0],q[1]+0.35,q[2]);im.setMatrixAt(n,mt);});im.castShadow=true;FW.group.add(im);}
+    if(kms.length){const w=new THREE.InstancedMesh(dkBox,kmMat.w,kms.length),r=new THREE.InstancedMesh(dkBox,kmMat.r,kms.length),mt=new THREE.Matrix4(),qq=new THREE.Quaternion(),e3=new THREE.Euler(),v3=new THREE.Vector3(),s3=new THREE.Vector3();
+      kms.forEach((q,n)=>{e3.set(0,q[3],0);qq.setFromEuler(e3);mt.compose(v3.set(q[0],q[1]+0.3,q[2]),qq,s3.set(0.32,0.6,0.16));w.setMatrixAt(n,mt);mt.compose(v3.set(q[0],q[1]+0.68,q[2]),qq,s3.set(0.33,0.16,0.17));r.setMatrixAt(n,mt);});w.castShadow=r.castShadow=true;FW.group.add(w,r);}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);g.computeVertexNormals();g.computeBoundingSphere();
     const m=new THREE.Mesh(g,asphMat);m.receiveShadow=true;FW.group.add(m);
     if(LI.length){const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(LP,3));lg.setAttribute('color',new THREE.Float32BufferAttribute(LC,3));lg.setIndex(LI);lg.computeVertexNormals();lg.computeBoundingSphere();const lm=new THREE.Mesh(lg,lineMat);lm.receiveShadow=true;FW.group.add(lm);}
@@ -5227,7 +5238,7 @@ function freeRoadChunk(ix,iz){const x0=ix*TILE,z0=iz*TILE,x1=x0+TILE,z1=z0+TILE,
     const kp=Math.max(T.i0,k-1),kn=Math.min(T.i1,k+1),tx=FW.PX[kn]-FW.PX[kp],tz=FW.PZ[kn]-FW.PZ[kp],tl=Math.hypot(tx,tz)||1,nx=tz/tl,nz=-tx/tl,cx=FW.PX[k],cz=FW.PZ[k];
     const s=(k-T.i0)*2,fade=sstep(0,12,s)*sstep(0,12,T.L-s),wear=(0.62+0.25*vnoise(s*0.05,T.a))*fade,base=TP.length/3;
     for(const ru of [-0.85,0.85])for(const [q,al] of [[-0.38,0],[-0.13,0.85*wear],[0.13,0.85*wear],[0.38,0]]){const oo=ru+q,x=cx+nx*oo,z=cz+nz*oo,h=hash2(Math.round(x*4),Math.round(z*4));
-      TP.push(x,meshH(x,z)+0.03,z);if(FW.dk)TC.push(0.6+0.06*h,0.53+0.05*h,0.42+0.04*h,FW.br&&dkBridgeH(x,z)!==null?0:al*0.8);else TC.push(0.4+0.06*h,0.33+0.05*h,0.23+0.04*h,al);}
+      TP.push(x,meshH(x,z)+0.03,z);if(FW.dk)TC.push(0.6+0.06*h,0.53+0.05*h,0.42+0.04*h,(FW.pv&&FW.pv[k])||(FW.br&&dkBridgeH(x,z)!==null)?0:al*0.8);else TC.push(0.4+0.06*h,0.33+0.05*h,0.23+0.04*h,al);}
     if(rows>0){const a=base-8;for(let r=0;r<2;r++)for(let j=0;j<3;j++){const i0=a+r*4+j,i1=base+r*4+j;TI.push(i0,i1,i0+1,i0+1,i1,i1+1);}}rows++;
     if(!inT(k)||s<30||T.L-s<30)continue;const zk=zoneOf(cz),rough=zk===5?1:zk===6?0.7:0.45;
     if(!FW.dk&&R()<0.04*rough){const o=(R()<0.5?-1:1)*(2.2+R()*0.8),b={t:'rock',x:cx+nx*o,z:cz+nz*o,r:0.2+R()*0.25*rough,h:0.05+R()*0.12*rough};bumps.push(b);stones.push(b);}
