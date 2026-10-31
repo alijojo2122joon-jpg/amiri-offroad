@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=162</script>
+<script>window.GAME_CODE=163</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1148,11 +1148,12 @@ const photoU=window.__photo={value:0},PHT={};
     if(++n===all.length){photoU.value=1;terrainMat.map=null;terrainMat.bumpMap=null;terrainMat.needsUpdate=true;}});});})();
 const PHM={grass:new THREE.Vector3(0.3647,0.3391,0.2379),soil:new THREE.Vector3(0.4911,0.4329,0.3459),grav:new THREE.Vector3(0.5314,0.5193,0.4857),rock:new THREE.Vector3(0.4749,0.3162,0.1891),snow:new THREE.Vector3(0.4528,0.4524,0.4584)};
 const terrainMat=new THREE.MeshPhongMaterial({vertexColors:true,map:detailTex,bumpMap:reliefTex,bumpScale:0.55,bumpScale:0.9,specular:0x0c0c0c,shininess:6,side:THREE.DoubleSide});
-terrainMat.onBeforeCompile=sh=>{sh.uniforms.uSnow=snowU;sh.uniforms.uSnowD=snowDU;sh.uniforms.uSnowC=snowCU;sh.uniforms.uWet=wetU;sh.uniforms.uGround=groundU;sh.uniforms.uDetail=detailOn;sh.uniforms.uPhoto=photoU;sh.uniforms.uNoSnowP=noSnowP;['grass','soil','grav','rock','snow'].forEach(k=>{sh.uniforms['tP_'+k]=PHT[k];sh.uniforms['mP_'+k]={value:PHM[k]};});['grass','soil','grav','rock'].forEach(k=>sh.uniforms['tN_'+k]=PHT['n_'+k]);
+const cloudShU={value:0};
+terrainMat.onBeforeCompile=sh=>{sh.uniforms.uCloudSh=cloudShU;sh.uniforms.uTc=timeU;sh.uniforms.uSnow=snowU;sh.uniforms.uSnowD=snowDU;sh.uniforms.uSnowC=snowCU;sh.uniforms.uWet=wetU;sh.uniforms.uGround=groundU;sh.uniforms.uDetail=detailOn;sh.uniforms.uPhoto=photoU;sh.uniforms.uNoSnowP=noSnowP;['grass','soil','grav','rock','snow'].forEach(k=>{sh.uniforms['tP_'+k]=PHT[k];sh.uniforms['mP_'+k]={value:PHM[k]};});['grass','soil','grav','rock'].forEach(k=>sh.uniforms['tN_'+k]=PHT['n_'+k]);
   // lying snow is a real layer over the whole land: the ground is raised by its depth on all but steep faces; round the
   // car the deformable snow (with the tyre ruts) takes over, so the land under it stays down
   sh.vertexShader='varying vec3 vWN;uniform float uSnowD;uniform vec3 uSnowC;varying float vNy;varying float vWy;varying vec3 vWp;varying vec2 vWn;varying float vDist;\n'+sh.vertexShader.replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\nvWN=normalize(mat3(modelMatrix)*objectNormal);vNy=objectNormal.y;vWn=abs(objectNormal.xz);').replace('#include <begin_vertex>','#include <begin_vertex>\nvWy=position.y;vWp=(modelMatrix*vec4(position,1.0)).xyz;if(uSnowD>0.0){float sd=uSnowD*smoothstep(0.62,0.8,objectNormal.y)*smoothstep(uSnowC.z-4.0,uSnowC.z-1.0,length(vWp.xz-uSnowC.xy));transformed.y+=sd;vWp.y+=sd;}vDist=length((modelViewMatrix*vec4(transformed,1.0)).xyz);');
-  sh.fragmentShader='uniform float uNoSnowP;uniform float uPhoto;uniform sampler2D tP_grass,tP_soil,tP_grav,tP_rock,tP_snow,tN_grass,tN_soil,tN_grav,tN_rock;varying vec3 vWN;float gWg=0.0,gWo=0.0,gWv=0.0,gWr=0.0,gNr=0.0;uniform vec3 mP_grass,mP_soil,mP_grav,mP_rock,mP_snow;\n'+
+  sh.fragmentShader='uniform float uCloudSh;uniform float uTc;uniform float uNoSnowP;uniform float uPhoto;uniform sampler2D tP_grass,tP_soil,tP_grav,tP_rock,tP_snow,tN_grass,tN_soil,tN_grav,tN_rock;varying vec3 vWN;float gWg=0.0,gWo=0.0,gWv=0.0,gWr=0.0,gNr=0.0;uniform vec3 mP_grass,mP_soil,mP_grav,mP_rock,mP_snow;\n'+
    'vec3 pr(sampler2D t,vec2 a,vec2 b,float nr,vec3 m){vec3 c=mix(texture2D(t,b).rgb,0.62*texture2D(t,a).rgb+0.38*texture2D(t,b).rgb,nr);return clamp(c/m,0.0,3.0);}\n'+
    'uniform float uSnow;uniform float uWet;uniform sampler2D uGround;uniform float uDetail;varying float vNy;varying float vWy;varying vec3 vWp;varying vec2 vWn;varying float vDist;\n'+sh.fragmentShader.replace('#include <color_fragment>',
    ['#include <color_fragment>',
@@ -1174,6 +1175,8 @@ terrainMat.onBeforeCompile=sh=>{sh.uniforms.uSnow=snowU;sh.uniforms.uSnowD=snowD
     ' diffuseColor.rgb*=R;',
     ' gWg=wg;gWo=wo;gWv=wv;gWr=wr;gNr=nr;',
     ' diffuseColor.rgb*=0.88+0.24*mm.a;',
+    // the shadows of the clouds sliding over the land
+    ' if(uCloudSh>0.0){float cs=texture2D(uGround,(vWp.xz+vec2(uTc*5.0,uTc*1.5))*0.00031+0.13).a*0.6+texture2D(uGround,(vWp.xz+vec2(uTc*5.0,uTc*1.5))*0.0009+0.71).a*0.4;diffuseColor.rgb*=1.0-uCloudSh*0.4*smoothstep(0.5,0.62,cs);}',
     // weathering: rain has cut fine gullies down every slope (dark streaks along the fall line, lighter ridges between) and
     // the hills carry broad patches of darker and paler earth, so far slopes read as real eroded land, not smooth sand
     ' {float sl=1.0-vNy;vec2 dh=vWN.xz;float dl=length(dh);if(dl>0.02&&sl>0.03){dh/=dl;vec2 pp=vec2(-dh.y,dh.x);',
@@ -1402,7 +1405,7 @@ function buildTileVeg(T){
     if(FREE&&FMAP==='bamir')for(let a=0;a<140;a++){const x=x0+R()*TILE,z=z0+R()*TILE,ad=Math.abs(lateral(x,z));if(ad<6.5)continue;const h=Hf(x,z);
       if(Math.abs(Hf(x+1.5,z)-h)>0.9||Math.abs(Hf(x,z+1.5)-h)>0.9)continue;if(waterAt(x,z)>h-0.5)continue;const l=FW.lg?dkLake(x,z):null;if(l&&l.sd<4)continue;if(dkHouseAt(x,z,2))continue;if(dkVeg(x,z)>0.5)continue;
       const c=dkSat(x,z);if(c&&(c[0]+c[1]+c[2])>650&&R()<0.7)continue;
-      colT.setHSL(0.14+R()*0.08,0.07+R()*0.1,0.46+R()*0.14);(M.bush=M.bush||[]).push([x,h-0.06,z,0.35+R()*R()*0.8,R()*6.28,colT.getHex()]);}
+      colT.setHSL(0.14+R()*0.08,0.08+R()*0.1,0.62+R()*0.12);(M.bush=M.bush||[]).push([x,h-0.06,z,0.35+R()*R()*0.8,R()*6.28,colT.getHex()]);}
   }
   const meshes=[];
   for(const key in M){const arr=M[key].map(a=>a.length>6?[a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],a[9],a[10]]:[a[0],a[1],a[2],a[3],a[4],a[5]]);
@@ -1819,15 +1822,19 @@ const clouds=[];const cloudMat=new THREE.MeshLambertMaterial({color:'#ffffff',tr
     {grp.updateMatrixWorld(true);const gs=grp.children.map(b=>{const q=g.clone();q.applyMatrix4(b.matrix);return q.index?q.toNonIndexed():q;});grp.clear();grp.add(new THREE.Mesh(mergeGeos(gs),cloudMat));}
     grp.position.set((rng()*2-1)*1800,0,(rng()*2-1)*1800);grp.userData.h=240+rng()*120;scene.add(grp);clouds.push(grp);}})();
 
-const puffTex=(function(){const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d'),R=mulberry32(3);
-  for(let i=0;i<18;i++){const x=34+R()*60,y=40+R()*50,r=18+R()*28,gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(255,255,255,0.55)');gr.addColorStop(0.6,'rgba(255,255,255,0.25)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,128,128);}
-  return new THREE.CanvasTexture(c);})();
+const puffTex=(function(){const N=256,c=document.createElement('canvas');c.width=c.height=N;const g=c.getContext('2d'),im=g.createImageData(N,N),R=mulberry32(3);
+  const nz=(x,y,o)=>{let v=0,a=0.5,f=1;for(let i=0;i<o;i++){v+=a*vnoise(x*f+i*7.1,y*f-i*3.3);a*=0.5;f*=2.03;}return v;};
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){const u=(x-N/2)/(N/2),v=(y-N*0.58)/(N/2),r=Math.hypot(u*0.95,v*(v>0?2.2:1.05));
+    const n=nz(x/28,y/28,5),d=clamp((1-r)*1.6+(n-0.5)*1.5,0,1),a=Math.pow(d,1.4);
+    // lit from above: bright tops, a soft grey belly
+    const lit=0.62+0.38*clamp(1-(y/N-0.25)*1.4,0,1)+(n-0.5)*0.18,k=(y*N+x)*4;im.data[k]=im.data[k+1]=Math.min(255,lit*255);im.data[k+2]=Math.min(255,lit*262);im.data[k+3]=a*235;}
+  g.putImageData(im,0,0);const t=new THREE.CanvasTexture(c);if(FILMIC)t.encoding=THREE.sRGBEncoding;return t;})();
 const cumulus=[];
 function cumulusBuild(){if(cumulus.length)return;const R=mulberry32(11);for(let k=0;k<42;k++){const grp=new THREE.Group(),w=500+R()*1100,n=10+Math.floor(R()*12);
-    for(let i=0;i<n;i++){const top=R(),m=new THREE.SpriteMaterial({map:puffTex,transparent:true,depthWrite:false,fog:false,opacity:0.85});m.color.setScalar(0.72+0.28*top);
+    for(let i=0;i<n;i++){const top=R(),m=new THREE.SpriteMaterial({map:puffTex,transparent:true,depthWrite:false,fog:false,opacity:0.92});m.color.setScalar(0.86+0.14*top);
       const sp=new THREE.Sprite(m),sz=w*(0.35+R()*0.45);sp.scale.set(sz,sz*0.75,1);sp.position.set((R()-0.5)*w,top*w*0.28,(R()-0.5)*w*0.6);grp.add(sp);}
     grp.userData={u:(R()-0.5)*16000,v:(R()-0.5)*16000,h:1300+R()*1300};grp.renderOrder=-1;grp.visible=false;scene.add(grp);cumulus.push(grp);}}
-function cumulusStep(dt){const on=FREE&&FMAP==='bamir'&&WX.type!=='rain';if(on)cumulusBuild();for(const g of cumulus){g.visible=on;if(!on)continue;const d=g.userData;d.u+=dt*4;if(d.u>8000)d.u-=16000;
+function cumulusStep(dt){const on=FREE&&FMAP==='bamir'&&WX.type!=='rain';cloudShU.value=on?1:0;if(on)cumulusBuild();for(const g of cumulus){g.visible=on;if(!on)continue;const d=g.userData;d.u+=dt*4;if(d.u>8000)d.u-=16000;
   let x=d.u+Math.floor((S.x-d.u)/16000+0.5)*16000,z=d.v+Math.floor((S.z-d.v)/16000+0.5)*16000;g.position.set(x,S.y+d.h,z);}
   clouds.forEach(c=>{if(on)c.visible=false;});}
 /* Birds: vultures circle over dangerous ground, crows flap around dead trees, songbirds flit in the green lands, gulls glide over the coast */
