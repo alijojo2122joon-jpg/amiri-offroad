@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=135</script>
+<script>window.GAME_CODE=136</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -5564,7 +5564,7 @@ function dirDrive(dt){let tx,tz;const la=5+Math.abs(S.v)*0.6;
     const kk=clamp(Math.round(q.s+dir*la),0,FW.PX.length-1);tx=FW.PX[kk];tz=FW.PZ[kk];}
   else{tz=S.z+la;tx=roadX(tz)-1.9;}
   let e=Math.atan2(tx-S.x,tz-S.z)-S.th;while(e>Math.PI)e-=6.283;while(e<-Math.PI)e+=6.283;
-  wAng=clamp(-e*2.2,-1,1)*WLOCK;wHeld=true;S.engineOn=true;S.sel='D';const vt=FREE&&FW&&FW.dk?8:10;K.gas=Math.abs(S.v)<vt;K.brake=Math.abs(S.v)>vt+2;
+  wAng=clamp(-e*2.2,-1,1)*WLOCK;wHeld=true;S.engineOn=true;S.sel='D';const vt=FREE&&FW&&FW.dk?4.5:5.5;K.gas=Math.abs(S.v)<vt;K.brake=Math.abs(S.v)>vt+2;
   // stuck: put the car back on the road a little further on
   DIR.stuck=Math.abs(S.v)<0.6?DIR.stuck+dt:0;if(DIR.stuck>3){DIR.stuck=0;if(FREE&&FW&&FW.PX){const q=trailQ(S.x,S.z,80);if(q){const k=clamp(Math.round(q.s+15),0,FW.PX.length-1);placeAt(FW.PX[k],FW.PZ[k],freeHeading(k));}}else{const z=S.z+30,dx=roadDX(z);placeAt(roadX(z)-1.9,z,Math.atan2(dx,1));}}}
 function dirCam(){const k=DIR_SHOTS[DIR.i],u=DIR.t/DIR_LEN,s=Math.sin(S.th),c=Math.cos(S.th),sd=DIR.side,g=(x,z)=>Hd(x,z);
