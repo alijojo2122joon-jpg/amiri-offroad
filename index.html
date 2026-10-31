@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=147</script>
+<script>window.GAME_CODE=148</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -2954,7 +2954,7 @@ const PADS=2048/44100;
 // the cars' engine: a small four-cylinder sedan recorded from inside (Amir's pick, Pixabay "Car Acceleration Inside Car"):
 // five stretches of it, each held at one steady engine note (the take is read faster or slower as its note rises), so every
 // layer is the real engine at that speed and none has to be pitched far
-const REALENG={f6:{L:[['e_c0',1440],['e_c1',1890],['e_c2',2700],['e_c3',3720],['e_c4',4140]],B:[[1650,400],[2300,600],[3200,800],[3950,500]]},
+const REALENG={f6:{L:[['e_ci',850],['e_c1',1890],['e_c2',2700],['e_c3',3720],['e_c4',4140]],B:[[1300,500],[2300,600],[3200,800],[3950,500]]},
   // the trucks' V8: the same recordings played slower and deeper
   v8r:{L:[['r_idle',1200],['r_fast',1900],['r_high',4300],['r_high2',5600]],B:[[1400,420],[3000,800],[4900,1000]]}};
 const ENGRPM={i4:[800,1400,2200,3200,4400,5800],i6:[800,1400,2200,3200,4400,5800],v8:[750,1300,2100,3100,4300,5600],d6:[600,900,1300,1800,2400,3000]};
@@ -2992,6 +2992,15 @@ function initAudio(){
 function audioSleep(){if(!AU.ac)return;try{setT(AU.master.gain,0,0.03);setTimeout(()=>{if(document.hidden&&AU.ac)AU.ac.suspend();},150);}catch(e){}}
 function audioWake(){if(!AU.ac||document.hidden||!$('bye').hidden)return;try{AU.master.gain.cancelScheduledValues(AU.ac.currentTime);AU.master.gain.setValueAtTime(0,AU.ac.currentTime);AU.ac.resume().then(()=>setT(AU.master.gain,SET.sound?SET.vol:0,0.4));}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)audioSleep();else audioWake();});
+// a notification or a call took the phone's audio for a moment: go quiet while it plays, and when it gives the audio back
+// start the sound output afresh (a resumed output on some phones crackles or hisses until it is rebuilt)
+function audioRebuild(){if(!AU.ac)return;const old=AU.ac;AU.ac=null;try{old.onstatechange=null;old.close();}catch(e){}
+  SND.loops=null;SND.eng=null;SND.engType=null;SND.loading=false;AU.rbT=performance.now();initAudio();}
+window.__audioFocus=ch=>{if(!AU.ac)return;if(ch<0){try{setT(AU.master.gain,0,0.03);}catch(e){}AU.lost=true;}else if(ch>0&&AU.lost){AU.lost=false;setTimeout(audioRebuild,120);}};
+// a watchdog for phones whose app is older: if the sound clock stalls while the game is in front, rebuild the output
+setInterval(()=>{const ac=AU.ac;if(!ac||document.hidden||ac.state!=='running')return;const now=performance.now(),ct=ac.currentTime;
+  if(AU.wdT){const wall=(now-AU.wdT)/1000,adv=ct-AU.wdC;if(wall>0.8&&adv<wall*0.5&&now-(AU.rbT||0)>5000){AU.wdBad=(AU.wdBad||0)+1;if(AU.wdBad>=2){AU.wdBad=0;audioRebuild();}}else AU.wdBad=0;}
+  AU.wdT=now;AU.wdC=ct;},1000);
 function loadBuf(n){const u=window.__snd&&window.__snd[n];return (u?Promise.resolve().then(()=>dataBytes(u)):fetch(SND.base+n+'.ogg').then(r=>{if(!r.ok)throw new Error(n);return r.arrayBuffer();}))
   .then(a=>new Promise((res,rej)=>AU.ac.decodeAudioData(a,res,rej))).then(b=>{b.__n=n;SND.buf[n]=b;}).catch(()=>{});}
 function loadSounds(){
