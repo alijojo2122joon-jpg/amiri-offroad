@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=136</script>
+<script>window.GAME_CODE=137</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -299,6 +299,83 @@ body.editing #comms{pointer-events:auto;outline:2px dashed var(--amber);outline-
 .ropeBtn.near{background:var(--amber);color:var(--ink);border-color:transparent;animation:pulse 1.4s ease-in-out infinite}
 .ropeBtn.act{background:#8fc46a;color:var(--ink);border-color:transparent;animation:none}
 .ropeBtn[disabled]{opacity:.5}
+
+/* ===== Forged look: dark iron panels with gold trim and corner filigree, chunky amber and iron buttons, round gold-ringed icons ===== */
+:root{--iron:#1c1d21;--iron2:#2b2c31;--iron3:#3a3b41;--gold:#d9a93b;--gold-hi:#ffe1a0;--gold-lo:#8a6420;--ember:#ff7a1a;--parch:#efe2c4;--iron-tex:radial-gradient(120% 80% at 50% 0%,rgba(255,255,255,.06),transparent 60%),repeating-linear-gradient(115deg,rgba(255,255,255,.012) 0 2px,rgba(0,0,0,.03) 2px 5px)}
+.card{background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2246%22%20height%3D%2246%22%20viewBox%3D%220%200%2046%2046%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffe6a0%22/%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23d9a93b%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%238a6420%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20transform%3D%22rotate%2890%2023%2023%29%22%20fill%3D%22none%22%20stroke%3D%22url%28%23g%29%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M4%2042V10Q4%204%2010%204h32%22%20stroke-width%3D%222.4%22/%3E%3Cpath%20d%3D%22M9%2038V14q0-5%205-5h24%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M4%2022q8-1%209-9t9-9%22%20stroke-width%3D%221.6%22/%3E%3Cpath%20d%3D%22M13%2013q4%203%201%207%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M13%2013q3%204%207%201%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M9%209l4%204%22%20stroke-width%3D%222%22/%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%222.6%22%20fill%3D%22%23f2c45a%22%20stroke%3D%22%236b4c14%22%20stroke-width%3D%22.8%22/%3E%3C/g%3E%3C/svg%3E") top 4px right 4px/30px no-repeat,url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2246%22%20height%3D%2246%22%20viewBox%3D%220%200%2046%2046%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffe6a0%22/%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23d9a93b%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%238a6420%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20transform%3D%22rotate%28180%2023%2023%29%22%20fill%3D%22none%22%20stroke%3D%22url%28%23g%29%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M4%2042V10Q4%204%2010%204h32%22%20stroke-width%3D%222.4%22/%3E%3Cpath%20d%3D%22M9%2038V14q0-5%205-5h24%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M4%2022q8-1%209-9t9-9%22%20stroke-width%3D%221.6%22/%3E%3Cpath%20d%3D%22M13%2013q4%203%201%207%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M13%2013q3%204%207%201%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M9%209l4%204%22%20stroke-width%3D%222%22/%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%222.6%22%20fill%3D%22%23f2c45a%22%20stroke%3D%22%236b4c14%22%20stroke-width%3D%22.8%22/%3E%3C/g%3E%3C/svg%3E") top 4px left 4px/30px no-repeat,url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2246%22%20height%3D%2246%22%20viewBox%3D%220%200%2046%2046%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffe6a0%22/%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23d9a93b%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%238a6420%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20transform%3D%22rotate%28270%2023%2023%29%22%20fill%3D%22none%22%20stroke%3D%22url%28%23g%29%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M4%2042V10Q4%204%2010%204h32%22%20stroke-width%3D%222.4%22/%3E%3Cpath%20d%3D%22M9%2038V14q0-5%205-5h24%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M4%2022q8-1%209-9t9-9%22%20stroke-width%3D%221.6%22/%3E%3Cpath%20d%3D%22M13%2013q4%203%201%207%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M13%2013q3%204%207%201%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M9%209l4%204%22%20stroke-width%3D%222%22/%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%222.6%22%20fill%3D%22%23f2c45a%22%20stroke%3D%22%236b4c14%22%20stroke-width%3D%22.8%22/%3E%3C/g%3E%3C/svg%3E") bottom 4px left 4px/30px no-repeat,url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2246%22%20height%3D%2246%22%20viewBox%3D%220%200%2046%2046%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffe6a0%22/%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23d9a93b%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%238a6420%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20transform%3D%22rotate%280%2023%2023%29%22%20fill%3D%22none%22%20stroke%3D%22url%28%23g%29%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M4%2042V10Q4%204%2010%204h32%22%20stroke-width%3D%222.4%22/%3E%3Cpath%20d%3D%22M9%2038V14q0-5%205-5h24%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M4%2022q8-1%209-9t9-9%22%20stroke-width%3D%221.6%22/%3E%3Cpath%20d%3D%22M13%2013q4%203%201%207%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M13%2013q3%204%207%201%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M9%209l4%204%22%20stroke-width%3D%222%22/%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%222.6%22%20fill%3D%22%23f2c45a%22%20stroke%3D%22%236b4c14%22%20stroke-width%3D%22.8%22/%3E%3C/g%3E%3C/svg%3E") bottom 4px right 4px/30px no-repeat,var(--iron-tex),linear-gradient(180deg,#2c2d33,#18191c);
+  color:var(--parch);border:2px solid var(--gold-lo);box-shadow:inset 0 0 0 1px rgba(255,225,160,.25),inset 0 0 30px rgba(0,0,0,.6),0 0 0 1px #000,0 18px 50px rgba(0,0,0,.55);border-radius:16px;padding:22px 22px}
+.card h2{background:linear-gradient(180deg,#fff1c4,#e6b24a 55%,#a8761f);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 2px 0 rgba(0,0,0,.6));text-align:center}
+.card h2::after{content:"";display:block;height:8px;margin:6px auto 0;width:min(220px,70%);background:radial-gradient(circle at 50% 50%,#ffe1a0 0 3px,transparent 4px),linear-gradient(90deg,transparent,#d9a93b 30%,#d9a93b 70%,transparent) center/100% 1.5px no-repeat}
+.card p,.cur .desc,.trk small,.up small,.acc small,.tune small{color:#cdbf9f}
+.big{font:800 15px var(--body);border:2px solid #6b3008;border-radius:14px;padding:12px 16px;color:#2a1405;background:linear-gradient(180deg,#ffd27a 0%,#ffa53a 45%,#e8731c 100%);box-shadow:inset 0 2px 0 rgba(255,255,255,.55),inset 0 -3px 0 rgba(120,50,0,.35),0 4px 0 #5e2a06,0 6px 12px rgba(0,0,0,.4);text-shadow:0 1px 0 rgba(255,240,200,.6);transition:transform .06s,box-shadow .06s}
+.big:active,.mbtn:active,.gbtn:active{transform:translateY(3px);box-shadow:inset 0 2px 0 rgba(255,255,255,.4),0 1px 0 #5e2a06}
+.big.alt,.gbtn.off{color:var(--gold-hi);background:linear-gradient(180deg,#45464d,#2a2b30 60%,#1f2024);border-color:#0d0d0f;box-shadow:inset 0 0 0 1px rgba(217,169,59,.55),inset 0 2px 0 rgba(255,255,255,.12),0 4px 0 #0b0b0d,0 6px 12px rgba(0,0,0,.4);text-shadow:0 1px 0 #000}
+.big.red{color:#ffe0d8;background:linear-gradient(180deg,#a8382c,#6e1d16);border-color:#2b0805;box-shadow:inset 0 0 0 1px rgba(255,170,150,.35),inset 0 2px 0 rgba(255,255,255,.18),0 4px 0 #2b0805}
+#menu{background:linear-gradient(270deg,rgba(8,8,10,.86) 0%,rgba(8,8,10,.5) 30%,rgba(8,8,10,0) 46%)}
+#menu .inner{overflow-y:auto;gap:6px;flex-flow:row wrap;align-content:center;width:min(380px,48vw)}
+#menu .inner>*{flex:1 1 100%}
+#menu .inner>.mbtn:not(.primary){flex:1 1 calc(50% - 6px);font-size:12px;line-height:1.25}
+.card input[type=text],.card input:not([type]),.card input[type=search],.card textarea{background:#121315;color:var(--parch);border:1px solid rgba(217,169,59,.45);box-shadow:inset 0 2px 5px rgba(0,0,0,.6)}
+.card input::placeholder{color:#8c8170}
+#menu .eyebrow{color:var(--gold);letter-spacing:.35em}
+#menu h1{background:linear-gradient(180deg,#fff3cf,#f2b54a 55%,#b0731c);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #3a2208) drop-shadow(0 0 18px rgba(255,122,26,.45))}
+.mbtn{font:800 13px var(--body);border-radius:12px;padding:5px 10px;color:var(--gold-hi);border:2px solid #0d0d0f;background:linear-gradient(180deg,#46474e,#2a2b30 60%,#1d1e22);box-shadow:inset 0 0 0 1px rgba(217,169,59,.6),inset 0 2px 0 rgba(255,255,255,.1),0 3px 0 #0b0b0d,0 5px 10px rgba(0,0,0,.45);text-shadow:0 1px 0 #000}
+.mbtn svg{width:22px;height:22px;padding:3px;box-sizing:border-box;border-radius:50%;background:radial-gradient(circle,#2b2c31 55%,#17181b);box-shadow:0 0 0 1.5px var(--gold),0 0 0 3px #0d0d0f;color:var(--gold-hi)}
+.mbtn.primary{color:#2a1405;border-color:#6b3008;background:linear-gradient(180deg,#ffd27a,#ffa53a 45%,#e8731c);box-shadow:inset 0 2px 0 rgba(255,255,255,.55),inset 0 -3px 0 rgba(120,50,0,.35),0 3px 0 #5e2a06,0 5px 10px rgba(0,0,0,.45);text-shadow:0 1px 0 rgba(255,240,200,.6)}
+.mbtn.primary svg{background:radial-gradient(circle,#3a1c06 55%,#200e02);color:#ffd27a;box-shadow:0 0 0 1.5px #ffe1a0,0 0 0 3px #6b3008}
+.mbtn.quit{color:#ffc4b8;background:linear-gradient(180deg,#5a201a,#2c0d0a);border-color:#140504;box-shadow:inset 0 0 0 1px rgba(255,150,130,.35),0 3px 0 #140504}
+.ib{border-radius:50%;width:42px;height:42px;border:2px solid #0d0d0f;color:var(--gold-hi);background:radial-gradient(circle at 50% 35%,#3c3d43,#1b1c20 70%);box-shadow:0 0 0 2px var(--gold),inset 0 2px 3px rgba(255,255,255,.12),inset 0 -3px 5px rgba(0,0,0,.6),0 3px 8px rgba(0,0,0,.5)}
+.ib.act{color:#2a1405;background:radial-gradient(circle at 50% 35%,#ffd27a,#e8731c 75%);box-shadow:0 0 0 2px #ffe1a0,0 0 14px rgba(255,122,26,.7)}
+.panel{background:linear-gradient(180deg,rgba(40,41,46,.82),rgba(20,21,24,.82));border:1px solid rgba(217,169,59,.55);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 6px 18px rgba(0,0,0,.45)}
+.set>span{color:var(--gold-hi);font-weight:700}
+.pick{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;background:linear-gradient(180deg,#141518,#202126);border:1px solid rgba(217,169,59,.45);border-radius:12px;padding:4px;box-shadow:inset 0 2px 6px rgba(0,0,0,.6)}
+.pick b{text-align:center;font:800 14px var(--body);color:var(--parch)}
+.pick button{width:38px;height:34px;border-radius:10px;border:2px solid #6b3008;padding:0;font:900 16px var(--body);color:#2a1405;background:linear-gradient(180deg,#ffd27a,#e8731c);box-shadow:inset 0 2px 0 rgba(255,255,255,.5),0 2px 0 #5e2a06}
+.pick button:active{transform:translateY(2px);box-shadow:none}
+.seg button{border:1px solid rgba(217,169,59,.4);background:#25262b;color:var(--parch)}
+.seg button.on{background:linear-gradient(180deg,#ffd27a,#e8731c);color:#2a1405;border-color:#6b3008}
+.set input[type=range],.tune input{accent-color:var(--ember)}
+#garage .card{background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2246%22%20height%3D%2246%22%20viewBox%3D%220%200%2046%2046%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffe6a0%22/%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23d9a93b%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%238a6420%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20transform%3D%22rotate%2890%2023%2023%29%22%20fill%3D%22none%22%20stroke%3D%22url%28%23g%29%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M4%2042V10Q4%204%2010%204h32%22%20stroke-width%3D%222.4%22/%3E%3Cpath%20d%3D%22M9%2038V14q0-5%205-5h24%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M4%2022q8-1%209-9t9-9%22%20stroke-width%3D%221.6%22/%3E%3Cpath%20d%3D%22M13%2013q4%203%201%207%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M13%2013q3%204%207%201%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M9%209l4%204%22%20stroke-width%3D%222%22/%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%222.6%22%20fill%3D%22%23f2c45a%22%20stroke%3D%22%236b4c14%22%20stroke-width%3D%22.8%22/%3E%3C/g%3E%3C/svg%3E") top 4px right 4px/30px no-repeat,url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2246%22%20height%3D%2246%22%20viewBox%3D%220%200%2046%2046%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffe6a0%22/%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23d9a93b%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%238a6420%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20transform%3D%22rotate%28180%2023%2023%29%22%20fill%3D%22none%22%20stroke%3D%22url%28%23g%29%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M4%2042V10Q4%204%2010%204h32%22%20stroke-width%3D%222.4%22/%3E%3Cpath%20d%3D%22M9%2038V14q0-5%205-5h24%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M4%2022q8-1%209-9t9-9%22%20stroke-width%3D%221.6%22/%3E%3Cpath%20d%3D%22M13%2013q4%203%201%207%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M13%2013q3%204%207%201%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M9%209l4%204%22%20stroke-width%3D%222%22/%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%222.6%22%20fill%3D%22%23f2c45a%22%20stroke%3D%22%236b4c14%22%20stroke-width%3D%22.8%22/%3E%3C/g%3E%3C/svg%3E") top 4px left 4px/30px no-repeat,url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2246%22%20height%3D%2246%22%20viewBox%3D%220%200%2046%2046%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffe6a0%22/%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23d9a93b%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%238a6420%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20transform%3D%22rotate%28270%2023%2023%29%22%20fill%3D%22none%22%20stroke%3D%22url%28%23g%29%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M4%2042V10Q4%204%2010%204h32%22%20stroke-width%3D%222.4%22/%3E%3Cpath%20d%3D%22M9%2038V14q0-5%205-5h24%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M4%2022q8-1%209-9t9-9%22%20stroke-width%3D%221.6%22/%3E%3Cpath%20d%3D%22M13%2013q4%203%201%207%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M13%2013q3%204%207%201%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M9%209l4%204%22%20stroke-width%3D%222%22/%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%222.6%22%20fill%3D%22%23f2c45a%22%20stroke%3D%22%236b4c14%22%20stroke-width%3D%22.8%22/%3E%3C/g%3E%3C/svg%3E") bottom 4px left 4px/30px no-repeat,url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2246%22%20height%3D%2246%22%20viewBox%3D%220%200%2046%2046%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffe6a0%22/%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23d9a93b%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%238a6420%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20transform%3D%22rotate%280%2023%2023%29%22%20fill%3D%22none%22%20stroke%3D%22url%28%23g%29%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M4%2042V10Q4%204%2010%204h32%22%20stroke-width%3D%222.4%22/%3E%3Cpath%20d%3D%22M9%2038V14q0-5%205-5h24%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M4%2022q8-1%209-9t9-9%22%20stroke-width%3D%221.6%22/%3E%3Cpath%20d%3D%22M13%2013q4%203%201%207%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M13%2013q3%204%207%201%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M9%209l4%204%22%20stroke-width%3D%222%22/%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%222.6%22%20fill%3D%22%23f2c45a%22%20stroke%3D%22%236b4c14%22%20stroke-width%3D%22.8%22/%3E%3C/g%3E%3C/svg%3E") bottom 4px right 4px/30px no-repeat,var(--iron-tex),linear-gradient(180deg,rgba(44,45,51,.97),rgba(24,25,28,.97))}
+.gcoins{background:#141518;color:var(--gold-hi);border:1px solid rgba(217,169,59,.5)}
+.cur,.trk,.up,.acc,.tune{background:linear-gradient(180deg,#2e2f35,#222327);border:1px solid rgba(217,169,59,.35);color:var(--parch);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.cur h4{color:var(--gold-hi)}
+.srow{color:#cdbf9f}.sbar,.dots i{background:#121315}.sbar i{background:linear-gradient(90deg,#ffd27a,#e8731c)}.dots i.f{background:#ffa53a}
+.tabs{background:#141518;border:1px solid rgba(217,169,59,.35)}
+.tabs button{color:#cdbf9f}.tabs button.on{background:linear-gradient(180deg,#ffd27a,#e8731c);color:#2a1405;box-shadow:0 2px 0 #5e2a06}
+.sec{color:var(--gold)}
+.trk.prev{border-color:var(--ember);box-shadow:0 0 0 2px rgba(255,122,26,.45)}
+.gbtn{border:2px solid #6b3008;color:#2a1405;background:linear-gradient(180deg,#ffd27a,#e8731c);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 0 #5e2a06}
+.gbtn[disabled]{background:#2a2b30;color:#7d7462;border-color:#111;box-shadow:none}
+.swb.on,.flagb.on{border-color:#ffe1a0;box-shadow:0 0 0 2px var(--ember)}
+.sgrid button{background:linear-gradient(180deg,#34353b,#222327);color:var(--parch);box-shadow:inset 0 0 0 1px rgba(217,169,59,.4),0 3px 0 #0b0b0d}
+.sgrid button.cur{background:linear-gradient(180deg,#ffd27a,#e8731c);color:#2a1405}
+.modal{background:rgba(6,6,8,.6)}
+
+.gbtn.big2{width:100%;padding:11px 12px;font-size:14px}
+.gnow{text-align:center;font:800 13px var(--body);color:#9be37a;background:rgba(80,140,60,.18);border:1px solid rgba(155,227,122,.45);border-radius:10px;padding:9px}
+.ghint{font-size:12px;color:#cdbf9f;text-align:center}
+.pill{font:800 12px var(--body);border-radius:999px;padding:5px 10px;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.pill.on{background:rgba(80,140,60,.25);color:#9be37a;border:1px solid rgba(155,227,122,.5)}
+.pill.own{background:#141518;color:var(--gold-hi);border:1px solid rgba(217,169,59,.5)}
+.pill.buy{background:linear-gradient(180deg,#ffd27a,#e8731c);color:#2a1405;border:1px solid #6b3008}
+.pill .coin{display:inline-block;width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff2b0,#e2a62a 60%,#8a5a10);box-shadow:0 0 0 1px #6b4410}
+.trk.act{border-color:rgba(155,227,122,.6)}
+
+#showroom{position:absolute;top:0;bottom:0;left:0;right:calc(min(340px,42vw) + 24px);pointer-events:auto;touch-action:pan-y}
+.srArr{position:absolute;top:42%;width:54px;height:54px;border-radius:50%;border:2px solid #6b3008;font:900 22px var(--body);color:#2a1405;background:linear-gradient(180deg,#ffd27a,#e8731c);box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 4px 0 #5e2a06,0 6px 14px rgba(0,0,0,.5);display:grid;place-items:center;padding:0}
+.srArr:active{transform:translateY(3px);box-shadow:0 1px 0 #5e2a06}
+#srNext{right:12px}#srPrev{left:calc(env(safe-area-inset-left,0px) + 12px)}
+#srPlate{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);transform:translateX(-50%);width:min(260px,72%);display:grid;gap:4px;justify-items:center;text-align:center;direction:rtl;
+  padding:7px 12px 9px;border-radius:14px;background:linear-gradient(180deg,rgba(40,41,46,.9),rgba(20,21,24,.92));border:2px solid var(--gold-lo);box-shadow:inset 0 0 0 1px rgba(255,225,160,.25),0 10px 30px rgba(0,0,0,.5)}
+#srPlate small{color:var(--gold);font:700 11px var(--body);letter-spacing:.1em}
+#srPlate h3{margin:0;font:400 21px/1.1 var(--display);background:linear-gradient(180deg,#fff1c4,#e6b24a 55%,#a8761f);-webkit-background-clip:text;background-clip:text;color:transparent}
+.srStats{width:100%;display:grid;gap:3px}
+.srS{display:grid;grid-template-columns:62px 1fr;align-items:center;gap:8px;font-size:11px;color:#cdbf9f}
+.srS i{height:6px;border-radius:3px;background:#121315;overflow:hidden}.srS s{display:block;height:100%;background:linear-gradient(90deg,#ffd27a,#e8731c);text-decoration:none}
+.srGo{width:100%;font:800 14px var(--body);border-radius:12px;padding:8px;border:2px solid #0d0d0f;color:var(--gold-hi);background:linear-gradient(180deg,#46474e,#2a2b30);box-shadow:inset 0 0 0 1px rgba(217,169,59,.6),0 3px 0 #0b0b0d}
+.srGo.buy{color:#2a1405;border-color:#6b3008;background:linear-gradient(180deg,#ffd27a,#ffa53a 45%,#e8731c);box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 3px 0 #5e2a06}
+.srGo[disabled]{opacity:.75}
+.srNow{width:100%;font:800 13px var(--body);color:#9be37a;background:rgba(80,140,60,.2);border:1px solid rgba(155,227,122,.45);border-radius:10px;padding:8px}
 </style>
 </head>
 <body>
@@ -424,7 +501,7 @@ body.editing #comms{pointer-events:auto;outline:2px dashed var(--amber);outline-
   <div style="display:grid;gap:10px;min-width:0"><h2>نقشه</h2><p style="font-size:12px" id="mapHelp">نقشه را با انگشت جابه‌جا کن و با دو انگشت (یا دکمه‌های + و −) بزرگ و کوچک کن. هر مرحله‌ای که به آن رسیده‌ای باز است و می‌توانی از اولش شروع کنی.</p><div class="camps" id="campList"></div><button class="big alt" id="mapClose">بستن</button></div>
 </div></div>
 
-<div id="garage" class="modal" hidden><div class="card">
+<div id="garage" class="modal" hidden><div id="showroom"><button class="srArr" id="srNext" aria-label="ماشین بعدی">▶</button><button class="srArr" id="srPrev" aria-label="ماشین قبلی">◀</button><div id="srPlate"></div></div><div class="card">
   <div class="ghead"><h2>گاراژ</h2><div class="gcoins"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#f2a93b"/><circle cx="12" cy="12" r="6.5" fill="none" stroke="#c97a17" stroke-width="2"/></svg><span id="gCoins" class="num"></span></div></div>
   <div id="gBody" style="display:grid;gap:10px"></div>
   <button class="big alt" id="gClose">بستن</button>
@@ -3145,13 +3222,16 @@ const RIMS=['#c9c2b5','#262626','#d9a441','#c9483c','#f4efe6','#3f7fbf'];
 function sbar(lbl,v){return '<div class="srow"><span>'+lbl+'</span><div class="sbar"><i style="width:'+Math.round(clamp(v,0.04,1)*100)+'%"></i></div></div>';}
 function shownIdx(){return S.preview>=0?S.preview:S.veh;}
 function renderGarage(){
-  $('gCoins').textContent=fa(S.coins);
+  $('gCoins').textContent=fa(S.coins);try{srRender();}catch(e){}
   const i=shownIdx(),t=VEH[i],s=stats(i),u=upg(i),own=owned.includes(i),cu=cust(i),col=cu.paint||t.paint;
   const tc=['#1f2328','#f4efe6','#e5e1d6','#b8b2a6'].includes(col)?'#8a6a2a':col;
   let h='<div class="cur"><h4 style="color:'+tc+'">'+t.n+(i===S.veh?tr_(' · فعال'):own?'':' · '+fa(t.price)+tr_(' سکه'))+'</h4><div class="desc">'+t.d+'</div>'+sbar(tr_('سرعت'),s.maxV/42)+sbar(tr_('شتاب'),s.acc/17)+sbar(tr_('چسبندگی'),s.grip/1.6)+sbar(tr_('ترمز'),s.brake/25);
-  if(!own)h+='<button class="gbtn" data-buy="'+i+'"'+(S.coins<t.price?' disabled':'')+'>'+(S.coins<t.price?tr_('سکه کافی نداری'):tr_('خرید · ')+fa(t.price)+tr_(' سکه'))+'</button>';
+  if(!own)h+=S.coins<t.price?'<button class="gbtn big2" disabled>'+tr_('🔒 قیمت: ')+fa(t.price)+tr_(' سکه · ')+fa(t.price-S.coins)+tr_(' سکه کم داری')+'</button>':'<button class="gbtn big2" data-buy="'+i+'">'+tr_('خرید این ماشین · ')+fa(t.price)+tr_(' سکه')+'</button>';
+  else if(i!==S.veh)h+='<button class="gbtn big2" data-sel="'+i+'">'+tr_('سوار این ماشین شو')+'</button>';
+  else h+='<div class="gnow">'+tr_('✓ الان سوار همین ماشین هستی')+'</div>';
   h+='</div><div class="tabs">'+[['cars',tr_('ماشین‌ها')],['up',tr_('ارتقا')],['cust',tr_('ظاهر')],['tune',tr_('تنظیم')]].map(([k,n])=>'<button data-tab="'+k+'"'+(gTab===k?' class="on"':'')+'>'+n+'</button>').join('')+'</div>';
-  if(gTab==='cars')VEH.forEach((tk,k)=>{const ow=owned.includes(k);h+='<div class="trk'+(k===i?' prev':'')+'" data-pv="'+k+'"><div class="sw" style="background:'+(cust(k).paint||tk.paint)+'"></div><div><b>'+tk.n+'</b><small class="num">'+fa(tk.maxV*3.6)+' km/h · '+(k===S.veh?tr_('فعال'):ow?tr_('داری'):fa(tk.price)+tr_(' سکه'))+'</small></div><span style="font-size:18px;color:#c97a17">›</span></div>';});
+  if(gTab==='cars'){h+='<div class="ghint">'+tr_('روی هر ماشین بزن تا آن را ببینی، بعد دکمهٔ بالا را بزن.')+'</div>';VEH.forEach((tk,k)=>{const ow=owned.includes(k),act=k===S.veh,pill=act?'<span class="pill on">'+tr_('✓ سوار هستی')+'</span>':ow?'<span class="pill own">'+tr_('مال توست')+'</span>':'<span class="pill buy">'+(S.coins<tk.price?'🔒 ':'')+fa(tk.price)+' <i class="coin"></i></span>';
+    h+='<div class="trk'+(k===i?' prev':'')+(act?' act':'')+'" data-pv="'+k+'"><div class="sw" style="background:'+(cust(k).paint||tk.paint)+'"></div><div><b>'+tk.n+'</b><small class="num">'+tr_('سرعت ')+fa(tk.maxV*3.6)+' km/h</small></div>'+pill+'</div>';});}
   else if(!own)h+=tr_('<p class="note" style="font-size:13px;color:#6a5d4e;margin:0">اول این ماشین را بخر.</p>');
   else if(gTab==='up'){h+='<div class="ups">';UPS.forEach(up=>{const lv=u[up.k],max=lv>=3,cost=max?0:upCost(i,up.k,lv);
       h+='<div class="up"><b>'+up.n+'</b><small>'+up.d+'</small><div class="dots">'+[0,1,2].map(q=>'<i'+(q<lv?' class="f"':'')+'></i>').join('')+'</div><button class="gbtn" data-up="'+up.k+'"'+(max||S.coins<cost?' disabled':'')+'>'+(max?tr_('حداکثر'):fa(cost)+tr_(' سکه'))+'</button></div>';});h+='</div>';}
@@ -3169,6 +3249,23 @@ function renderGarage(){
 function openGarage(){garageFrom=S.mode;if(S.mode==='menu')$('menu').hidden=true;S.preview=-1;S.vx=S.vz=S.w=0;S.v=0;renderGarage();openModal('garage');}
 $('gClose').addEventListener('click',()=>{if(S.preview>=0&&S.preview!==S.veh)showVehicle(S.veh);S.preview=-1;closeModal();if(garageFrom!=='play'){$('menu').hidden=false;refreshMenu();}save();});
 gBody.addEventListener('input',e=>{if(e.target.id==='tireRange'){const i=shownIdx();cust(i).tire=parseFloat(e.target.value);if(i===S.veh)ST=stats(i);showVehicle(i);renderGarage();save();}});
+
+// ---- showroom: the car in the middle of the screen, arrows to go to the next or previous one, its name, a few numbers and one clear button
+function srRender(){const i=shownIdx(),t=VEH[i],s=stats(i),own=owned.includes(i),act=i===S.veh;$('showroom').hidden=gTab!=='cars';
+  const bar=(n,v)=>'<div class="srS"><span>'+n+'</span><i><s style="width:'+Math.round(clamp(v,0,1)*100)+'%"></s></i></div>';
+  const btn=act?'<div class="srNow">'+tr_('✓ سوار همین ماشین هستی')+'</div>':own?'<button class="srGo" data-sel="'+i+'">'+tr_('سوار این ماشین شو')+'</button>':
+    S.coins<t.price?'<button class="srGo" disabled>'+tr_('🔒 ')+fa(t.price)+tr_(' سکه · ')+fa(t.price-S.coins)+tr_(' کم داری')+'</button>':'<button class="srGo buy" data-buy="'+i+'">'+tr_('خرید · ')+fa(t.price)+tr_(' سکه')+'</button>';
+  $('srPlate').innerHTML='<small>'+fa(i+1)+' / '+fa(VEH.length)+'</small><h3>'+t.n+'</h3>'+btn;}
+function srStep(d){const n=VEH.length,k=((shownIdx()+d)%n+n)%n;if(owned.includes(k)&&k===S.veh)S.preview=-1;else S.preview=k;showVehicle(k);SFX.whoosh&&SFX.whoosh();renderGarage();}
+$('srNext').addEventListener('click',()=>srStep(1));$('srPrev').addEventListener('click',()=>srStep(-1));
+$('srPlate').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
+  if(b.dataset.buy){const k=+b.dataset.buy;if(S.coins<VEH[k].price)return;S.coins-=VEH[k].price;owned.push(k);if(VEH[k].style==='lc'){const c=cust(k);c.snork=2;c.rack=2;}S.veh=k;S.preview=-1;applyVehicle();save();toast(VEH[k].n+tr_(' مال تو شد!'));}
+  else if(b.dataset.sel){S.veh=+b.dataset.sel;S.preview=-1;applyVehicle();save();toast(VEH[S.veh].n);}
+  renderGarage();});
+// swipe left or right over the car
+(function(){let x0=null;const el=$('showroom');el.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;x0=e.clientX;});
+  el.addEventListener('pointerup',e=>{if(x0===null)return;const dx=e.clientX-x0;x0=null;if(Math.abs(dx)>40)srStep(dx<0?1:-1);});})();
+
 gBody.addEventListener('click',e=>{
   const b=e.target.closest('button,.trk');if(!b||b.disabled)return;
   const i=shownIdx(),cu=cust(i);
@@ -3185,7 +3282,8 @@ gBody.addEventListener('click',e=>{
 });
 
 /* Settings */
-function seg(lbl,k,opts){return '<div class="set"><span>'+lbl+'</span><div class="seg">'+opts.map(o=>'<button data-k="'+k+'" data-v=\''+JSON.stringify(o[0])+'\''+(SET[k]===o[0]?' class="on"':'')+'>'+o[1]+'</button>').join('')+'</div></div>';}
+function seg(lbl,k,opts){let i=opts.findIndex(o=>o[0]===SET[k]);if(i<0)i=0;const n=opts.length,pv=opts[(i-1+n)%n][0],nx=opts[(i+1)%n][0];
+  return '<div class="set"><span>'+lbl+'</span><div class="pick"><button data-k="'+k+'" data-v=\''+JSON.stringify(nx)+'\' aria-label="بعدی">▶</button><b>'+opts[i][1]+'</b><button data-k="'+k+'" data-v=\''+JSON.stringify(pv)+'\' aria-label="قبلی">◀</button></div></div>';}
 function range(lbl,k,mn,mx,st){return '<div class="set"><span>'+lbl+'</span><input type="range" id="set-'+k+'" data-k="'+k+'" min="'+mn+'" max="'+mx+'" step="'+st+'" value="'+SET[k]+'"></div>';}
 function renderSettings(){$('setBody').innerHTML=seg(tr_('زبان'),'lang',[['fa',tr_('فارسی')],['en','English'],['sq','Shqip']])
   +'<label class="prof">'+tr_('اسم (در بازی آنلاین)')+'<input id="pfName" maxlength="16" autocomplete="nickname"></label>'
@@ -5548,11 +5646,26 @@ const portraitMQ=window.matchMedia('(orientation: portrait)');
    Roadside events and breakdowns are held off while filming so nothing gets in the way. */
 const DIR={on:false,t:0,i:0,cnt:0,saved:null,stuck:0,top:1.8};
 const DIR_SHOTS=['chase','wheelF','inside','side','front','drone','wheelR','orbit','bonnet'],DIR_LEN=5;
-function dirArm(){if(DIR.on||DIR.cnt>0||S.mode!=='play'||!V)return;DIR.cnt=3.2;SFX.click();toast(tr_('فیلم‌برداری: ضبط صفحهٔ گوشی را روشن کن؛ ۳ ثانیه دیگر شروع می‌شود'));}
+
+// ---- recording the film straight into the phone's gallery (needs the app version that can save files; otherwise the
+// phone's own screen recorder is used)
+const REC={mr:null,q:Promise.resolve(),ok:false,dest:null};
+function recCan(){return !!(window.AndroidApp&&AndroidApp.recOpen&&window.MediaRecorder&&canvas.captureStream);}
+function recStart(){if(!recCan()){toast(tr_('برای ذخیرهٔ خودکار در گالری، برنامه را آپدیت کن؛ فعلاً با ضبط صفحهٔ گوشی ضبط کن'));return;}
+  try{const st=canvas.captureStream(30);if(AU.ac&&AU.master){REC.dest=AU.ac.createMediaStreamDestination();AU.master.connect(REC.dest);REC.dest.stream.getAudioTracks().forEach(t=>st.addTrack(t));}
+    const types=['video/mp4;codecs=avc1,mp4a','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'],mime=types.find(t=>MediaRecorder.isTypeSupported(t))||'';
+    if(!AndroidApp.recOpen(mime||'video/webm')){toast(tr_('ذخیره در گالری نشد؛ با ضبط صفحهٔ گوشی ضبط کن'));return;}
+    const mr=new MediaRecorder(st,mime?{mimeType:mime,videoBitsPerSecond:8e6}:{videoBitsPerSecond:8e6});REC.mr=mr;REC.ok=true;
+    mr.ondataavailable=e=>{if(!e.data||!e.data.size)return;const b=e.data;REC.q=REC.q.then(()=>b.arrayBuffer()).then(buf=>{const u=new Uint8Array(buf);let bin='';for(let i=0;i<u.length;i+=32768)bin+=String.fromCharCode.apply(null,u.subarray(i,i+32768));if(!AndroidApp.recChunk(btoa(bin)))REC.ok=false;});};
+    mr.onstop=()=>{REC.q=REC.q.then(()=>{const name=AndroidApp.recClose();if(REC.dest&&AU.master){try{AU.master.disconnect(REC.dest);}catch(e){}}REC.dest=null;REC.mr=null;
+      toast(REC.ok&&name?tr_('فیلم در گالری ذخیره شد: Movies/AmiriOffroad'):tr_('ذخیرهٔ فیلم کامل نشد'));});};
+    mr.start(1000);}catch(e){console.error(e);toast(tr_('ضبط شروع نشد؛ با ضبط صفحهٔ گوشی ضبط کن'));try{AndroidApp.recClose();}catch(_){}}}
+function recStop(){if(REC.mr&&REC.mr.state!=='inactive')REC.mr.stop();}
+function dirArm(){if(DIR.on||DIR.cnt>0||S.mode!=='play'||!V)return;DIR.cnt=3.2;SFX.click();toast(recCan()?tr_('فیلم‌برداری ۳ ثانیه دیگر شروع می‌شود؛ خودش در گالری ذخیره می‌شود'):tr_('فیلم‌برداری: ضبط صفحهٔ گوشی را روشن کن؛ ۳ ثانیه دیگر شروع می‌شود'));}
 function dirStart(){DIR.on=true;DIR.t=0;DIR.i=0;DIR.stuck=0;DIR.saved={cam:S.cam,cool:typeof EVT==='object'?EVT.cool:0,grace:BRK.grace||0};
-  if(typeof EVT==='object')EVT.cool=1e9;BRK.grace=1e9;document.body.classList.add('filming');S.engineOn=true;S.sel='D';selUI&&selUI();dirShot();}
+  if(typeof EVT==='object')EVT.cool=1e9;BRK.grace=1e9;document.body.classList.add('filming');recStart();S.engineOn=true;S.sel='D';selUI&&selUI();dirShot();}
 function dirStop(){if(!DIR.on)return;DIR.on=false;window.__camOv=undefined;K.gas=K.brake=false;wHeld=false;const s=DIR.saved||{};S.cam=s.cam||0;
-  if(typeof EVT==='object')EVT.cool=Math.min(s.cool||60,60);BRK.grace=6;document.body.classList.remove('filming');toast(tr_('فیلم‌برداری تمام شد؛ ضبط صفحه را قطع کن و فایل را بفرست'));}
+  if(typeof EVT==='object')EVT.cool=Math.min(s.cool||60,60);BRK.grace=6;document.body.classList.remove('filming');if(REC.mr)recStop();else toast(tr_('فیلم‌برداری تمام شد؛ ضبط صفحه را قطع کن و فایل را بفرست'));}
 function dirShot(){const k=DIR_SHOTS[DIR.i];S.cam=k==='inside'?4:0;window.__camOv=undefined;DIR.a0=Math.random()*6.283;
   // the wheels to film: the front one and the rear one on the side the camera is on
   const ws=V.wheels.slice().sort((a,b)=>b.u-a.u);DIR.wf=ws[0];DIR.wr=ws[ws.length-1];DIR.side=Math.random()<0.5?1:-1;
