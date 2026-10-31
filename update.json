@@ -1,41 +1,23 @@
 {
- "code": 140,
+ "code": 141,
  "minApk": 137,
  "apkUrl": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/AmiriOffroad.apk?v=137",
  "files": [
   {
    "path": "index.html",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html?v=140",
-   "sha256": "2ebcfcb57d1727287b9b317e2c85f9c1b1cd50ddbd640bfc821e1c03b448da13",
-   "size": 6994305
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html?v=141",
+   "sha256": "248c6243c61453ea2366e653595022c0aaecdf699fb4ad0a4ac2fe7d00c27b0c",
+   "size": 6994209
   },
   {
    "path": "models/mech.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/mech.glb?v=140",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/mech.glb?v=141",
    "sha256": "72b1fc5d4ce870631ccbfe3920a1c4cf4f6a7947c1ecab38689aa5c29a5685c4",
    "size": 6054592
   },
   {
-   "path": "snd/e_bsb0.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_bsb0.ogg?v=140",
-   "sha256": "50fe2a1ca65ae950f17df0cc228cf533f88bfdc327d5c21a9c1ef6222d363796",
-   "size": 43785
-  },
-  {
-   "path": "snd/e_bsb1.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_bsb1.ogg?v=140",
-   "sha256": "f805f88b7860b20d6732a1f6d4420171236cefde9a0ca099bd8ac65fc3d2f74a",
-   "size": 28289
-  },
-  {
-   "path": "snd/e_bsb2.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_bsb2.ogg?v=140",
-   "sha256": "85b1a46d9bbb37128b29e12c2199ef9083f89a1184faa9fa627ce395fcf01aaa",
-   "size": 20295
-  },
-  {
    "path": "snd/r_reverse.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/r_reverse.ogg?v=140",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/r_reverse.ogg?v=141",
    "sha256": "c25bf1e08fe4ba25244ed72b993221fcf2368477255803d442bb260fd2d47e7b",
    "size": 26694
   }
