@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=157</script>
+<script>window.GAME_CODE=158</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1392,7 +1392,7 @@ function buildTileVeg(T){
     (M[key]=M[key]||[]).push([x,y,z,s,ry,colT.getHex()]);if(!lo)obst.push({x,z,r:(type==='palm'?0.25:type==='birch'?0.2:0.32)*s});});
   if(!lo){
     const R=mulberry32((T.ix*91183)^(T.iz*71993)^4242),x0=T.ix*TILE,z0=T.iz*TILE,zc=z0+TILE/2,k=zoneOf(zc),rough=tab(tR,zc);
-    for(let a=0;a<90*(rough+0.3)*(DKON()?0:1);a++){const x=x0+R()*TILE,z=z0+R()*TILE,ad=Math.abs(lateral(x,z));if((ad<HW(z)+1&&R()>0.35)||nearGorgeOrPad(z,ad)||(ad<AW+3&&paveF(z)>0.01))continue;const h=Hf(x,z);
+    for(let a=0;a<90*(rough+0.3)*(DKON()?(FMAP==='bamir'?0.22:0):1);a++){const x=x0+R()*TILE,z=z0+R()*TILE,ad=Math.abs(lateral(x,z));if((ad<HW(z)+1&&R()>0.35)||nearGorgeOrPad(z,ad)||(ad<AW+3&&paveF(z)>0.01))continue;const h=Hf(x,z);
       let s=(ad<40?0.6+R()*1.6:1.2+R()*R()*6)*(k===3||k===5?1.4:1);if(keepClear(x,z,2.5+s)||elemBlock(x,z,s+2))continue;if(ad-s*1.3<3.2){s=Math.min(s,(ad-3.2)/1.3);if(s<0.25)continue;}colT.setHSL(0.08,0.06,0.55+R()*0.1);
       (M.rock=M.rock||[]).push([x,h-0.3*s,z,s,R()*6.28,k===3?0xd09070:colT.getHex(),R()*0.5,R()*0.5,s*(0.8+R()*0.5),s*(0.55+R()*0.4),s*(0.8+R()*0.5)]);if(s>0.5)obst.push({x,z,r:s*1.0});}
     for(let a=0;a<75*tab(tGr,zc);a++){const x=x0+R()*TILE,z=z0+R()*TILE,ad=Math.abs(lateral(x,z));if(DKON())continue;if(paveF(z)>0.01&&ad<AW+1.2&&(RUTD(ad)<0.8||asphF(z)>0.01))continue;const h=Hf(x,z);if(h>SNL(z)-10)continue;if(waterAt(x,z)>h-0.3)continue;
@@ -4345,6 +4345,9 @@ function trailQ(x,z,md){const c=FCELL,gx=Math.floor((x-FW.x0)/c),gz=Math.floor((
   if(best<0)return null;return {d:bd,h:FW.PH[best]+(FW.PH[best+1]-FW.PH[best])*bt,s:best+bt};}
 function freeHf(x,z){let h=freeBase(x,z);if(!FW)return h;if(FW.dk&&FW.rc){const q=dkRiv(x,z);if(q){const W=q.w;h+=(q.h+(vnoise(x*0.05,z*0.05)-0.5)*0.5-h)*sstep(W+3.5+3*vnoise(x*0.02,z*0.02),W,q.d);const cw=q.c;if(q.dc<cw+1.5)h-=0.55*sstep(cw+1.5,cw*0.4,q.dc);}
     if(FW.lg){const l=dkLake(x,z);if(l){if(l.sd<0)h=Math.min(h,l.lv-Math.min(40,0.6+(-l.sd)*0.45)+(vnoise(x*0.04,z*0.04)-0.5)*0.8);else{const t=l.lv+0.3+0.25*vnoise(x*0.09,z*0.09);if(h<t)h+=(t-h)*sstep(7.5,3.5,l.sd);else if(l.sd<6)h+=(t+0.4-h)*sstep(6,0,l.sd)*0.5;
+      // where the land rises from the water (most of Haibat's shore) it does so as a sheer wall of limestone, flat on top
+      if(l.sd>0.3&&l.sd<30&&FW.dk){const L=DK.lg,cx=L.cx||L.c,cz=L.cz||L.c,i=Math.round((x-L.x0)/cx),j=Math.round((z-L.z0)/cz),g=(a,b)=>L.sd[clamp(b,0,L.nz-1)*L.nx+clamp(a,0,L.nx-1)];let gx=g(i+1,j)-g(i-1,j),gz=g(i,j+1)-g(i,j-1);const gl=Math.hypot(gx,gz);
+        if(gl>0.3){gx/=gl;gz/=gl;const r=30-l.sd,hf=dkH(x+gx*r,z+gz*r);if(hf>l.lv+9){const top=Math.min(hf,l.lv+45);h=Math.max(h,l.lv+0.3+(top-l.lv-0.3)*sstep(0.6,5.5,l.sd));}}}
       // where the land falls away below the lake the travertine stands as a wall: the ground at the foot is brought right up to the rim
       if(l.sd>3&&l.sd<34&&FW.dk){const L=DK.lg,cx=L.cx||L.c,cz=L.cz||L.c,fi=(x-L.x0)/cx,fj=(z-L.z0)/cz,i=Math.round(fi),j=Math.round(fj),g=(a,b)=>L.sd[clamp(b,0,L.nz-1)*L.nx+clamp(a,0,L.nx-1)];let gx=g(i+1,j)-g(i-1,j),gz=g(i,j+1)-g(i,j-1);const gl=Math.hypot(gx,gz);if(gl>0.3){gx/=gl;gz/=gl;const r=36-l.sd,hf=dkH(x+gx*r,z+gz*r);if(hf<l.lv-4&&hf<h)h+=(hf-h)*sstep(4,8,l.sd);}}}}}
     if(FW.pads){const L=FW.hc.get(Math.floor(x/32)*65536+Math.floor(z/32));if(L)for(const H of L){if(H.ph===undefined)continue;const dx=x-H.x,dz=z-H.z,u=Math.abs(dx*H.ca+dz*H.sa)-H.w/2,w=Math.abs(-dx*H.sa+dz*H.ca)-H.d/2,e=Math.max(u,w);if(e<3){h+=(H.ph-h)*sstep(3,0.6,e);}}}}
@@ -4513,7 +4516,7 @@ function dkLoad(map){map=map||'dayk';const T=DKM[map]||(DKM[map]={vz:0});if(T.H)
       T.trs.push([i0,T.PX.length-1]);}
     // which of the road's lands the real map borrows its plants, grass and animals from: the windy plateau
     const f=FREE;FREE=false;const zs=[];for(let z=0;z<ROADLEN;z+=400)if(zoneOf(z)===4)zs.push(z);FREE=f;T.vz=zs.length?zs[zs.length>>1]:120000;});}
-const _sat=[0,0,0],_trv=new THREE.Color();
+const _sat=[0,0,0],_trv=new THREE.Color(),_hsl={h:0,s:0,l:0};
 function dkSat(x,z){for(const Q of [DK.fdrape,DK.drape]){if(!Q||!Q.px)continue;const fx=(x-Q.x0)/Q.c,fz=(z-Q.z0)/Q.c;if(fx<0||fz<0||fx>=Q.nx-1||fz>=Q.nz-1)continue;
     const i=Math.floor(fx),j=Math.floor(fz),u=fx-i,v=fz-j,k=(j*Q.nx+i)*3,k2=k+Q.nx*3,P=Q.px;
     for(let c=0;c<3;c++)_sat[c]=(P[k+c]*(1-u)+P[k+3+c]*u)*(1-v)+(P[k2+c]*(1-u)+P[k2+3+c]*u)*v;return _sat;}return null;}
@@ -4545,9 +4548,12 @@ function dkGround(x,z,h,ny,ad,out){if(DK.drape&&DK.drape.px)return dkGroundSat(x
   {const rw=FW&&FW.rw?FW.rw+0.1:2.6;if(ad<rw)out.lerp(DKC.road,0.75*sstep(rw,rw-1.3,ad));}
   out.offsetHSL(0,-0.04,(n2-0.5)*0.05);return out;}
 function dkGroundSat(x,z,h,ny,ad,out){const c=dkSat(x,z);if(!c){out.copy(DKC.dry1);return out;}
-  const n2=vnoise(x*0.07,z*0.07);out.setRGB(Math.pow(c[0]/255,2.3)*0.74,Math.pow(c[1]/255,2.3)*0.74,Math.pow(c[2]/255,2.3)*0.74);out.offsetHSL(0,0.1,0);
-  if(DK.fdem&&ny<0.7){const F=DK.fdem;if(x>F.x0&&z>F.z0&&x<F.x0+F.nx*F.c&&z<F.z0+F.nz*F.c){const b1=vnoise(h*0.31,x*0.002+z*0.002),b2=vnoise(h*1.3+3,x*0.01),w=sstep(0.7,0.45,ny)*0.55;
-      dkT.setRGB(0.58,0.5,0.4).lerp(_trv.setRGB(0.46,0.42,0.38),sstep(0.4,0.7,b1)).lerp(_trv.setRGB(0.55,0.36,0.22),sstep(0.62,0.85,b2)*0.7).multiplyScalar(0.9+0.2*vnoise(h*2.1,x*0.05));out.lerp(dkT,w*0.75);}}
+  const n2=vnoise(x*0.07,z*0.07);out.setRGB(Math.pow(c[0]/255,2.3)*0.74,Math.pow(c[1]/255,2.3)*0.74,Math.pow(c[2]/255,2.3)*0.74);
+  if(FMAP==='bamir'){out.getHSL(_hsl);const veg=_hsl.h>0.2&&_hsl.h<0.45&&_hsl.s>0.12;out.setHSL(veg?_hsl.h:0.03+_hsl.h*0.25,_hsl.s*(veg?1:0.32),_hsl.l*(veg?1:0.8));
+    if(ny<0.62&&h>760){dkT.setRGB(0.33,0.2,0.15).multiplyScalar(0.85+0.3*vnoise(h*0.4,x*0.01));out.lerp(dkT,sstep(0.62,0.45,ny)*sstep(760,860,h));}}
+  else out.offsetHSL(0,0.1,0);
+  if(DK.fdem&&ny<0.7){const F=DK.fdem;if(x>F.x0&&z>F.z0&&x<F.x0+F.nx*F.c&&z<F.z0+F.nz*F.c){const b1=vnoise(h*0.31,x*0.002+z*0.002),b2=vnoise(h*1.3+3,x*0.01),w=sstep(0.7,0.45,ny)*0.8;
+      dkT.setRGB(0.6,0.56,0.48).lerp(_trv.setRGB(0.44,0.42,0.39),sstep(0.4,0.7,b1)).lerp(_trv.setRGB(0.5,0.4,0.3),sstep(0.62,0.85,b2)*0.5).multiplyScalar(0.9+0.2*vnoise(h*2.1,x*0.05));out.lerp(dkT,w*0.75);}}
   if(FW&&FW.lg){const l=dkLake(x,z);if(l&&l.sd<0){dkT.set('#c9d2c8');out.lerp(dkT,sstep(0,-6,l.sd));}
     else if(l&&l.sd<16&&ny<0.75){const st=vnoise(x*0.9,z*0.9+h*0.05),rs=vnoise(x*0.25+h*0.3,z*0.25);dkT.setRGB(0.62,0.56,0.45).lerp(_trv.setRGB(0.5,0.33,0.18),sstep(0.55,0.8,rs)*0.6).multiplyScalar(0.85+0.3*st);out.lerp(dkT,sstep(16,8,l.sd)*sstep(0.75,0.5,ny));}}
   {const rw=FW&&FW.rw?FW.rw+0.1:2.6;if(ad<rw){dkT.set('#c4b49a');out.lerp(dkT,0.6*sstep(rw,rw-1.3,ad));}}
@@ -4602,14 +4608,14 @@ function dkRiverMeshes(){const P=[],I=[],U=[];for(const Rv of FW.riv){const n=Rv
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);g.computeVertexNormals();
   const m=new THREE.Mesh(g,new THREE.MeshPhongMaterial({color:'#6b5d4c',specular:0x2a2218,shininess:40}));m.frustumCulled=false;FW.group.add(m);}
 // ---- Band-e Amir: each lake's water lies flat at its own level inside its real shore, deep ultramarine blue as it is
-const lakeMat=waterize(new THREE.MeshPhongMaterial({normalMap:waterNrm,normalScale:new THREE.Vector2(0.3,0.3),vertexColors:true,color:'#ffffff',emissive:'#000000',specular:0xffffff,shininess:220,transparent:true,opacity:0.95,envMap:carEnv,reflectivity:0.08,combine:THREE.MixOperation,depthWrite:false,side:THREE.DoubleSide}),0.05,'0.005,0.04,0.16');
+const lakeMat=waterize(new THREE.MeshPhongMaterial({normalMap:waterNrm,normalScale:new THREE.Vector2(0.3,0.3),vertexColors:true,color:'#ffffff',emissive:'#000000',specular:0xffffff,shininess:220,transparent:true,opacity:0.95,envMap:carEnv,reflectivity:0.08,combine:THREE.MixOperation,depthWrite:false,side:THREE.DoubleSide}),0.05,'0.02,0.12,0.42');
 function dkLakeMeshes(){const L=DK.lg;if(!DK.lakes||!L||!L.sd)return;const st=2,cx=(L.cx||L.c)*st,cz=(L.cz||L.c)*st,nx=Math.floor((L.nx-1)/st)+1,nz=Math.floor((L.nz-1)/st)+1;
-  const deep=new THREE.Color(0.002,0.016,0.085),turq=new THREE.Color(0.01,0.16,0.26),cc=new THREE.Color();
+  const deep=new THREE.Color(0.008,0.055,0.27),turq=new THREE.Color(0.03,0.33,0.42),cc=new THREE.Color();
   DK.lakes.forEach((lk,li)=>{const P=[],C=[],U=[],I=[],vid=new Int32Array(nx*nz).fill(-1);
     const sdAt=(i,j)=>{const k=(j*st)*L.nx+i*st;return L.id[k]===li+1||(L.sd[k]>0&&L.id[k]===li+1)?L.sd[k]:127;};
     const vert=(i,j)=>{const q=j*nx+i;if(vid[q]>=0)return vid[q];let x=L.x0+i*cx,z=L.z0+j*cz;{const k0=(j*st)*L.nx+i*st,sd0=L.sd[k0];if(sd0>-1){const ii=i*st,jj=j*st,g=(a,b)=>L.sd[clamp(b,0,L.nz-1)*L.nx+clamp(a,0,L.nx-1)];let gx=(g(ii+1,jj)-g(ii-1,jj))/(2*(L.cx||L.c)),gz=(g(ii,jj+1)-g(ii,jj-1))/(2*(L.cz||L.c));const gl=Math.hypot(gx,gz)||1;gx/=gl;gz/=gl;x-=gx*(sd0+1.2);z-=gz*(sd0+1.2);}}vid[q]=P.length/3;P.push(x,lk.lv,z);U.push(x/40,z/40);
       const c=dkSat(x,z);let t=0.3;if(c){const bright=(c[0]+c[1]+c[2])/3;t=clamp((c[1]-c[0]*0.9-8)/55,0,1)*sstep(120,60,bright)+clamp((c[1]-35)/80,0,1)*0.35;}
-      cc.copy(deep).lerp(turq,clamp(t,0,1));const k=(j*st)*L.nx+i*st,sd=L.sd[k];if(sd>-8)cc.lerp(turq,sstep(-8,0,sd)*0.45);C.push(cc.r,cc.g,cc.b);return vid[q];};
+      cc.copy(deep).lerp(turq,clamp(t,0,1));const k=(j*st)*L.nx+i*st,sd=L.sd[k];if(sd>-7)cc.lerp(turq,sstep(-7,0,sd)*0.55);C.push(cc.r,cc.g,cc.b);return vid[q];};
     for(let j=0;j<nz-1;j++)for(let i=0;i<nx-1;i++){const k=(j*st)*L.nx+i*st,k2=((j+1)*st)*L.nx+(i+1)*st;
       // a cell is water if any corner is this lake's water or within a few metres of its shore (the rim then hides the edge)
       let ok=false;for(const kk of [k,k+st,k2,k2-st])if(L.id[kk]===li+1&&L.sd[kk]<4){ok=true;break;}if(!ok)continue;
@@ -4677,7 +4683,7 @@ function dkAsphalt(){const pv=FW.pv,tid=FW.tid;if(!pv)return;const n=FW.PX.lengt
     const m=new THREE.Mesh(g,asphMat);m.receiveShadow=true;FW.group.add(m);
     if(LI.length){const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(LP,3));lg.setAttribute('color',new THREE.Float32BufferAttribute(LC,3));lg.setIndex(LI);lg.computeVertexNormals();lg.computeBoundingSphere();const lm=new THREE.Mesh(lg,lineMat);lm.receiveShadow=true;FW.group.add(lm);}
     k=b;}}
-function swanBoat(){const g=new THREE.Group(),white=new THREE.MeshLambertMaterial({color:'#f3f1ea'}),orange=new THREE.MeshLambertMaterial({color:'#e8742a'}),dark=new THREE.MeshLambertMaterial({color:'#24486e'}),blk=new THREE.MeshBasicMaterial({color:'#111'});
+function swanBoat(col){const g=new THREE.Group(),white=new THREE.MeshLambertMaterial({color:col||'#f3f1ea'}),orange=new THREE.MeshLambertMaterial({color:'#e8742a'}),dark=new THREE.MeshLambertMaterial({color:'#24486e'}),blk=new THREE.MeshBasicMaterial({color:'#111'});
   const hull=new THREE.Mesh(new THREE.SphereGeometry(1,20,12),white);hull.scale.set(0.95,0.5,1.55);g.add(hull);
   const seat=new THREE.Mesh(new THREE.BoxGeometry(1.15,0.35,0.9),dark);seat.position.set(0,0.42,-0.2);g.add(seat);
   const back=new THREE.Mesh(new THREE.BoxGeometry(1.15,0.55,0.12),dark);back.position.set(0,0.65,-0.62);g.add(back);
@@ -4689,7 +4695,7 @@ function swanBoat(){const g=new THREE.Group(),white=new THREE.MeshLambertMateria
   g.traverse(o=>{if(o.isMesh)o.castShadow=true;});return g;}
 function dkBoats(){FW.boats=[];if(!DK.boats||!FW.lg)return;let n=0;for(const [bx,bz] of DK.boats){const l0=dkLake(bx,bz);if(!l0)continue;const lk=DK.lakes[l0.i];
     for(let a=0;a<40&&n<6;a++){const ang=a*2.4,r=18+a*2.2,x=bx+Math.cos(ang)*r,z=bz+Math.sin(ang)*r,l=dkLake(x,z);if(!l||l.sd>-8||l.i!==l0.i)continue;if(FW.boats.some(b=>Math.hypot(b.x-x,b.z-z)<7))continue;
-      const g=swanBoat();g.position.set(x,lk.lv+0.12,z);g.rotation.y=Math.random()*6.28;FW.group.add(g);FW.boats.push({g,x,z,lv:lk.lv,ph:Math.random()*6});n++;}}}
+      const g=swanBoat(['#f2c230','#d8322f','#e86aa6','#2bb5b0','#f3f1ea','#4bb04b'][n%6]);g.position.set(x,lk.lv+0.12,z);g.rotation.y=Math.random()*6.28;FW.group.add(g);FW.boats.push({g,x,z,lv:lk.lv,ph:Math.random()*6});n++;}}}
 function dkStart(){const ok=DKS.x!==null&&DKS.x>DK.x0&&DKS.x<DK.x0+DK.nx*DK.cell&&DKS.z>DK.z0&&DKS.z<DK.z0+DK.nz*DK.cell;
   if(ok){placeAt(DKS.x,DKS.z,DKS.th);toast(tr_(FMAP==='bamir'?'بامیان · ':'دایکندی · ')+fa(FW.found.size)+tr_(' از ')+fa(FW.pois.length)+tr_(' جا رسیدی'));}
   else{if(FMAP==='bamir'){const k=Math.min(FW.trails[0].i1,220);placeAt(FW.PX[k],FW.PZ[k],freeHeading(k));}else freeGo(0);toast(FMAP==='bamir'?tr_('بازار بامیان — راه واقعی تا بند امیر ۶۸ کیلومتر است: ۵۴ کیلومتر قیر، بعد راه خامه'):tr_('شیخ میران، اشترلی — راه واقعی تا نیلی ۵۶ کیلومتر است'));}}
@@ -4744,15 +4750,17 @@ function dkHouseMats(){if(dkMats)return dkMats;const c=document.createElement('c
 const dkGable=(function(){const g=new THREE.BufferGeometry(),P=[-0.5,0,-0.5, 0.5,0,-0.5, 0,1,-0.5, -0.5,0,0.5, 0.5,0,0.5, 0,1,0.5],I=[0,2,1, 3,4,5, 0,3,5, 0,5,2, 1,2,5, 1,5,4];g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);g.computeVertexNormals();return g.toNonIndexed();})();
 dkGable.computeVertexNormals();
 const dkBox=new THREE.BoxGeometry(1,1,1);
+const dkDome=new THREE.SphereGeometry(1,20,10,0,Math.PI*2,0,Math.PI/2);
 const dkYurtG={w:new THREE.CylinderGeometry(1,1,1,20,1,true),r:new THREE.ConeGeometry(1,1,20,1)};
 const dkYurtM=(function(){const c=document.createElement('canvas');c.width=128;c.height=32;const g=c.getContext('2d');g.fillStyle='#ece6d8';g.fillRect(0,0,128,32);g.fillStyle='#b9a98c';g.fillRect(0,4,128,2);g.fillRect(0,26,128,2);
   g.fillStyle='#8a2f2a';g.fillRect(58,10,12,22);for(let i=0;i<300;i++){g.fillStyle='rgba(120,100,80,'+(Math.random()*0.08)+')';g.fillRect(Math.random()*128,Math.random()*32,2,2);}
   const t=new THREE.CanvasTexture(c);t.wrapS=THREE.RepeatWrapping;if(FILMIC)t.encoding=THREE.sRGBEncoding;return {w:new THREE.MeshLambertMaterial({map:t,side:THREE.DoubleSide}),r:new THREE.MeshLambertMaterial({color:'#e2dccd'})};})();
 function dkChunk(ci,cj){if(!FW.hByC){FW.hByC=new Map();for(const H of FW.houses){const k=Math.floor(H.x/400)+','+Math.floor(H.z/400);let L=FW.hByC.get(k);if(!L)FW.hByC.set(k,L=[]);L.push(H);}}const L=FW.hByC.get(ci+','+cj)||[];if(!L.length)return {meshes:[]};
-  const M=dkHouseMats(),W=[],Rf=[],SW=[],SR=[],BW=[],BR=[],YW=[],YR=[],col=new THREE.Color(),q=new THREE.Quaternion(),e=new THREE.Euler(),mt=new THREE.Matrix4(),ox=ci*400,oz=cj*400;
+  const M=dkHouseMats(),W=[],Rf=[],SW=[],SR=[],BW=[],BR=[],YW=[],YR=[],SW2=[],DM=[],col=new THREE.Color(),q=new THREE.Quaternion(),e=new THREE.Euler(),mt=new THREE.Matrix4(),ox=ci*400,oz=cj*400;
   for(const H of L){let lo=1e9,hi=-1e9;for(const [u,w] of [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5],[0,0]]){const x=H.x+u*H.w*H.ca-w*H.d*H.sa,z=H.z+u*H.w*H.sa+w*H.d*H.ca,h=Hf(x,z);lo=Math.min(lo,h);hi=Math.max(hi,h);}
     const tall=(H.k===4?2.4:2.8*H.fl+0.3),base=lo-1.2,top=Math.min(lo,hi)+tall+Math.min(1.2,(hi-lo)*0.5),r=hash2(Math.round(H.x*3),Math.round(H.z*3));H.y=top;
     const tint=H.k===2||H.k===3?[1.12,1.12,1.1]:H.k===4?[1.3,1.32,1.32]:[0.9+0.16*r,0.88+0.15*r,0.86+0.14*r];
+    if(H.k===3&&FMAP==='bamir'){const tp=lo+5.2;SW2.push([H.x,(lo-0.6+tp)/2,H.z,H.w,tp-lo+0.6,H.d,H.a,[1.25,1.22,1.15]]);const r=Math.min(H.w,H.d)*0.32;DM.push([H.x,tp,H.z,r,r*0.9,r,0,[1.3,1.28,1.2]]);DM.push([H.x,tp-0.05,H.z,r*1.12,0.4,r*1.12,0,[1.1,1.05,0.95]]);H.y=tp+r;continue;}
     if(H.k===7){const r=Math.max(2.2,Math.min(H.w,H.d)/2);YW.push([H.x,lo-0.3+1.15,H.z,r,2.3+0.3,r,0,[1,1,1]]);YR.push([H.x,lo+2.15,H.z,r*1.06,r*0.42,r*1.06,0,[1,1,1]]);H.y=lo+2.6;continue;}
     if(H.k===6){const st=lo-0.6,tp=lo+3.8;BW.push([H.x,(st+tp)/2,H.z,H.w,tp-st,H.d,H.a,[1,1,1]]);BR.push([H.x,tp+0.12,H.z,H.w+1.6,0.32,H.d+1.6,H.a,[0.45,0.62,0.26]]);BR.push([H.x,tp+0.32,H.z,H.w+0.6,0.18,H.d+0.6,H.a,[0.86,0.88,0.86]]);H.y=tp;continue;}
     if(H.k===2){const st=lo-0.4,tp=lo+3.6,ridgeAlongW=H.w>=H.d;SW.push([H.x,(st+tp)/2,H.z,H.w,tp-st,H.d,H.a,[1,1,1]]);
@@ -4768,7 +4776,7 @@ function dkChunk(ci,cj){if(!FW.hByC){FW.hByC=new Map();for(const H of FW.houses)
       W.push([x,(base+top+1.6)/2,z,2.6,top+1.6-base,2.6,H.a,tint]);Rf.push([x,top+1.72,z,2.9,0.3,2.9,H.a,Rf[Rf.length-1][7]]);}}
   const mk=(arr,mat,geo)=>{if(!arr.length)return null;const im=new THREE.InstancedMesh(geo||dkBox,mat,arr.length);arr.forEach((a,i)=>{e.set(0,-a[6],0);q.setFromEuler(e);mt.compose(new THREE.Vector3(a[0]-ox,a[1],a[2]-oz),q,new THREE.Vector3(a[3],a[4],a[5]));im.setMatrixAt(i,mt);col.setRGB(a[7][0],a[7][1],a[7][2]);im.setColorAt(i,col);});
     im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;im.position.set(ox,0,oz);im.castShadow=true;im.receiveShadow=true;im.frustumCulled=false;scene.add(im);return im;};
-  return {meshes:[mk(W,M.wall),mk(Rf,M.roof),mk(SW,M.school),mk(SR,M.metal,dkGable),mk(BW,M.blue),mk(BR,M.roof),mk(YW,dkYurtM.w,dkYurtG.w),mk(YR,dkYurtM.r,dkYurtG.r)].filter(Boolean),cx:ox+200,cz:oz+200};}
+  return {meshes:[mk(W,M.wall),mk(Rf,M.roof),mk(SW,M.school),mk(SR,M.metal,dkGable),mk(BW,M.blue),mk(BR,M.roof),mk(YW,dkYurtM.w,dkYurtG.w),mk(YR,dkYurtM.r,dkYurtG.r),mk(SW2,M.wall),mk(DM,M.roof,dkDome)].filter(Boolean),cx:ox+200,cz:oz+200};}
 function dkClearHouses(){if(!FW||!FW.chunks)return;for(const [,C] of FW.chunks)C.meshes.forEach(m=>{scene.remove(m);m.dispose&&m.dispose();});FW.chunks.clear();dkObst.length=0;}
 function dkFrame(dt){FW.hT-=dt;FW.oT-=dt;FW.sT-=dt;if(FW.boats)for(const b of FW.boats){b.ph+=dt;b.g.position.y=b.lv+0.12+Math.sin(b.ph*1.3)*0.04;b.g.rotation.z=Math.sin(b.ph*0.9)*0.025;b.g.rotation.y+=dt*0.01;}
   if(FW.hT<=0){FW.hT=0.4;const ci=Math.floor(S.x/400),cj=Math.floor(S.z/400);let built=0;
