@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=160</script>
+<script>window.GAME_CODE=161</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -4354,6 +4354,7 @@ function freeHf(x,z){let h=freeBase(x,z);if(!FW)return h;if(FW.dk&&FW.rc){const 
         if(gl>0.3){gx/=gl;gz/=gl;const r=30-l.sd,hf=dkH(x+gx*r,z+gz*r);if(hf>l.lv+9){const top=Math.min(hf,l.lv+45);h=Math.max(h,l.lv+0.3+(top-l.lv-0.3)*sstep(0.6,5.5,l.sd));}}}
       // where the land falls away below the lake the travertine stands as a wall: the ground at the foot is brought right up to the rim
       if(l.sd>3&&l.sd<34&&FW.dk){const L=DK.lg,cx=L.cx||L.c,cz=L.cz||L.c,fi=(x-L.x0)/cx,fj=(z-L.z0)/cz,i=Math.round(fi),j=Math.round(fj),g=(a,b)=>L.sd[clamp(b,0,L.nz-1)*L.nx+clamp(a,0,L.nx-1)];let gx=g(i+1,j)-g(i-1,j),gz=g(i,j+1)-g(i,j-1);const gl=Math.hypot(gx,gz);if(gl>0.3){gx/=gl;gz/=gl;const r=36-l.sd,hf=dkH(x+gx*r,z+gz*r);if(hf<l.lv-4&&hf<h)h+=(hf-h)*sstep(4,8,l.sd);}}}}}
+    if(FW.cliff){const C=FW.cliff,dx=x-C.x0,dz=z-C.z0,sA=dx*C.ux+dz*C.uz,dA=dx*C.nx+dz*C.nz;if(sA>C.from&&sA<C.to&&dA>-10&&dA<90){const q=C.pts[clamp(Math.round((sA-C.from)/24),0,C.pts.length-1)],fl=q[2]+2;if(h>fl)h+=(fl+(dA-12)*0.03-h)*sstep(90,40,dA)*sstep(-10,6,dA);}}
     if(FW.pads){const L=FW.hc.get(Math.floor(x/32)*65536+Math.floor(z/32));if(L)for(const H of L){if(H.ph===undefined)continue;const dx=x-H.x,dz=z-H.z,u=Math.abs(dx*H.ca+dz*H.sa)-H.w/2,w=Math.abs(-dx*H.sa+dz*H.ca)-H.d/2,e=Math.max(u,w);if(e<3){h+=(H.ph-h)*sstep(3,0.6,e);}}}}
   for(const P of FW.pois){if(!P.fin)continue;const dx=x-P.x,dz=z-P.z;if(dx*dx+dz*dz<900){const d=Math.sqrt(dx*dx+dz*dz);h+=(P.h-h)*sstep(28,16,d);}}
   if(FW.cells.size){const q=trailMix(x,z);if(q){if(FW.dk&&FW.br&&dkOnSpan(x,z)){}else if(FW.dk){const dh=Math.abs(q.h-h),rw=FW.rw||2.7;h+=(q.h-h)*sstep(rw+dh*1.3+0.8,rw,q.d);}else h+=(q.h-h)*q.w;}}
@@ -4521,7 +4522,7 @@ function dkLoad(map){map=map||'dayk';const T=DKM[map]||(DKM[map]={vz:0});if(T.H)
       T.trs.push([i0,T.PX.length-1]);}
     // which of the road's lands the real map borrows its plants, grass and animals from: the windy plateau
     const f=FREE;FREE=false;const zs=[];for(let z=0;z<ROADLEN;z+=400)if(zoneOf(z)===4)zs.push(z);FREE=f;T.vz=zs.length?zs[zs.length>>1]:120000;});}
-const _sat=[0,0,0],_trv=new THREE.Color(),_hsl={h:0,s:0,l:0};
+const _sat=[0,0,0],_trv=new THREE.Color(),_satC=new THREE.Color(),_hsl={h:0,s:0,l:0};
 function dkSat(x,z){for(const Q of [DK.fdrape,DK.drape]){if(!Q||!Q.px)continue;const fx=(x-Q.x0)/Q.c,fz=(z-Q.z0)/Q.c;if(fx<0||fz<0||fx>=Q.nx-1||fz>=Q.nz-1)continue;
     const i=Math.floor(fx),j=Math.floor(fz),u=fx-i,v=fz-j,k=(j*Q.nx+i)*3,k2=k+Q.nx*3,P=Q.px;
     for(let c=0;c<3;c++)_sat[c]=(P[k+c]*(1-u)+P[k+3+c]*u)*(1-v)+(P[k2+c]*(1-u)+P[k2+3+c]*u)*v;return _sat;}return null;}
@@ -4553,17 +4554,19 @@ function dkGround(x,z,h,ny,ad,out){if(DK.drape&&DK.drape.px)return dkGroundSat(x
   {const rw=FW&&FW.rw?FW.rw+0.1:2.6;if(ad<rw)out.lerp(DKC.road,0.75*sstep(rw,rw-1.3,ad));}
   out.offsetHSL(0,-0.04,(n2-0.5)*0.05);return out;}
 function dkGroundSat(x,z,h,ny,ad,out){const c=dkSat(x,z);if(!c){out.copy(DKC.dry1);return out;}
-  const n2=vnoise(x*0.07,z*0.07);out.setRGB(Math.pow(c[0]/255,2.3)*0.74,Math.pow(c[1]/255,2.3)*0.74,Math.pow(c[2]/255,2.3)*0.74);
-  if(FMAP==='bamir'){out.getHSL(_hsl);const veg=_hsl.h>0.2&&_hsl.h<0.45&&_hsl.s>0.12;out.setHSL(veg?_hsl.h:0.045+_hsl.h*0.3,_hsl.s*(veg?1:0.34),_hsl.l*(veg?1:0.88));
+  const n2=vnoise(x*0.07,z*0.07);
+  // (colour work in the picture's own sRGB: setHSL here turns sRGB into the linear light the renderer uses)
+  if(FMAP==='bamir'){_satC.r=c[0]/255;_satC.g=c[1]/255;_satC.b=c[2]/255;_satC.getHSL(_hsl);const veg=_hsl.h>0.2&&_hsl.h<0.45&&_hsl.s>0.12;
+    out.setHSL(veg?_hsl.h:0.045+_hsl.h*0.3,_hsl.s*(veg?0.95:0.36),veg?0.04+_hsl.l*1.05:_hsl.l*0.96);out.multiplyScalar(0.8);
     if(ny<0.62&&h>760){dkT.setRGB(0.33,0.2,0.15).multiplyScalar(0.85+0.3*vnoise(h*0.4,x*0.01));out.lerp(dkT,sstep(0.62,0.45,ny)*sstep(760,860,h));}}
-  else out.offsetHSL(0,0.1,0);
+  else{out.setRGB(Math.pow(c[0]/255,2.3)*0.74,Math.pow(c[1]/255,2.3)*0.74,Math.pow(c[2]/255,2.3)*0.74);out.offsetHSL(0,0.1,0);}
   if(DK.fdem&&ny<0.7){const F=DK.fdem;if(x>F.x0&&z>F.z0&&x<F.x0+F.nx*F.c&&z<F.z0+F.nz*F.c){const b1=vnoise(h*0.31,x*0.002+z*0.002),b2=vnoise(h*1.3+3,x*0.01),w=sstep(0.7,0.45,ny)*0.8;
       dkT.setRGB(0.6,0.56,0.48).lerp(_trv.setRGB(0.44,0.42,0.39),sstep(0.4,0.7,b1)).lerp(_trv.setRGB(0.5,0.4,0.3),sstep(0.62,0.85,b2)*0.5).multiplyScalar(0.9+0.2*vnoise(h*2.1,x*0.05));out.lerp(dkT,w*0.75);}}
   if(FW&&FW.lg){const l=dkLake(x,z);if(l&&l.sd<0){dkT.set('#c9d2c8');out.lerp(dkT,sstep(0,-6,l.sd));}
     else if(l&&l.sd<16&&ny<0.75){const st=vnoise(x*0.9,z*0.9+h*0.05),rs=vnoise(x*0.25+h*0.3,z*0.25);dkT.setRGB(0.62,0.56,0.45).lerp(_trv.setRGB(0.5,0.33,0.18),sstep(0.55,0.8,rs)*0.6).multiplyScalar(0.85+0.3*st);out.lerp(dkT,sstep(16,8,l.sd)*sstep(0.75,0.5,ny));}}
   {const rw=FW&&FW.rw?FW.rw+0.1:2.6;let pav=false,rh=0;if(ad<7&&FW&&FW.pv){const q=trailQ(x,z,8);if(q){pav=!!FW.pv[Math.floor(q.s)];rh=q.h;}}
     if(pav){// the highway: a gravel shoulder, and on the cut side a lined concrete ditch that takes the water off the road
-      if(ad<5.6){dkT.setRGB(0.5,0.47,0.42).multiplyScalar(0.92+0.16*n2);out.lerp(dkT,0.85*sstep(5.6,4.6,ad));}
+      if(ad<6.5){dkT.setRGB(0.42,0.4,0.36).multiplyScalar(0.92+0.16*n2);out.lerp(dkT,0.7*sstep(6.5,4.2,ad));}
       if(h>rh+0.25&&ad>4.3&&ad<5.5){dkT.setRGB(0.55,0.55,0.53);out.lerp(dkT,0.9*sstep(4.3,4.5,ad)*sstep(5.5,5.3,ad));}}
     else if(ad<rw){dkT.set('#c4b49a');out.lerp(dkT,0.6*sstep(rw,rw-1.3,ad));}}
   out.offsetHSL(0,0,(n2-0.5)*0.03);return out;}
@@ -4600,7 +4603,7 @@ function dkInit(){const t0=performance.now();
     for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const key=i*65536+j;let L=FW.rc.get(key);if(!L)FW.rc.set(key,L=[]);L.push(ri,k);}}});
   dkRoadBed();
   for(const H of FW.houses){let s=0;for(const [u,w] of [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5],[0,0]])s+=freeHf(H.x+u*H.w*H.ca-w*H.d*H.sa,H.z+u*H.w*H.sa+w*H.d*H.ca);H.ph=s/5;}FW.pads=true;
-  freeBuildScene();for(const B of FW.br)FW.group.add(B.mesh);dkRiverMeshes();if(FMAP==='dayk')dkSchoolWall();else FW.walls=[];dkLakeMeshes();dkFalls();dkAsphalt();dkBoats();dkSkyline();if(DK.drape)dkFarMesh();FW.ms=Math.round(performance.now()-t0);}
+  freeBuildScene();for(const B of FW.br)FW.group.add(B.mesh);dkRiverMeshes();if(FMAP==='dayk')dkSchoolWall();else FW.walls=[];dkLakeMeshes();dkFalls();dkAsphalt();dkBoats();dkSkyline();dkBuddhaCliff();if(DK.drape)dkFarMesh();FW.ms=Math.round(performance.now()-t0);}
 // the nearest river: distance to the bed's middle, to the water channel (which wanders inside the bed), and the bed height there
 function dkChan(Rv,ri,s){let o=(Rv.w-Rv.c-2)*0.55*Math.sin(s/90+ri)*Math.min(1,s/60);if(Rv.pins)for(const P of Rv.pins){const w=sstep(160,30,Math.abs(s-P.s));o+=(P.o-o)*w;}return o;}
 function dkRiv(x,z){const L=FW.rc.get(Math.floor(x/32)*65536+Math.floor(z/32));if(!L)return null;let best=null,bd=1e9;
@@ -4718,6 +4721,43 @@ function swanBoat(col){const g=new THREE.Group(),white=new THREE.MeshLambertMate
 function dkBoats(){FW.boats=[];if(!DK.boats||!FW.lg)return;let n=0;for(const [bx,bz] of DK.boats){const l0=dkLake(bx,bz);if(!l0)continue;const lk=DK.lakes[l0.i];
     for(let a=0;a<40&&n<6;a++){const ang=a*2.4,r=18+a*2.2,x=bx+Math.cos(ang)*r,z=bz+Math.sin(ang)*r,l=dkLake(x,z);if(!l||l.sd>-8||l.i!==l0.i)continue;if(FW.boats.some(b=>Math.hypot(b.x-x,b.z-z)<7))continue;
       const g=swanBoat(['#f2c230','#d8322f','#e86aa6','#2bb5b0','#f3f1ea','#4bb04b'][n%6]);g.position.set(x,lk.lv+0.12,z);g.rotation.y=Math.random()*6.28;FW.group.add(g);FW.boats.push({g,x,z,lv:lk.lv,ph:Math.random()*6});n++;}}}
+// ---- Bamiyan's Buddha cliff: the sheer sandstone-conglomerate wall north of the bazaar, full of monks' caves, with the two empty
+// niches (OpenStreetMap: the western one 55 m Salsal, the eastern 38 m Shah Mama, 785 m apart). The 30 m elevation softens it, so the
+// wall itself is built here, standing in front of the hillside along the line of the two niches.
+function dkLL(lat,lon){const MX=111320*Math.cos(DK.lat0*Math.PI/180);return [40000-(lon-DK.lon0)*MX,-20000+(lat-DK.lat0)*110950];}
+const cliffTex=(function(){const c=document.createElement('canvas');c.width=512;c.height=512;const g=c.getContext('2d'),R=mulberry32(21);g.fillStyle='#c6ac93';g.fillRect(0,0,512,512);
+  for(let i=0;i<70;i++){const y=R()*512,h=2+R()*10;g.fillStyle='rgba('+(R()<0.5?'150,120,100':'200,180,160')+','+(0.15+R()*0.2)+')';g.fillRect(0,y,512,h);}
+  for(let i=0;i<220;i++){const x=R()*512,w=1+R()*5;g.fillStyle='rgba(90,70,58,'+(0.05+R()*0.1)+')';g.fillRect(x,0,w,512);}
+  for(let i=0;i<40;i++){const x=R()*512,w=10+R()*40;const gg=g.createLinearGradient(x,0,x+w,0);gg.addColorStop(0,'rgba(0,0,0,0)');gg.addColorStop(0.5,R()<0.5?'rgba(70,52,42,.22)':'rgba(235,215,190,.18)');gg.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gg;g.fillRect(x,0,w,512);}
+  for(let i=0;i<5000;i++){g.fillStyle=R()<0.5?'rgba(80,62,50,.18)':'rgba(230,214,196,.16)';const r=0.5+R()*2.2;g.beginPath();g.arc(R()*512,R()*512,r,0,6.283);g.fill();}
+  // caves: small dark doorways and arches, more of them low down
+  for(let i=0;i<34;i++){const x=R()*512,y=200+Math.pow(R(),0.6)*300,w=4+R()*8,h=w*(1.1+R()*0.6);g.fillStyle='rgba(28,20,16,.88)';g.beginPath();g.moveTo(x,y);g.lineTo(x,y-h+w/2);g.arc(x+w/2,y-h+w/2,w/2,Math.PI,0);g.lineTo(x+w,y);g.closePath();g.fill();}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(FILMIC)t.encoding=THREE.sRGBEncoding;return t;})();
+const nicheTex=(function(){const c=document.createElement('canvas');c.width=128;c.height=256;const g=c.getContext('2d');g.clearRect(0,0,128,256);
+  const gr=g.createLinearGradient(0,0,0,256);gr.addColorStop(0,'#1c1511');gr.addColorStop(0.6,'#33271f');gr.addColorStop(1,'#5a4637');g.fillStyle=gr;
+  g.beginPath();g.moveTo(8,256);g.lineTo(8,64);g.arc(64,64,56,Math.PI,0);g.lineTo(120,256);g.closePath();g.fill();
+  g.fillStyle='rgba(120,98,80,.6)';g.beginPath();g.ellipse(64,250,44,14,0,0,6.283);g.fill();
+  const t=new THREE.CanvasTexture(c);if(FILMIC)t.encoding=THREE.sRGBEncoding;return t;})();
+function dkBuddhaCliff(){if(FMAP!=='bamir'||!DK.lat0)return;const W=dkLL(34.8294679,67.8180135),E=dkLL(34.8316562,67.8266233);
+  let ux=E[0]-W[0],uz=E[1]-W[1];const L=Math.hypot(ux,uz);ux/=L;uz/=L;let nx=uz,nz=-ux;
+  // the face looks down the valley: the side where the ground is lower
+  const mx=(W[0]+E[0])/2,mz=(W[1]+E[1])/2;if(dkH(mx+nx*120,mz+nz*120)>dkH(mx-nx*120,mz-nz*120)){nx=-nx;nz=-nz;}
+  const P=[],U=[],I=[],N=[];const quad=(a,b,c,d,n,ua,ub)=>{const o=P.length/3;for(const [v,uv] of [[a,ua[0]],[b,ua[1]],[c,ub[1]],[d,ub[0]]]){P.push(...v);N.push(...n);U.push(...uv);}I.push(o,o+1,o+2,o,o+2,o+3);};
+  const seg=24,from=-420,to=L+420;const pts=[];
+  for(let s=from;s<=to;s+=seg){const x=W[0]+ux*s,z=W[1]+uz*s,base=dkH(x+nx*100,z+nz*100)-1;const back=dkH(x-nx*60,z-nz*60);
+    const ends=Math.min(1,(s-from)/160,(to-s)/160),top=Math.max(base+12,Math.min(Math.max(back+6,base+95*ends),base+110));pts.push([x+nx*12,z+nz*12,base,top,s]);}
+  for(let k=0;k<pts.length-1;k++){const [x0,z0,b0,t0,s0]=pts[k],[x1,z1,b1,t1,s1]=pts[k+1];
+    quad([x0,b0,z0],[x1,b1,z1],[x1,t1,z1],[x0,t0,z0],[nx,0,nz],[[s0/60,b0/60],[s1/60,b1/60]],[[s0/60,t0/60],[s1/60,t1/60]]);
+    const bx0=x0-nx*70,bz0=z0-nz*70,bx1=x1-nx*70,bz1=z1-nz*70;quad([x0,t0,z0],[x1,t1,z1],[bx1,t1+4,bz1],[bx0,t0+4,bz0],[0,1,0],[[s0/60,0],[s1/60,0]],[[s0/60,1.2],[s1/60,1.2]]);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);g.computeBoundingSphere();
+  const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({map:cliffTex,side:THREE.DoubleSide}));m.castShadow=m.receiveShadow=true;FW.group.add(m);
+  // the two niches, each set into the face at its own place
+  const nm=new THREE.MeshBasicMaterial({map:nicheTex,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4});
+  for(const [pt,hgt,wid] of [[W,58,24],[E,38,17]]){const s=(pt[0]-W[0])*ux+(pt[1]-W[1])*uz;let best=pts[0];for(const q of pts)if(Math.abs(q[4]-s)<Math.abs(best[4]-s))best=q;
+    const x=W[0]+ux*s+nx*12.15,z=W[1]+uz*s+nz*12.15,b=best[2]+1;const pl=new THREE.Mesh(new THREE.PlaneGeometry(wid,hgt),nm);pl.position.set(x,b+hgt/2,z);pl.rotation.y=Math.atan2(nx,nz);FW.group.add(pl);}
+  FW.cliff={x0:W[0],z0:W[1],ux,uz,nx,nz,from,to,pts};
+  // the cliff stands in the way: the car cannot drive into it
+  for(let k=0;k<pts.length;k+=1)FW.extra.push({x:pts[k][0]-nx*20,z:pts[k][1]-nz*20,r:22});}
 function dkStart(){const ok=DKS.x!==null&&DKS.x>DK.x0&&DKS.x<DK.x0+DK.nx*DK.cell&&DKS.z>DK.z0&&DKS.z<DK.z0+DK.nz*DK.cell;
   if(ok){placeAt(DKS.x,DKS.z,DKS.th);toast(tr_(FMAP==='bamir'?'بامیان · ':'دایکندی · ')+fa(FW.found.size)+tr_(' از ')+fa(FW.pois.length)+tr_(' جا رسیدی'));}
   else{if(FMAP==='bamir'){const k=Math.min(FW.trails[0].i1,220);placeAt(FW.PX[k],FW.PZ[k],freeHeading(k));}else freeGo(0);toast(FMAP==='bamir'?tr_('بازار بامیان — راه واقعی تا بند امیر ۶۸ کیلومتر است: ۵۴ کیلومتر قیر، بعد راه خامه'):tr_('شیخ میران، اشترلی — راه واقعی تا نیلی ۵۶ کیلومتر است'));}}
