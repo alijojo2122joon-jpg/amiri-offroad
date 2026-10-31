@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=161</script>
+<script>window.GAME_CODE=162</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1399,6 +1399,10 @@ function buildTileVeg(T){
       (M.rock=M.rock||[]).push([x,h-0.3*s,z,s,R()*6.28,k===3?0xd09070:colT.getHex(),R()*0.5,R()*0.5,s*(0.8+R()*0.5),s*(0.55+R()*0.4),s*(0.8+R()*0.5)]);if(s>0.5)obst.push({x,z,r:s*1.0});}
     for(let a=0;a<75*tab(tGr,zc);a++){const x=x0+R()*TILE,z=z0+R()*TILE,ad=Math.abs(lateral(x,z));if(DKON())continue;if(paveF(z)>0.01&&ad<AW+1.2&&(RUTD(ad)<0.8||asphF(z)>0.01))continue;const h=Hf(x,z);if(h>SNL(z)-10)continue;if(waterAt(x,z)>h-0.3)continue;
       colT.setHSL(0.25+R()*0.06,0.4,0.4+R()*0.12);(M.bush=M.bush||[]).push([x,h-0.1,z,0.7+R()*1.1,R()*6.28,colT.getHex()]);}
+    if(FREE&&FMAP==='bamir')for(let a=0;a<140;a++){const x=x0+R()*TILE,z=z0+R()*TILE,ad=Math.abs(lateral(x,z));if(ad<6.5)continue;const h=Hf(x,z);
+      if(Math.abs(Hf(x+1.5,z)-h)>0.9||Math.abs(Hf(x,z+1.5)-h)>0.9)continue;if(waterAt(x,z)>h-0.5)continue;const l=FW.lg?dkLake(x,z):null;if(l&&l.sd<4)continue;if(dkHouseAt(x,z,2))continue;if(dkVeg(x,z)>0.5)continue;
+      const c=dkSat(x,z);if(c&&(c[0]+c[1]+c[2])>650&&R()<0.7)continue;
+      colT.setHSL(0.14+R()*0.08,0.07+R()*0.1,0.46+R()*0.14);(M.bush=M.bush||[]).push([x,h-0.06,z,0.35+R()*R()*0.8,R()*6.28,colT.getHex()]);}
   }
   const meshes=[];
   for(const key in M){const arr=M[key].map(a=>a.length>6?[a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],a[9],a[10]]:[a[0],a[1],a[2],a[3],a[4],a[5]]);
@@ -1815,6 +1819,17 @@ const clouds=[];const cloudMat=new THREE.MeshLambertMaterial({color:'#ffffff',tr
     {grp.updateMatrixWorld(true);const gs=grp.children.map(b=>{const q=g.clone();q.applyMatrix4(b.matrix);return q.index?q.toNonIndexed():q;});grp.clear();grp.add(new THREE.Mesh(mergeGeos(gs),cloudMat));}
     grp.position.set((rng()*2-1)*1800,0,(rng()*2-1)*1800);grp.userData.h=240+rng()*120;scene.add(grp);clouds.push(grp);}})();
 
+const puffTex=(function(){const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d'),R=mulberry32(3);
+  for(let i=0;i<18;i++){const x=34+R()*60,y=40+R()*50,r=18+R()*28,gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(255,255,255,0.55)');gr.addColorStop(0.6,'rgba(255,255,255,0.25)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,128,128);}
+  return new THREE.CanvasTexture(c);})();
+const cumulus=[];
+function cumulusBuild(){if(cumulus.length)return;const R=mulberry32(11);for(let k=0;k<42;k++){const grp=new THREE.Group(),w=500+R()*1100,n=10+Math.floor(R()*12);
+    for(let i=0;i<n;i++){const top=R(),m=new THREE.SpriteMaterial({map:puffTex,transparent:true,depthWrite:false,fog:false,opacity:0.85});m.color.setScalar(0.72+0.28*top);
+      const sp=new THREE.Sprite(m),sz=w*(0.35+R()*0.45);sp.scale.set(sz,sz*0.75,1);sp.position.set((R()-0.5)*w,top*w*0.28,(R()-0.5)*w*0.6);grp.add(sp);}
+    grp.userData={u:(R()-0.5)*16000,v:(R()-0.5)*16000,h:1300+R()*1300};grp.renderOrder=-1;grp.visible=false;scene.add(grp);cumulus.push(grp);}}
+function cumulusStep(dt){const on=FREE&&FMAP==='bamir'&&WX.type!=='rain';if(on)cumulusBuild();for(const g of cumulus){g.visible=on;if(!on)continue;const d=g.userData;d.u+=dt*4;if(d.u>8000)d.u-=16000;
+  let x=d.u+Math.floor((S.x-d.u)/16000+0.5)*16000,z=d.v+Math.floor((S.z-d.v)/16000+0.5)*16000;g.position.set(x,S.y+d.h,z);}
+  clouds.forEach(c=>{if(on)c.visible=false;});}
 /* Birds: vultures circle over dangerous ground, crows flap around dead trees, songbirds flit in the green lands, gulls glide over the coast */
 const birds=[];
 function birdMesh(kind){
@@ -4557,7 +4572,7 @@ function dkGroundSat(x,z,h,ny,ad,out){const c=dkSat(x,z);if(!c){out.copy(DKC.dry
   const n2=vnoise(x*0.07,z*0.07);
   // (colour work in the picture's own sRGB: setHSL here turns sRGB into the linear light the renderer uses)
   if(FMAP==='bamir'){_satC.r=c[0]/255;_satC.g=c[1]/255;_satC.b=c[2]/255;_satC.getHSL(_hsl);const veg=_hsl.h>0.2&&_hsl.h<0.45&&_hsl.s>0.12;
-    out.setHSL(veg?_hsl.h:0.045+_hsl.h*0.3,_hsl.s*(veg?0.95:0.36),veg?0.04+_hsl.l*1.05:_hsl.l*0.96);out.multiplyScalar(0.8);
+    out.setHSL(veg?_hsl.h:0.04+_hsl.h*0.35,_hsl.s*(veg?0.95:0.5),veg?0.04+_hsl.l*1.05:_hsl.l*0.9);out.multiplyScalar(0.78);
     if(ny<0.62&&h>760){dkT.setRGB(0.33,0.2,0.15).multiplyScalar(0.85+0.3*vnoise(h*0.4,x*0.01));out.lerp(dkT,sstep(0.62,0.45,ny)*sstep(760,860,h));}}
   else{out.setRGB(Math.pow(c[0]/255,2.3)*0.74,Math.pow(c[1]/255,2.3)*0.74,Math.pow(c[2]/255,2.3)*0.74);out.offsetHSL(0,0.1,0);}
   if(DK.fdem&&ny<0.7){const F=DK.fdem;if(x>F.x0&&z>F.z0&&x<F.x0+F.nx*F.c&&z<F.z0+F.nz*F.c){const b1=vnoise(h*0.31,x*0.002+z*0.002),b2=vnoise(h*1.3+3,x*0.01),w=sstep(0.7,0.45,ny)*0.8;
@@ -5964,7 +5979,7 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
   processTiles(5);updateGrass(dt);
   const env=updateEnv(dt);renderVehicle(dt);cabinLight(env);netFrame(dt);trafficStep(dt,playing);snowStep(dt,playing);
   const tn=performance.now()/1000;
-  clouds.forEach(c=>{c.position.x+=dt*3;if(c.position.x-S.x>1800)c.position.x-=3600;if(c.position.x-S.x<-1800)c.position.x+=3600;if(c.position.z-S.z>1800)c.position.z-=3600;if(c.position.z-S.z<-1800)c.position.z+=3600;c.position.y=S.y+c.userData.h;});
+  cumulusStep(dt);clouds.forEach(c=>{c.position.x+=dt*3;if(c.position.x-S.x>1800)c.position.x-=3600;if(c.position.x-S.x<-1800)c.position.x+=3600;if(c.position.z-S.z>1800)c.position.z-=3600;if(c.position.z-S.z<-1800)c.position.z+=3600;c.position.y=S.y+c.userData.h;});
   updateBirds(dt,tn);updatePuffs(dt,playing);updateMist(dt,env);
   let fov=60;
   {const want=S.modal==='garage'?0.2:(S.mode==='menu'&&!S.modal)?0.14:0;if(want!==S.vOff){S.vOff=want;const w=window.innerWidth,h=window.innerHeight;if(want){camera.setViewOffset(w,h,w*want,0,w,h);}else camera.clearViewOffset();}}

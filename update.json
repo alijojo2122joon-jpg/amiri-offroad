@@ -1,71 +1,71 @@
 {
- "code": 161,
+ "code": 162,
  "minApk": 151,
  "apkUrl": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/AmiriOffroad.apk?v=151",
  "files": [
   {
    "path": "index.html",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html?v=161",
-   "sha256": "d26d86f1db42e42211eb0ee4c7248eac33ab50a95f6825ce22c816ef6e005ce0",
-   "size": 7035366
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html?v=162",
+   "sha256": "6a0e39382011f4ecdcfcf4048523913d55ee8cd8cb38f753e36e7a644e85077d",
+   "size": 7037428
   },
   {
    "path": "models/mech.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/mech.glb?v=161",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/mech.glb?v=162",
    "sha256": "72b1fc5d4ce870631ccbfe3920a1c4cf4f6a7947c1ecab38689aa5c29a5685c4",
    "size": 6054592
   },
   {
    "path": "snd/r_crank.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/r_crank.ogg?v=161",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/r_crank.ogg?v=162",
    "sha256": "6b99c1329513fa3202c0386f454a3fd66f5da024216d8e7078e971c5d50f75d1",
    "size": 12301
   },
   {
    "path": "snd/r_start2.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/r_start2.ogg?v=161",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/r_start2.ogg?v=162",
    "sha256": "5aa6d77f3162c3dd2c69514871220d38eb5e9a2107236ff51d97695e76402d4a",
    "size": 28952
   },
   {
    "path": "snd/e_ci.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_ci.ogg?v=161",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_ci.ogg?v=162",
    "sha256": "8de61a837fa54a57b1c9175e6a945d88be9ea96a12ccb17a1d4cd784c62f79cc",
    "size": 44795
   },
   {
    "path": "snd/e_c0.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c0.ogg?v=161",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c0.ogg?v=162",
    "sha256": "e8649a887dd0751726e8c03f76ddc0946cef44e18cf916aafd2be01e4c216440",
    "size": 29516
   },
   {
    "path": "snd/e_c1.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c1.ogg?v=161",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c1.ogg?v=162",
    "sha256": "216a52bef1e467ee7167fdb49bfb400465af3e523fd36cb5c24fd435a8981ba3",
    "size": 18717
   },
   {
    "path": "snd/e_c2.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c2.ogg?v=161",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c2.ogg?v=162",
    "sha256": "5d05760dc282bde8964db76fee5106fea31761e744b86a3d8d2db0e94c679fcd",
    "size": 15258
   },
   {
    "path": "snd/e_c3.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c3.ogg?v=161",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c3.ogg?v=162",
    "sha256": "978e630b621af15d916e7cbdbe6297a24a03b24414430b2c23f81a9d76b01a6c",
    "size": 16646
   },
   {
    "path": "snd/e_c4.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c4.ogg?v=161",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c4.ogg?v=162",
    "sha256": "cbc188bf2cee10bcdd765f1569474839fc3c1648218338a76fade9d2a248654a",
    "size": 17015
   },
   {
    "path": "maps/bamir.json",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/maps/bamir.json?v=161",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/maps/bamir.json?v=162",
    "sha256": "b27f66b29d05d613f4e3336101365906cfb27c2b7516d52574f706299f7ea8a9",
    "size": 9053960
   }
