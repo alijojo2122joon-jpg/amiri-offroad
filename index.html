@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=134</script>
+<script>window.GAME_CODE=135</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -543,7 +543,7 @@ function fbm(x,z,o){let s=0,amp=1,f=1,t=0;for(let i=0;i<o;i++){s+=amp*vnoise(x*f
 
 /* ---------- Settings & save ---------- */
 const SETK='amiri-offroad-settings',SAVE='amiri-offroad-v3';
-const SET={sound:true,vol:0.8,quality:'auto',weather:'auto',time:'auto',sens:1,mvol:0.7,vvol:1,ptt:false,chat:true,units:'kmh',miniZoom:260,fps:false,vib:true};
+const SET={fwx:'auto',fhour:'auto',sound:true,vol:0.8,quality:'auto',weather:'auto',time:'auto',sens:1,mvol:0.7,vvol:1,ptt:false,chat:true,units:'kmh',miniZoom:260,fps:false,vib:true};
 try{Object.assign(SET,JSON.parse(localStorage.getItem(SETK)||'{}'));}catch(e){}
 SET.weather='auto';SET.time='auto';
 // graphics now follow each phone by themselves (smooth on weak phones, full quality on strong ones)
@@ -3195,6 +3195,8 @@ function renderSettings(){$('setBody').innerHTML=seg(tr_('زبان'),'lang',[['f
   +seg(tr_('بزرگنمایی نقشهٔ کوچک'),'miniZoom',[[160,tr_('نزدیک')],[260,tr_('متوسط')],[480,tr_('دور')]])
   +seg(tr_('لرزش گوشی هنگام ضربه'),'vib',[[true,tr_('روشن')],[false,tr_('خاموش')]])
   +seg(tr_('نمایش سرعت تصویر (FPS)'),'fps',[[false,tr_('خاموش')],[true,tr_('روشن')]])
+  +seg(tr_('آب‌وهوا (برای فیلم‌برداری)'),'fwx',[['auto',tr_('خودکار')],['clear',tr_('آفتابی')],['rain',tr_('باران')],['snow',tr_('برف')],['fog',tr_('مه')],['sand',tr_('طوفان شن')]])
+  +seg(tr_('ساعت (برای فیلم‌برداری)'),'fhour',[['auto',tr_('خودکار')],[6.3,tr_('طلوع')],[10,tr_('روز')],[17.6,tr_('غروب')],[19.6,tr_('سرشب')],[0,tr_('نیمه‌شب')]])
   +'<p style="font-size:12px"><a href="#" id="privLink" style="color:#2f6d8a">'+tr_('حریم خصوصی')+'</a></p>';}
 let setFrom=null;
 function openSettings(){setFrom=S.modal==='pause'?'pause':null;renderSettings();profFill();openModal('settings');}
@@ -3223,7 +3225,7 @@ $('laW').addEventListener('input',e=>laSize('w',+e.target.value));$('laC').addEv
 document.addEventListener('click',e=>{if(document.body.classList.contains('editing')&&$('comms').contains(e.target)){e.stopPropagation();e.preventDefault();}},true);$('laP').addEventListener('input',e=>laSize('p',+e.target.value));
 $('laReset').addEventListener('click',()=>{SET.lay={};applyLayout();$('laW').value=1;$('laP').value=1;$('laC').value=1;});$('laDone').addEventListener('click',endLayout);
 window.addEventListener('resize',applyLayout);
-function applySettings(){applyLayout();resize();const ms=QV([1024,1024,2048,2048]);sun.castShadow=true;if(sun.shadow.mapSize.x!==ms){sun.shadow.mapSize.set(ms,ms);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}}
+function applySettings(){window.__wxOv=SET.fwx&&SET.fwx!=='auto'?SET.fwx:undefined;window.__todOv=SET.fhour!=='auto'&&typeof SET.fhour==='number'?SET.fhour/24:undefined;applyLayout();resize();const ms=QV([1024,1024,2048,2048]);sun.castShadow=true;if(sun.shadow.mapSize.x!==ms){sun.shadow.mapSize.set(ms,ms);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}}
   if(SET.time==='day')S.tod=0.42;else if(SET.time==='sunset')S.tod=0.715;else if(SET.time==='night')S.tod=0.02;$('spdU').textContent=SET.units==='mph'?'mph':'km/h';$('fpsTag').hidden=!SET.fps;try{vcUI();}catch(e){}if(typeof pTile!=='undefined'&&tiles.size)scanTiles(true);}
 
 /* Menus, exit and map */
