@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=142</script>
+<script>window.GAME_CODE=143</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -2951,9 +2951,11 @@ const SND={buf:{},base:'snd/',loading:false,loops:null,eng:null,engType:null};
 const PADS=2048/44100;
 // real-recording engines: each layer is a recorded loop, the rpm it was recorded at, and the rpm where the next layer
 // takes over (with a fade that wide). Ferrari V8 idle and fast idle below, a 1972 911 flat-six at speed above.
-const REALENG={f6:{L:[['r_idle',1000],['r_fast',1560],['r_high',3400],['r_high2',4420]],B:[[1300,380],[2900,700],[4700,900]]},
+// engine: Amir's pick (BigSoundBank, Car engine 2): its steady idle stretches, and its revved stretches played as they are
+// and a little slower for the middle, so no layer is sped up much (that made it thin)
+const REALENG={f6:{L:[['e_bi',900],['e_bm',1750],['e_bh',2800]],B:[[1300,380],[2900,700],[4700,900]]},
   // the trucks' V8: the same recordings played slower and deeper
-  v8r:{L:[['r_idle',1200],['r_fast',1900],['r_high',4300],['r_high2',5600]],B:[[1400,420],[3000,800],[4900,1000]]}};
+  v8r:{L:[['e_bi',1100],['e_bm',2100],['e_bh',3300]],B:[[1400,420],[3000,800],[4900,1000]]}};
 const ENGRPM={i4:[800,1400,2200,3200,4400,5800],i6:[800,1400,2200,3200,4400,5800],v8:[750,1300,2100,3100,4300,5600],d6:[600,900,1300,1800,2400,3000]};
 // fixed animal places along the route: villages and livestock in the Bamiyan valley and lake land, birds in green lands,
 // ducks and frogs at the lakes, crows over dry lands, wolves in the high mountains, gulls at the coast

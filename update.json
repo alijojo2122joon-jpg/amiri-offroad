@@ -1,25 +1,43 @@
 {
- "code": 142,
+ "code": 143,
  "minApk": 137,
  "apkUrl": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/AmiriOffroad.apk?v=137",
  "files": [
   {
    "path": "index.html",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html?v=142",
-   "sha256": "06ccdb1c20244b6261c9cc9b35d0c696b0543db594f48a5595b0a7f68ba070a0",
-   "size": 6994212
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html?v=143",
+   "sha256": "f978e6bd44e1180c45004bf98efebe105a8a883fe949d6910f74ff138081dbec",
+   "size": 6994376
   },
   {
    "path": "models/mech.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/mech.glb?v=142",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/mech.glb?v=143",
    "sha256": "72b1fc5d4ce870631ccbfe3920a1c4cf4f6a7947c1ecab38689aa5c29a5685c4",
    "size": 6054592
   },
   {
    "path": "snd/r_reverse.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/r_reverse.ogg?v=142",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/r_reverse.ogg?v=143",
    "sha256": "c25bf1e08fe4ba25244ed72b993221fcf2368477255803d442bb260fd2d47e7b",
    "size": 26694
+  },
+  {
+   "path": "snd/e_bi.ogg",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_bi.ogg?v=143",
+   "sha256": "7d55f49cfc2efb69743a35cff4849cf03fbe31876d5d0de9648cafba638b07df",
+   "size": 28900
+  },
+  {
+   "path": "snd/e_bm.ogg",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_bm.ogg?v=143",
+   "sha256": "07b697c3cb2b2eb96a77da8796975821f18ae89a4fe6813fb37499c43330760d",
+   "size": 21716
+  },
+  {
+   "path": "snd/e_bh.ogg",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_bh.ogg?v=143",
+   "sha256": "7efb2832a075d8be956d807e0e1f6edc1bf1d746ea07712c479a86f3dfc3cb58",
+   "size": 14301
   }
  ],
  "apkSize": 30323301
