@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=163</script>
+<script>window.GAME_CODE=164</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1831,12 +1831,18 @@ const puffTex=(function(){const N=256,c=document.createElement('canvas');c.width
   g.putImageData(im,0,0);const t=new THREE.CanvasTexture(c);if(FILMIC)t.encoding=THREE.sRGBEncoding;return t;})();
 const cumulus=[];
 function cumulusBuild(){if(cumulus.length)return;const R=mulberry32(11);for(let k=0;k<42;k++){const grp=new THREE.Group(),w=500+R()*1100,n=10+Math.floor(R()*12);
-    for(let i=0;i<n;i++){const top=R(),m=new THREE.SpriteMaterial({map:puffTex,transparent:true,depthWrite:false,fog:false,opacity:0.92});m.color.setScalar(0.86+0.14*top);
+    for(let i=0;i<n;i++){const top=R(),m=new THREE.SpriteMaterial({map:puffTex,transparent:true,depthWrite:false,fog:false,opacity:0.92});m.color.setScalar(0.86+0.14*top);m.userData.b=0.86+0.14*top;m.userData.t=top;
       const sp=new THREE.Sprite(m),sz=w*(0.35+R()*0.45);sp.scale.set(sz,sz*0.75,1);sp.position.set((R()-0.5)*w,top*w*0.28,(R()-0.5)*w*0.6);grp.add(sp);}
     grp.userData={u:(R()-0.5)*16000,v:(R()-0.5)*16000,h:1300+R()*1300};grp.renderOrder=-1;grp.visible=false;scene.add(grp);cumulus.push(grp);}}
 function cumulusStep(dt){const on=FREE&&FMAP==='bamir'&&WX.type!=='rain';cloudShU.value=on?1:0;if(on)cumulusBuild();for(const g of cumulus){g.visible=on;if(!on)continue;const d=g.userData;d.u+=dt*4;if(d.u>8000)d.u-=16000;
   let x=d.u+Math.floor((S.x-d.u)/16000+0.5)*16000,z=d.v+Math.floor((S.z-d.v)/16000+0.5)*16000;g.position.set(x,S.y+d.h,z);}
+  if(on){const el=SUNDIR.y,dF=sstep(-0.1,0.18,el),wm=sstep(0.42,0.04,el)*sstep(-0.14,0.03,el),key=Math.round(dF*60)*100+Math.round(wm*60);
+    if(key!==cumulus.key){cumulus.key=key;const dk=0.18+0.82*dF;for(const g of cumulus)for(const sp of g.children){const u=sp.material.userData,t=u.t;
+      // sunset: sunlit tops glow gold-peach, the shaded undersides turn rose and lilac; at night the clouds go dark blue-grey
+      _cuC.setRGB(1,1,1).lerp(_cuW.setRGB(1,0.46+0.2*t,0.27+0.12*t),wm*0.92).lerp(_cuW.setRGB(0.5,0.34,0.52),wm*(1-t)*0.45).multiplyScalar(u.b*dk);
+      sp.material.color.copy(_cuC);}}}
   clouds.forEach(c=>{if(on)c.visible=false;});}
+const _cuC=new THREE.Color(),_cuW=new THREE.Color();
 /* Birds: vultures circle over dangerous ground, crows flap around dead trees, songbirds flit in the green lands, gulls glide over the coast */
 const birds=[];
 function birdMesh(kind){
