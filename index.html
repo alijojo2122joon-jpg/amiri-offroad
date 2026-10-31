@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=138</script>
+<script>window.GAME_CODE=139</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -5650,22 +5650,23 @@ const DIR_SHOTS=['chase','wheelF','inside','side','front','drone','wheelR','orbi
 
 // ---- recording the film straight into the phone's gallery (needs the app version that can save files; otherwise the
 // phone's own screen recorder is used)
-const REC={mr:null,q:Promise.resolve(),ok:false,dest:null};
+const REC={mr:null,q:Promise.resolve(),ok:false,dest:null,cv:null,cx:null};
 function recCan(){return !!(window.AndroidApp&&AndroidApp.recOpen&&window.MediaRecorder&&canvas.captureStream);}
 function recStart(){if(!recCan()){toast(tr_('برای ذخیرهٔ خودکار در گالری، برنامه را آپدیت کن؛ فعلاً با ضبط صفحهٔ گوشی ضبط کن'));return;}
-  try{const st=canvas.captureStream(30);if(AU.ac&&AU.master){REC.dest=AU.ac.createMediaStreamDestination();AU.master.connect(REC.dest);REC.dest.stream.getAudioTracks().forEach(t=>st.addTrack(t));}
+  try{const cw=canvas.width||1280,ch=canvas.height||720,W=1280,H=Math.round(W*ch/cw/2)*2;REC.cv=document.createElement('canvas');REC.cv.width=W;REC.cv.height=H;REC.cx=REC.cv.getContext('2d',{alpha:false});
+    const st=REC.cv.captureStream(30);if(AU.ac&&AU.master){REC.dest=AU.ac.createMediaStreamDestination();AU.master.connect(REC.dest);REC.dest.stream.getAudioTracks().forEach(t=>st.addTrack(t));}
     const types=['video/mp4;codecs=avc1,mp4a','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'],mime=types.find(t=>MediaRecorder.isTypeSupported(t))||'';
     if(!AndroidApp.recOpen(mime||'video/webm')){toast(tr_('ذخیره در گالری نشد؛ با ضبط صفحهٔ گوشی ضبط کن'));return;}
-    const mr=new MediaRecorder(st,mime?{mimeType:mime,videoBitsPerSecond:8e6}:{videoBitsPerSecond:8e6});REC.mr=mr;REC.ok=true;
-    mr.ondataavailable=e=>{if(!e.data||!e.data.size)return;const b=e.data;REC.q=REC.q.then(()=>b.arrayBuffer()).then(buf=>{const u=new Uint8Array(buf);let bin='';for(let i=0;i<u.length;i+=32768)bin+=String.fromCharCode.apply(null,u.subarray(i,i+32768));if(!AndroidApp.recChunk(btoa(bin)))REC.ok=false;});};
-    mr.onstop=()=>{REC.q=REC.q.then(()=>{const name=AndroidApp.recClose();if(REC.dest&&AU.master){try{AU.master.disconnect(REC.dest);}catch(e){}}REC.dest=null;REC.mr=null;
+    const mr=new MediaRecorder(st,mime?{mimeType:mime,videoBitsPerSecond:5e6,audioBitsPerSecond:128000}:{videoBitsPerSecond:5e6});REC.mr=mr;REC.ok=true;
+    mr.ondataavailable=e=>{if(!e.data||!e.data.size)return;const b=e.data;REC.q=REC.q.then(()=>new Promise(res=>{const fr=new FileReader();fr.onload=()=>{const d=String(fr.result),k=d.indexOf(',');if(!AndroidApp.recChunk(d.slice(k+1)))REC.ok=false;res();};fr.onerror=()=>{REC.ok=false;res();};fr.readAsDataURL(b);}));};
+    mr.onstop=()=>{REC.q=REC.q.then(()=>{const name=AndroidApp.recClose();if(REC.dest&&AU.master){try{AU.master.disconnect(REC.dest);}catch(e){}}REC.dest=null;REC.mr=null;REC.cv=REC.cx=null;
       toast(REC.ok&&name?tr_('فیلم در گالری ذخیره شد: Movies/AmiriOffroad'):tr_('ذخیرهٔ فیلم کامل نشد'));});};
     mr.start(1000);}catch(e){console.error(e);toast(tr_('ضبط شروع نشد؛ با ضبط صفحهٔ گوشی ضبط کن'));try{AndroidApp.recClose();}catch(_){}}}
 function recStop(){if(REC.mr&&REC.mr.state!=='inactive')REC.mr.stop();}
 function dirArm(){if(DIR.on||DIR.cnt>0||S.mode!=='play'||!V)return;DIR.cnt=3.2;SFX.click();toast(recCan()?tr_('فیلم‌برداری ۳ ثانیه دیگر شروع می‌شود؛ خودش در گالری ذخیره می‌شود'):tr_('فیلم‌برداری: ضبط صفحهٔ گوشی را روشن کن؛ ۳ ثانیه دیگر شروع می‌شود'));}
-function dirStart(){DIR.on=true;DIR.t=0;DIR.i=0;DIR.stuck=0;DIR.saved={cam:S.cam,cool:typeof EVT==='object'?EVT.cool:0,grace:BRK.grace||0};
-  if(typeof EVT==='object')EVT.cool=1e9;BRK.grace=1e9;document.body.classList.add('filming');recStart();S.engineOn=true;S.sel='D';selUI&&selUI();dirShot();}
-function dirStop(){if(!DIR.on)return;DIR.on=false;window.__camOv=undefined;K.gas=K.brake=false;wHeld=false;const s=DIR.saved||{};S.cam=s.cam||0;
+function dirStart(){DIR.on=true;DIR.t=0;DIR.i=0;DIR.stuck=0;DIR.drive=!!S.engineOn;DIR.saved={cam:S.cam,cool:typeof EVT==='object'?EVT.cool:0,grace:BRK.grace||0};
+  if(typeof EVT==='object')EVT.cool=1e9;BRK.grace=1e9;document.body.classList.add('filming');recStart();if(DIR.drive){S.sel='D';selUI&&selUI();}dirShot();}
+function dirStop(){if(!DIR.on)return;DIR.on=false;window.__camOv=undefined;K.gas=K.brake=false;if(DIR.drive)wHeld=false;const s=DIR.saved||{};S.cam=s.cam||0;
   if(typeof EVT==='object')EVT.cool=Math.min(s.cool||60,60);BRK.grace=6;document.body.classList.remove('filming');if(REC.mr)recStop();else toast(tr_('فیلم‌برداری تمام شد؛ ضبط صفحه را قطع کن و فایل را بفرست'));}
 function dirShot(){const k=DIR_SHOTS[DIR.i];S.cam=k==='inside'?4:0;window.__camOv=undefined;DIR.a0=Math.random()*6.283;
   // the wheels to film: the front one and the rear one on the side the camera is on
@@ -5678,7 +5679,7 @@ function dirDrive(dt){let tx,tz;const la=5+Math.abs(S.v)*0.6;
     const kk=clamp(Math.round(q.s+dir*la),0,FW.PX.length-1);tx=FW.PX[kk];tz=FW.PZ[kk];}
   else{tz=S.z+la;tx=roadX(tz)-1.9;}
   let e=Math.atan2(tx-S.x,tz-S.z)-S.th;while(e>Math.PI)e-=6.283;while(e<-Math.PI)e+=6.283;
-  wAng=clamp(-e*2.2,-1,1)*WLOCK;wHeld=true;S.engineOn=true;S.sel='D';const vt=FREE&&FW&&FW.dk?4.5:5.5;K.gas=Math.abs(S.v)<vt;K.brake=Math.abs(S.v)>vt+2;
+  wAng=clamp(-e*2.2,-1,1)*WLOCK;wHeld=true;S.engineOn=true;S.sel='D';const vt=FREE&&FW&&FW.dk?8:10;K.gas=Math.abs(S.v)<vt;K.brake=Math.abs(S.v)>vt+2;
   // stuck: put the car back on the road a little further on
   DIR.stuck=Math.abs(S.v)<0.6?DIR.stuck+dt:0;if(DIR.stuck>3){DIR.stuck=0;if(FREE&&FW&&FW.PX){const q=trailQ(S.x,S.z,80);if(q){const k=clamp(Math.round(q.s+15),0,FW.PX.length-1);placeAt(FW.PX[k],FW.PZ[k],freeHeading(k));}}else{const z=S.z+30,dx=roadDX(z);placeAt(roadX(z)-1.9,z,Math.atan2(dx,1));}}}
 function dirCam(){const k=DIR_SHOTS[DIR.i],u=DIR.t/DIR_LEN,s=Math.sin(S.th),c=Math.cos(S.th),sd=DIR.side,g=(x,z)=>Hd(x,z);
@@ -5695,7 +5696,7 @@ function dirStep(dt){
   if(DIR.cnt>0){DIR.cnt-=dt;if(DIR.cnt<=0){DIR.cnt=0;if(S.mode==='play')dirStart();}return;}
   if(!DIR.on)return;if(S.mode!=='play'||!V||BRK.rep||RIDE.pid){dirStop();return;}
   DIR.t+=dt;if(DIR.t>=DIR_LEN){DIR.t=0;DIR.i++;if(DIR.i>=DIR_SHOTS.length){dirStop();return;}dirShot();}
-  S.lightsOn=SKY_DAYF()<0.35;dirDrive(dt);dirCam();}
+  S.lightsOn=SKY_DAYF()<0.35;if(DIR.drive)dirDrive(dt);else{K.gas=false;}dirCam();}
 function SKY_DAYF(){const h=((S.tod%1)+1)%1;return h>0.27&&h<0.77?1:0;}
 (function(){const m=$('mini');let t=0;const off=()=>clearTimeout(t);
   m.addEventListener('pointerdown',()=>{off();t=setTimeout(dirArm,1500);});['pointerup','pointerleave','pointercancel'].forEach(e=>m.addEventListener(e,off));
@@ -5753,7 +5754,7 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
   rainbowStep(dt,env);banksStep();elemVisStep(dt);parkLodStep();if(Math.floor(performance.now()/500)!==STG.gT){STG.gT=Math.floor(performance.now()/500);gatesStep();}rivNrm.offset.y-=dt*0.32;commsFrame(dt);animalsStep(dt);{const tn2=performance.now();if(tn2-cabT>500){cabT=tn2;cabinsStep();}}
   // shadows are redrawn every frame on strong phones, every second frame on the others
   PERF.fn++;renderer.shadowMap.needsUpdate=QL()>=3||(PERF.fn&1)===0;
-  renderer.render(scene,camera);requestAnimationFrame(frame);
+  renderer.render(scene,camera);if(REC.cx&&REC.mr)try{REC.cx.drawImage(canvas,0,0,REC.cv.width,REC.cv.height);}catch(e){}requestAnimationFrame(frame);
 }
 rebuildEnv();scanTiles(true);processTiles(1e9);updateRoad(true);applyVehicle();applySettings();refreshMenu();updateGrass(0,true);
 setInterval(()=>{if(S.mode==='play')save();},10000);
