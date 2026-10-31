@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=148</script>
+<script>window.GAME_CODE=149</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -2968,7 +2968,7 @@ const LOOPS=['rain','rainroof','wind','forest','night','stream','gravel','road',
 const SHOTS=['r_crank','r_start2','r_start','r_shift','r_door','r_hit1','r_hit2','r_hit3','r_hit4','r_hit5','r_hit6','r_crash','r_crashb','r_bump1','r_bump2','r_bump3','r_bump4','r_knock1','r_knock2','r_creak1','r_creak2','r_creak3','r_stone1','r_stone2','r_stone3','r_stone4','r_wiper','r_pop1','r_pop2','r_pop3','thunder1','thunder2','thunder3','thunder4','splash1','splash2','splash3','mud1','mud2','crow','tick','skidshot','thud1','thud2','crash1','crash2','shift',
   'robin1','blackbird1','nightingale1','blackcap1','owl1','owlb1','owlb2','crowb1','duck1','sheep1','sheepb1','sheepc1','cow1','cowb1','donkey1','donkeyb1','dog1','dog2','dogb1','wolf1'];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
-function setT(p,v,tc){if(AU.ac)p.setTargetAtTime(v,AU.ac.currentTime,tc||0.08);}
+function setT(p,v,tc){if(!AU.ac)return;p.__tgt=v;if(v>0.0005&&p.__gv&&!p.__gv.on)gateOn(p.__gv);p.setTargetAtTime(v,AU.ac.currentTime,tc||0.08);}
 function initAudio(){
   try{
     // iPhone: play through the speaker even with the silent switch on, like a game should
@@ -2992,15 +2992,16 @@ function initAudio(){
 function audioSleep(){if(!AU.ac)return;try{setT(AU.master.gain,0,0.03);setTimeout(()=>{if(document.hidden&&AU.ac)AU.ac.suspend();},150);}catch(e){}}
 function audioWake(){if(!AU.ac||document.hidden||!$('bye').hidden)return;try{AU.master.gain.cancelScheduledValues(AU.ac.currentTime);AU.master.gain.setValueAtTime(0,AU.ac.currentTime);AU.ac.resume().then(()=>setT(AU.master.gain,SET.sound?SET.vol:0,0.4));}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)audioSleep();else audioWake();});
-// a notification or a call took the phone's audio for a moment: go quiet while it plays, and when it gives the audio back
-// start the sound output afresh (a resumed output on some phones crackles or hisses until it is rebuilt)
-function audioRebuild(){if(!AU.ac)return;const old=AU.ac;AU.ac=null;try{old.onstatechange=null;old.close();}catch(e){}
-  SND.loops=null;SND.eng=null;SND.engType=null;SND.loading=false;AU.rbT=performance.now();initAudio();}
-window.__audioFocus=ch=>{if(!AU.ac)return;if(ch<0){try{setT(AU.master.gain,0,0.03);}catch(e){}AU.lost=true;}else if(ch>0&&AU.lost){AU.lost=false;setTimeout(audioRebuild,120);}};
-// a watchdog for phones whose app is older: if the sound clock stalls while the game is in front, rebuild the output
-setInterval(()=>{const ac=AU.ac;if(!ac||document.hidden||ac.state!=='running')return;const now=performance.now(),ct=ac.currentTime;
-  if(AU.wdT){const wall=(now-AU.wdT)/1000,adv=ct-AU.wdC;if(wall>0.8&&adv<wall*0.5&&now-(AU.rbT||0)>5000){AU.wdBad=(AU.wdBad||0)+1;if(AU.wdBad>=2){AU.wdBad=0;audioRebuild();}}else AU.wdBad=0;}
-  AU.wdT=now;AU.wdC=ct;},1000);
+// a notification or a call took the phone's audio for a moment: go quiet while it plays, then carry on softly
+// (the same sound output keeps running; it is never torn down and rebuilt, which cost a reload of every sound)
+window.__audioFocus=ch=>{if(!AU.ac)return;if(ch<0){try{setT(AU.master.gain,0,0.03);}catch(e){}AU.lost=true;}else if(ch>0&&AU.lost){AU.lost=false;audioWake();}};
+// voices: a loop that is silent is taken out of the mix, so the phone only works on the sounds you can hear
+// (twenty-odd silent loops were each being resampled and filtered all the time, starving the sound and the game)
+function gateReg(g,outs){g.gain.__gv={g,outs,on:true,t:0};}
+function gateOn(v){if(v.on)return;v.on=true;v.t=0;v.outs.forEach(o=>{try{v.g.connect(o);}catch(e){}});}
+setInterval(()=>{if(!AU.ac)return;const now=performance.now(),list=[];if(SND.loops)for(const n in SND.loops)list.push(SND.loops[n].g);if(SND.eng)SND.eng.layers.forEach(l=>list.push(l.g));
+  for(const g of list){const v=g.gain.__gv;if(!v||!v.on)continue;if((g.gain.__tgt||0)>0.0005||g.gain.value>0.0005){v.t=0;continue;}if(!v.t){v.t=now;continue;}
+    if(now-v.t>1200){v.on=false;try{g.disconnect();}catch(e){}}}},300);
 function loadBuf(n){const u=window.__snd&&window.__snd[n];return (u?Promise.resolve().then(()=>dataBytes(u)):fetch(SND.base+n+'.ogg').then(r=>{if(!r.ok)throw new Error(n);return r.arrayBuffer();}))
   .then(a=>new Promise((res,rej)=>AU.ac.decodeAudioData(a,res,rej))).then(b=>{b.__n=n;SND.buf[n]=b;}).catch(()=>{});}
 function loadSounds(){
@@ -3020,8 +3021,8 @@ function buildLoops(){
   const L={};
   // a sound that failed to load gets a silent stand-in, so the rest of the mix carries on
   LOOPS.forEach(n=>{const b=SND.buf[n],f=AU.F('lowpass',14000,0.5),g=AU.G(0);f.connect(g);g.connect(AU.master);
-    L[n]={s:b?loopSrc(b,f):{playbackRate:AU.G(1).gain,stop(){}},f,g};});
-  if(L.wind){const r=AU.G(0.08);L.wind.g.connect(r);r.connect(AU.rev);}
+    L[n]={s:b?loopSrc(b,f):{playbackRate:AU.G(1).gain,stop(){}},f,g};gateReg(g,[AU.master]);});
+  if(L.wind){const r=AU.G(0.08);L.wind.g.connect(r);r.connect(AU.rev);L.wind.g.gain.__gv.outs.push(r);}
   SND.loops=L;
 }
 // engine: six steady-rpm loops; the two nearest the current rpm play together, pitched to match it, and cross-fade as rpm moves
@@ -3038,7 +3039,7 @@ function buildEngineLayers(type){
   // a little of it also goes to the reverb, so it fills canyons and the cabin
   const real=!!REALENG[type],mix=AU.G(1),lp=AU.F('lowpass',real?9000:1400,0.6),warm=AU.F('lowshelf',160),bite=AU.F('highshelf',2600),out=AU.G(0);warm.gain.value=real?2:3;bite.gain.value=0;
   mix.connect(warm);warm.connect(bite);bite.connect(lp);lp.connect(out);out.connect(AU.master);const rv=AU.G(real?0.05:0);out.connect(rv);rv.connect(AU.rev);
-  const layers=names.map((n,k)=>{const g=AU.G(0);g.connect(mix);return {s:loopSrc(SND.buf[n],g),g,rpm:rpms[k]};});
+  const layers=names.map((n,k)=>{const g=AU.G(0);g.connect(mix);gateReg(g,[mix]);return {s:loopSrc(SND.buf[n],g),g,rpm:rpms[k]};});
   SND.eng={layers,out,lp,bite,warm,rv,real};SND.engType=type;
 }
 function xfade(points,x){const w=points.map(()=>0);if(x<=points[0]){w[0]=1;return w;}const n=points.length-1;if(x>=points[n]){w[n]=1;return w;}
@@ -3093,7 +3094,7 @@ function updateAudio(dt,env){
     // real recordings: the layer for this rpm band, pitched to the exact rpm; on throttle it barks (more top, louder),
     // off throttle it goes hollow and quiet; in the cabin the body takes the top off and adds boom
     const r=clamp(S.rpm,300,7000),w=engWeights(SND.engType,r);
-    E.layers.forEach((l,i)=>{l.g.gain.setTargetAtTime(w[i],t,0.06);l.s.playbackRate.setTargetAtTime(clamp(r/l.rpm,0.45,2.1),t,0.035);});
+    E.layers.forEach((l,i)=>{setT(l.g.gain,w[i],0.06);l.s.playbackRate.setTargetAtTime(clamp(r/l.rpm,0.45,2.1),t,0.035);});
     const alive=playing?clamp((r-150)/450,0,1):0,hi=clamp((r-1200)/4500,0,1);
     E.out.gain.setTargetAtTime(alive*(0.24+0.22*ld+0.08*hi)*(AU.shiftDip>0?0.55:1)*(inCar?0.9:1),t,0.05);
     E.lp.frequency.setTargetAtTime(inCar?900+ld*900+r*0.15:1600+ld*7000+r*0.4,t,0.08);
@@ -3103,7 +3104,7 @@ function updateAudio(dt,env){
     AU.lastGas=S.gas;AU.popT=(AU.popT||0)-dt;
     if(AU.popN>0&&AU.popT<=0){AU.popN--;AU.popT=0.06+Math.random()*0.18;playBuf(pick(['r_pop1','r_pop2','r_pop3']),(inCar?0.12:0.22)*(0.5+Math.random()*0.6),0.85+Math.random()*0.35,(Math.random()-0.5)*0.3,0.08);}}
   else if(E){const r=clamp(S.rpm,300,6200),pts=E.layers.map(l=>l.rpm),w=xfade(pts,r);
-    E.layers.forEach((l,i)=>{l.g.gain.setTargetAtTime(w[i],t,0.05);l.s.playbackRate.setTargetAtTime(clamp(r/l.rpm,0.5,1.8),t,0.04);});
+    E.layers.forEach((l,i)=>{setT(l.g.gain,w[i],0.05);l.s.playbackRate.setTargetAtTime(clamp(r/l.rpm,0.5,1.8),t,0.04);});
     const alive=playing?clamp((r-150)/450,0,1):0;
     E.out.gain.setTargetAtTime(alive*(0.2+0.16*ld)*(AU.shiftDip>0?0.6:1)*(inCar?0.85:1),t,0.06);
     E.lp.frequency.setTargetAtTime(500+ld*1500+r*0.22,t,0.1);}
