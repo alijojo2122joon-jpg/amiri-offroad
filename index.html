@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=141</script>
+<script>window.GAME_CODE=142</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -3067,7 +3067,7 @@ const SFX={
 let ambT=6;
 // reversing: the gearbox whine of a car going backwards, louder and higher the faster it goes
 const REVS={g:null};function revStep(){const ac=AU.ac;if(!ac||!SND.buf.r_reverse)return;if(!REVS.g){REVS.g=AU.G(0);REVS.g.connect(AU.master);REVS.s=loopSrc(SND.buf.r_reverse,REVS.g);}
-  const on=S.mode==='play'&&S.engineOn&&S.sel==='R',sp=Math.abs(S.v||0),t=ac.currentTime;REVS.g.gain.setTargetAtTime(on?clamp(0.12+sp*0.09,0,0.7)*(S.cam===4?0.8:1):0,t,0.08);REVS.s.playbackRate.setTargetAtTime(clamp(0.85+sp*0.07,0.8,1.35),t,0.1);}
+  const on=S.mode==='play'&&S.engineOn&&S.sel==='R',sp=Math.abs(S.v||0),t=ac.currentTime;REVS.g.gain.setTargetAtTime(on&&sp>0.4?clamp(sp*0.11,0,0.7)*(S.cam===4?0.8:1):0,t,0.08);REVS.s.playbackRate.setTargetAtTime(clamp(0.85+sp*0.07,0.8,1.35),t,0.1);}
 function updateAudio(dt,env){try{revStep();}catch(e){}
   if(!AU.ac||AU.ac.state!=='running')return;
   const t=AU.ac.currentTime,L=SND.loops;
