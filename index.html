@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=151</script>
+<script>window.GAME_CODE=152</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -473,6 +473,7 @@ body.editing #comms{pointer-events:auto;outline:2px dashed var(--amber);outline-
     <button class="mbtn primary" id="playBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>بازی</button>
     <button class="mbtn primary" id="mFree"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>نقشهٔ آزاد (جزیره)</button>
     <button class="mbtn primary" id="mDayk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M2 20l6-11 4 6 3-4 7 9z"/><circle cx="17" cy="6" r="2"/></svg>دایکندی: شیخ میران تا نیلی</button>
+    <button class="mbtn primary" id="mBamir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M2 17l5-8 4 5 3-3 8 6"/><path d="M5 20c2-1.2 4-1.2 6 0s4 1.2 6 0"/></svg>بامیان تا بند امیر</button>
     
     <button class="mbtn" id="mOnline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 19c.6-3.2 2.9-5 5.5-5s4.9 1.8 5.5 5M14 14.6c.9-.4 1.9-.6 3-.6 2.3 0 4.2 1.6 4.6 4.5"/></svg>بازی آنلاین (تا ۶ نفر)</button>
     <button class="mbtn" id="mGarage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 10l9-6 9 6v10H3z"/><path d="M7 20v-6h10v6"/></svg>گاراژ، ارتقا و شخصی‌سازی</button>
@@ -645,7 +646,7 @@ SET.cam=SET.cam.map(c=>Object.assign(CAM0(),c||{}));
 let saved={};try{saved=JSON.parse(localStorage.getItem(SAVE)||'{}')||{};}catch(e){saved={};}
 try{if(window.AndroidApp&&AndroidApp.loadData){const f=JSON.parse(AndroidApp.loadData()||'{}');if(f&&(f.t||0)>(saved.t||0))saved=f;}}catch(e){}
 
-var BRK={flat:-1,heat:0.45,lights:true,hotWarn:false,spare:1,rep:null};var FREE=false,FW=null,FS=null,FMAP='island',DK={vz:0},dkObst=[],evObst=[];
+var BRK={flat:-1,heat:0.45,lights:true,hotWarn:false,spare:1,rep:null};var FREE=false,FW=null,FS=null,FMAP='island',DK={vz:0},DKM={dayk:DK},dkObst=[],evObst=[];function RMAP(m){return m==='dayk'||m==='bamir';}
 /* ---------- The road: eight lands. The first three are a short paved highway; from the Red Canyon on it is the wild 30 km-per-land track ---------- */
 // Lands are laid out in "design" metres (30 km each); the first three are squeezed into PAVE real metres of two-track dirt road.
 const ZONE=30000,NZONE=8,DESLEN=ZONE*NZONE,PAVE=3000,KZ=3*ZONE/PAVE,ROADLEN=DESLEN-3*ZONE+PAVE,HALFW=2.6,SNOWALT=400,AW=3.9;
@@ -685,7 +686,7 @@ for(let i=0;i<ZN;i++){const z=Z0+i*ZSTEP,u=clamp(OZ(z),0,DESLEN-1)/ZONE-0.5,k=cl
 for(let i=0;i<ZN;i++){const z=Z0+i*ZSTEP,sd=sg=>sstep(tDP[i]+0.07,tDP[i]-0.07,vnoise(z*0.0011+sg*17.3,sg*3.1));tCam[i]=-0.055*(0.35+tNar[i])*(sd(1)-sd(-1))*sstep(-100,300,z);}
 function micro(z){return tab(tR,z)*(1.3*Math.sin(z/41+1.3)+0.6*Math.sin(z/19+0.4))*sstep(-100,250,z)*(1-0.55*paveF(z));}
 function HW(z){if(FREE)return 3.2;return 7-3.4*tab(tNar,z)*(0.55+0.45*vnoise(z*0.004,3.3));}
-function SNL(z){if(FREE&&FMAP==='dayk')return 1500;return tab(tSn,z);}
+function SNL(z){if(FREE&&RMAP(FMAP))return (DK.sn||1450)+50;return tab(tSn,z);}
 function zIdx(z){if(FREE)z=VZ(z);const f=(clamp(z,Z0,Z0+(ZN-2)*ZSTEP)-Z0)/ZSTEP;return f;}
 function tab(a,z){const f=zIdx(z),i=Math.floor(f),r=f-i;return a[i]+(a[i+1]-a[i])*r;}
 function roadE(z){return tab(tE,z)+micro(z);}
@@ -1207,7 +1208,7 @@ terrainMat.onBeforeCompile=sh=>{sh.uniforms.uSnow=snowU;sh.uniforms.uSnowD=snowD
 const ZC=ZB.map(b=>({g1:new THREE.Color(b.g1),g2:new THREE.Color(b.g2),r1:new THREE.Color(b.r1),r2:new THREE.Color(b.r2)}));
 const C_SNOW=new THREE.Color('#f6f4ef'),C_SAND=new THREE.Color('#e0cb98'),C_ROAD=new THREE.Color('#a68d66'),C_WET=new THREE.Color('#7f7358');
 const tA=new THREE.Color(),tB=new THREE.Color();
-function groundColor(x,z,h,ny,ad,out){if(FREE&&FMAP==='dayk')return dkGround(x,z,h,ny,ad,out);
+function groundColor(x,z,h,ny,ad,out){if(FREE&&RMAP(FMAP))return dkGround(x,z,h,ny,ad,out);
   const f=zIdx(z),i=Math.floor(f),k=tK[i],k2=tK2[i],w=tW[i],A=ZC[k],B=ZC[k2];
   const n1=vnoise(x*0.02+3,z*0.02-8),n2=vnoise(x*0.07,z*0.07);
   out.copy(A.g1).lerp(B.g1,w);tA.copy(A.g2).lerp(B.g2,w);out.lerp(tA,clamp(n1*1.3-0.15,0,1));
@@ -1644,13 +1645,13 @@ const waterNrm=(function(){const S=256,c=document.createElement('canvas');c.widt
   x.putImageData(id,0,0);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(18,18);return t;})();
 // open water reads the ripples in world space (the same size on a pond and on the sea), three layers drifting different ways;
 // it gets lighter and more mirror-like toward the horizon (Fresnel), and its sides and depth are a darker body of water
-function waterize(m,sc){m.onBeforeCompile=sh=>{sh.uniforms.uT=timeU;sh.uniforms.uHor=skyU.hor;sh.uniforms.uMid=skyU.mid;
+function waterize(m,sc,tint){m.onBeforeCompile=sh=>{sh.uniforms.uT=timeU;sh.uniforms.uHor=skyU.hor;sh.uniforms.uMid=skyU.mid;
     sh.vertexShader='varying vec3 vWP;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvWP=(modelMatrix*vec4(transformed,1.0)).xyz;');
     sh.fragmentShader='uniform float uT;uniform vec3 uHor,uMid;varying vec3 vWP;\n'+sh.fragmentShader.replace('#include <normal_fragment_maps>',
       'vec2 wq=vWP.xz*'+sc.toFixed(3)+';vec3 n1=texture2D(normalMap,wq+vec2(uT*0.021,uT*0.013)).xyz*2.0-1.0;vec3 n2=texture2D(normalMap,wq*1.93+vec2(-uT*0.017,uT*0.024)).xyz*2.0-1.0;vec3 n3=texture2D(normalMap,wq*0.31+vec2(uT*0.006,-uT*0.004)).xyz*2.0-1.0;'
       +'vec2 sl=(n1.xy+n2.xy*0.55+n3.xy*0.9)*normalScale;normal=normalize((viewMatrix*vec4(normalize(vec3(-sl.x,1.0,-sl.y)),0.0)).xyz);')
-      .replace('#include <tonemapping_fragment>','float wfr=pow(1.0-clamp(dot(normalize(vViewPosition),normal),0.0,1.0),4.0);gl_FragColor.rgb=mix(gl_FragColor.rgb,mix(uHor,uMid,0.35)*0.92,wfr*0.85);gl_FragColor.a=mix(gl_FragColor.a,1.0,wfr*0.7);\n#include <tonemapping_fragment>');};
-  m.customProgramCacheKey=()=>'water'+sc;return m;}
+      .replace('#include <tonemapping_fragment>','float wfr=pow(1.0-clamp(dot(normalize(vViewPosition),normal),0.0,1.0),4.0);gl_FragColor.rgb=mix(gl_FragColor.rgb,'+(tint?'mix(mix(uHor,uMid,0.6),vec3('+tint+'),0.55)':'mix(uHor,uMid,0.35)*0.92')+',wfr*'+(tint?'0.45':'0.85')+');gl_FragColor.a=mix(gl_FragColor.a,1.0,wfr*0.7);\n#include <tonemapping_fragment>');};
+  m.customProgramCacheKey=()=>'water'+sc+(tint||'');return m;}
 const waterMat=waterize(new THREE.MeshPhongMaterial({normalMap:waterNrm,normalScale:new THREE.Vector2(0.42,0.42),color:'#1f5f7a',specular:0xfff0d0,shininess:180,transparent:true,opacity:0.86,envMap:carEnv,reflectivity:0.5,combine:THREE.MixOperation,depthWrite:false}),0.045);
 // the body of the water under the surface: darker toward the bottom (seen from the side, from a beam, a cliff or a bank)
 const waterDeepMat=new THREE.MeshLambertMaterial({vertexColors:true,transparent:true,opacity:0.9,depthWrite:false,side:THREE.DoubleSide});
@@ -2799,7 +2800,7 @@ if(saved.v===8&&typeof saved.z==='number'&&saved.z>0&&saved.z<ROADLEN){S.z=saved
 S.x=roadX(S.z);S.th=Math.atan(roadDX(S.z));
 let ST=stats(S.veh);
 // saved in the browser storage and, in the app, also as a file in the phone's storage
-function save(){const js=JSON.stringify({stars:STARS,v:8,lay:3,vset:3,t:Date.now(),veh:S.veh,owned,up:upLv,cust:custAll,coins:S.coins,odo:S.odo,best:S.best,found:S.found,camp:S.camp,z:S.z,x:S.x,th:S.th,stageMax:S.stageMax||0,stageCur:S.stageCur||0,fw:FREE?1:0,dayk:DKS,free:FS?(FREE&&FMAP!=='dayk'&&S.mode==='play'?Object.assign(FS,{x:r2(S.x),z:r2(S.z),th:r2(S.th)}):FS):undefined});
+function save(){const js=JSON.stringify({stars:STARS,v:8,lay:3,vset:3,t:Date.now(),veh:S.veh,owned,up:upLv,cust:custAll,coins:S.coins,odo:S.odo,best:S.best,found:S.found,camp:S.camp,z:S.z,x:S.x,th:S.th,stageMax:S.stageMax||0,stageCur:S.stageCur||0,fw:FREE?1:0,dayk:DKSM.dayk,bamir:DKSM.bamir,free:FS?(FREE&&FMAP!=='dayk'&&S.mode==='play'?Object.assign(FS,{x:r2(S.x),z:r2(S.z),th:r2(S.th)}):FS):undefined});
   try{localStorage.setItem(SAVE,js);}catch(e){}try{if(window.AndroidApp&&AndroidApp.saveData)AndroidApp.saveData(js);}catch(e){}}
 function cleanPlate(v){return typeof v==='string'?v.replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,10):'';}
 const plateMats={};
@@ -3369,7 +3370,7 @@ window.__appBack=()=>{if(S.modal==='pause')closeModal();else if(S.modal){const b
 window.__appPause=()=>{save();if(S.mode==='play'&&!S.modal&&!ADS.showing&&!DIR.asking&&!DIR.on&&!REC.native)openModal('pause');audioSleep();try{MUS.wasPlaying=!MUS.el.paused;MUS.el.pause();}catch(e){}};
 window.__appResume=()=>{setTimeout(audioWake,200);try{if(MUS.wasPlaying)MUS.el.play().catch(()=>{});}catch(e){}};
 $('byeBack').addEventListener('click',()=>{$('bye').hidden=true;$('menu').hidden=false;audioWake();refreshMenu();});
-$('playBtn').addEventListener('click',()=>{if(!AU.ac)initAudio();openStages();});$('mFree').addEventListener('click',()=>enterPlay(true,'island'));$('mDayk').addEventListener('click',()=>{const b=$('mDayk');if(b.dataset.busy)return;b.dataset.busy='1';toast(tr_('در حال ساختن دایکندی واقعی…'));dkLoad().then(()=>{delete b.dataset.busy;enterPlay(true,'dayk');}).catch(e=>{delete b.dataset.busy;toast(tr_('بارگذاری نقشه نشد'));console.error(e);});});$('mGarage').addEventListener('click',()=>{if(!AU.ac)initAudio();openGarage();});$('mSet').addEventListener('click',openSettings);$('mHelp').addEventListener('click',()=>openModal('help'));$('mQuit').addEventListener('click',exitGame);
+$('playBtn').addEventListener('click',()=>{if(!AU.ac)initAudio();openStages();});$('mFree').addEventListener('click',()=>enterPlay(true,'island'));$('mDayk').addEventListener('click',()=>{const b=$('mDayk');if(b.dataset.busy)return;b.dataset.busy='1';toast(tr_('در حال ساختن دایکندی واقعی…'));dkLoad().then(()=>{delete b.dataset.busy;enterPlay(true,'dayk');}).catch(e=>{delete b.dataset.busy;toast(tr_('بارگذاری نقشه نشد'));console.error(e);});});$('mBamir').addEventListener('click',()=>{const b=$('mBamir');if(b.dataset.busy)return;b.dataset.busy='1';toast(tr_('در حال ساختن راه بامیان تا بند امیر…'));dkLoad('bamir').then(()=>{delete b.dataset.busy;enterPlay(true,'bamir');}).catch(e=>{delete b.dataset.busy;toast(tr_('بارگذاری نقشه نشد'));console.error(e);});});$('mGarage').addEventListener('click',()=>{if(!AU.ac)initAudio();openGarage();});$('mSet').addEventListener('click',openSettings);$('mHelp').addEventListener('click',()=>openModal('help'));$('mQuit').addEventListener('click',exitGame);
 $('helpClose').addEventListener('click',closeModal);$('pauseBtn').addEventListener('click',()=>openModal('pause'));$('pResume').addEventListener('click',closeModal);$('pGarage').addEventListener('click',openGarage);$('pSet').addEventListener('click',openSettings);$('pMenu').addEventListener('click',toMenu);$('pQuit').addEventListener('click',exitGame);
 $('pRestart').addEventListener('click',()=>{const b=$('pRestart');if(!b.dataset.sure){b.dataset.sure='1';b.textContent=tr_('مطمئنی؟ دوباره بزن');setTimeout(()=>{delete b.dataset.sure;b.textContent=FREE?tr_('برگشت به اردوگاه'):tr_('شروع دوبارهٔ همین مرحله');},3000);return;}
   delete b.dataset.sure;b.textContent=FREE?tr_('برگشت به اردوگاه'):tr_('شروع دوبارهٔ همین مرحله');closeModal();S.vx=S.vz=S.vy=S.w=0;S.roll=S.pitch=0;S.engineOn=false;S.rpm=0;if(FREE)freeGo(0);else restartStage(STG.cur);});
@@ -3676,20 +3677,20 @@ let envT=0,envKey='';
 // the weather belongs to the place, not to the hour: snow always falls on the mountains, the lowlands get rain, and the dry
 // plains have sandstorms over parts of them. Nothing in the settings changes it.
 let FSNOWH=230;
-function snowyAt(x,y,z){if(FREE&&FMAP==='dayk')return false;if(FREE)return y>FSNOWH-10||vnoise(x*0.0007,z*0.0007)>fsnowQ();return zoneOf(z)===5||y>SNL(z)-40||((z/7500+0.37)%1+1)%1<0.7;}
+function snowyAt(x,y,z){if(FREE&&RMAP(FMAP))return false;if(FREE)return y>FSNOWH-10||vnoise(x*0.0007,z*0.0007)>fsnowQ();return zoneOf(z)===5||y>SNL(z)-40||((z/7500+0.37)%1+1)%1<0.7;}
 // about 70% of every map is snow country: long snowy stretches on the route, most of the island
 let FSNOWQ=null;
 function fsnowQ(){if(FSNOWQ===null){const R=mulberry32(901),v=[];for(let i=0;i<500;i++){const a=R()*6.283,r=Math.sqrt(R())*FR;v.push(vnoise((FX+Math.cos(a)*r)*0.0007,(FZ+Math.sin(a)*r)*0.0007));}v.sort((a,b)=>a-b);FSNOWQ=v[Math.floor(v.length*0.3)];}return FSNOWQ;}
-function snowCountry(){if(FREE&&FMAP==='dayk')return false;if(FREE)return vnoise(S.x*0.0007,S.z*0.0007)>fsnowQ();
+function snowCountry(){if(FREE&&RMAP(FMAP))return false;if(FREE)return vnoise(S.x*0.0007,S.z*0.0007)>fsnowQ();
   const u=((S.z/7500+0.37)%1+1)%1;return u<0.7;}
 function snowHours(){const h=S.tod*24,day=Math.floor(clockHours()/24),R=mulberry32(7717+day),ds=7+R()*9,ns=19+R()*9,in2=(a)=>{const d=((h-a)%24+24)%24;return d<2;};return in2(ds)||in2(ns%24);}
-function mountainAt(){if(FREE&&FMAP==='dayk')return false;return FREE?S.y>FSNOWH:(zoneOf(S.z)===5||S.y>SNL(S.z)-40);}
+function mountainAt(){if(FREE&&RMAP(FMAP))return false;return FREE?S.y>FSNOWH:(zoneOf(S.z)===5||S.y>SNL(S.z)-40);}
 function envWx(){const k=zoneOf(S.z),was=WX.target;
   // on the stages each stage has its own weather (the first two are always fine); high up it snows instead
   if(!FREE){const sk=stageOf(S.z),st=STAGES[sk];if(sk<2)return 'clear';if(st.wx!=='clear'&&st.wx!=='sand'&&S.y>SNL(S.z)+30)return 'snow';return st.wx;}
   if(mountainAt())return 'snow';
   if(snowCountry())return snowHours()?'snow':'clear';
-  if(FREE&&FMAP==='dayk')return 'clear';
+  if(FREE&&RMAP(FMAP))return 'clear';
   if(FREE){const h=S.y,sn=was==='snow'?h>FSNOWH-20:h>FSNOWH;if(sn)return 'snow';if(h>70&&vnoise(S.x*0.0011+3.1,S.z*0.0011+1.7)>0.6)return 'sand';return 'rain';}
   if(k===5||S.y>SNL(S.z)-(was==='snow'?60:40))return 'snow';
   if(k===3||k===4)return vnoise(S.z*0.0008,7.3)>0.48?'sand':'clear';
@@ -3942,12 +3943,12 @@ function netRx(topic,m){
   else if(m.t==='va'){if(VC.spk)vcRelayIn(m);}
   else if(m.t==='bye'){const n=P.name;dropPeer(P);toast(n+tr_(' از بازی رفت'));if(S.modal==='online')onlineUI();}
 }
-function sendAccept(id){tx({t:'acc',to:id,fw:FREE?(FMAP==='dayk'?2:1):0,name:myName(),veh:S.veh,cu:myCu(S.veh),x:r2(S.x),z:r2(S.z),th:r2(S.th),tod:S.tod,wt:WX.type,wa:WX.amt,wg:WX.target});}
+function sendAccept(id){tx({t:'acc',to:id,fw:FREE?(FMAP==='dayk'?2:FMAP==='bamir'?3:1):0,name:myName(),veh:S.veh,cu:myCu(S.veh),x:r2(S.x),z:r2(S.z),th:r2(S.th),tod:S.tod,wt:WX.type,wa:WX.amt,wg:WX.target});}
 function netAccept(){$('reqCard').hidden=true;NET.pending=null;}
 function netReject(){$('reqCard').hidden=true;NET.pending=null;}
 function guestStart(m){
   clearInterval(NET.reqI);NET.joined=true;const P=addPeer(m.f,cleanName(m.name),m.veh,m.cu);
-  setWorld(!!m.fw,m.fw===2?'dayk':'island');const hx=num(m.x,S.x),hz=num(m.z,S.z),th=num(m.th,0),side=(NET.me.charCodeAt(2)%3-1)*4;
+  setWorld(!!m.fw,m.fw===2?'dayk':m.fw===3&&DKM.bamir&&DKM.bamir.H?'bamir':'island');const hx=num(m.x,S.x),hz=num(m.z,S.z),th=num(m.th,0),side=(NET.me.charCodeAt(2)%3-1)*4;
   placeAt(hx-Math.sin(th)*11+Math.cos(th)*side,hz-Math.cos(th)*11-Math.sin(th)*side,th);
   S.tod=num(m.tod,S.tod);
   closeModal();if(S.mode!=='play')enterPlay();
@@ -4322,8 +4323,8 @@ FS=Object.assign({found:[0],x:null,z:null,th:0},saved.free&&typeof saved.free===
 let FX=40000,FZ=-20000,FR=2600,FG=20;const FCELL=32;
 // the island's lands from south to north follow the road's own lands, so trees, ground colour and snow come with them
 const VZA=[[-3400,136000],[-1050,123700],[-850,122300],[700,94200],[900,92300],[3400,80000]];
-function VZ(z){if(FMAP==='dayk')return DK.vz;const v=z-FZ;if(v<=VZA[0][0])return VZA[0][1];for(let i=1;i<VZA.length;i++)if(v<=VZA[i][0]){const a=VZA[i-1],b=VZA[i];return a[1]+(b[1]-a[1])*(v-a[0])/(b[0]-a[0]);}return VZA[VZA.length-1][1];}
-function freeRaw(x,z){if(FMAP==='dayk')return dkH(x,z);const u=x-FX,v=z-FZ,r=Math.sqrt(u*u+v*v);
+function VZ(z){if(RMAP(FMAP))return DK.vz;const v=z-FZ;if(v<=VZA[0][0])return VZA[0][1];for(let i=1;i<VZA.length;i++)if(v<=VZA[i][0]){const a=VZA[i-1],b=VZA[i];return a[1]+(b[1]-a[1])*(v-a[0])/(b[0]-a[0]);}return VZA[VZA.length-1][1];}
+function freeRaw(x,z){if(RMAP(FMAP))return dkH(x,z);const u=x-FX,v=z-FZ,r=Math.sqrt(u*u+v*v);
   const cr=r+560*(fbm(u*0.0007+3,v*0.0007-5,3)-0.5),land=sstep(FR+80,FR-560,cr);if(land<=0)return -26;
   const hills=fbm(u*0.0026+11,v*0.0026+4,4),rid=1-Math.abs(2*fbm(u*0.0042-7,v*0.0042+2,4)-1),north=sstep(-200,1300,v);
   const mu=(u-250)/1100,mv=(v-1650)/650,mtn=440*Math.exp(-(mu*mu+mv*mv))*(0.55+0.6*rid);
@@ -4334,7 +4335,7 @@ function freeRaw(x,z){if(FMAP==='dayk')return dkH(x,z);const u=x-FX,v=z-FZ,r=Mat
   return -26+(h+26)*land;}
 function freeLakeAt(L,x,z){const dx=x-L.x,dz=z-L.z;if(dx*dx+dz*dz>L.a*L.a*2.1)return 9;const c=Math.cos(L.ang),s=Math.sin(L.ang),p=(dx*c-dz*s)/L.a,q=(dx*s+dz*c)/L.b;return Math.sqrt(p*p+q*q);}
 function freeBase(x,z){let h=freeRaw(x,z);if(FW)for(const L of FW.lakes){if(L.level===undefined)continue;const r=freeLakeAt(L,x,z);if(r<1.4){const bowl=L.level-L.dep*(1-r*r),w=sstep(1.4,0.9,r);h=h*(1-w)+Math.min(h,bowl)*w;if(r>1.0)h=Math.max(h,L.level+0.45*sstep(1.4,1.08,r));}}return h;}
-function freeWater(x,z){if(FMAP==='dayk'){if(FW&&FW.rc){const q=dkRiv(x,z);if(q&&q.dc<q.c+0.6)return q.h-0.12;}return -1e6;}if(FW)for(const L of FW.lakes)if(L.level!==undefined&&freeLakeAt(L,x,z)<1.05)return L.level;return 0;}
+function freeWater(x,z){if(RMAP(FMAP)){if(FW&&FW.lg){const l=dkLake(x,z);if(l&&l.sd<0)return l.lv;}if(FW&&FW.rc){const q=dkRiv(x,z);if(q&&q.dc<q.c+0.6)return q.h-0.12;}return -1e6;}if(FW)for(const L of FW.lakes)if(L.level!==undefined&&freeLakeAt(L,x,z)<1.05)return L.level;return 0;}
 // the nearest point of a trail: its distance and the height of the trail bed there
 function trailQ(x,z,md){const c=FCELL,gx=Math.floor((x-FW.x0)/c),gz=Math.floor((z-FW.z0)/c),rr=Math.ceil(md/c);let best=-1,bd=md,bt=0;const PX=FW.PX,PZ=FW.PZ;
   for(let j=gz-rr;j<=gz+rr;j++)for(let i=gx-rr;i<=gx+rr;i++){const L=FW.cells.get(i*8192+j);if(!L)continue;
@@ -4342,9 +4343,10 @@ function trailQ(x,z,md){const c=FCELL,gx=Math.floor((x-FW.x0)/c),gz=Math.floor((
       const dx=x-ax-vx*t,dz=z-az-vz*t,d=Math.sqrt(dx*dx+dz*dz);if(d<bd){bd=d;best=s;bt=t;}}}
   if(best<0)return null;return {d:bd,h:FW.PH[best]+(FW.PH[best+1]-FW.PH[best])*bt,s:best+bt};}
 function freeHf(x,z){let h=freeBase(x,z);if(!FW)return h;if(FW.dk&&FW.rc){const q=dkRiv(x,z);if(q){const W=q.w;h+=(q.h+(vnoise(x*0.05,z*0.05)-0.5)*0.5-h)*sstep(W+3.5+3*vnoise(x*0.02,z*0.02),W,q.d);const cw=q.c;if(q.dc<cw+1.5)h-=0.55*sstep(cw+1.5,cw*0.4,q.dc);}
+    if(FW.lg){const l=dkLake(x,z);if(l){if(l.sd<0)h=Math.min(h,l.lv-Math.min(16,0.8+(-l.sd)*0.32)+(vnoise(x*0.04,z*0.04)-0.5)*0.8);else{const t=l.lv+0.35+0.25*vnoise(x*0.09,z*0.09);if(h<t)h+=(t-h)*sstep(18,3,l.sd);}}}
     if(FW.pads){const L=FW.hc.get(Math.floor(x/32)*65536+Math.floor(z/32));if(L)for(const H of L){if(H.ph===undefined)continue;const dx=x-H.x,dz=z-H.z,u=Math.abs(dx*H.ca+dz*H.sa)-H.w/2,w=Math.abs(-dx*H.sa+dz*H.ca)-H.d/2,e=Math.max(u,w);if(e<3){h+=(H.ph-h)*sstep(3,0.6,e);}}}}
   for(const P of FW.pois){if(!P.fin)continue;const dx=x-P.x,dz=z-P.z;if(dx*dx+dz*dz<900){const d=Math.sqrt(dx*dx+dz*dz);h+=(P.h-h)*sstep(28,16,d);}}
-  if(FW.cells.size){const q=trailMix(x,z);if(q){if(FW.dk&&FW.br&&dkOnSpan(x,z)){}else if(FW.dk){const dh=Math.abs(q.h-h);h+=(q.h-h)*sstep(2.7+dh*1.3+0.8,2.7,q.d);}else h+=(q.h-h)*q.w;}}
+  if(FW.cells.size){const q=trailMix(x,z);if(q){if(FW.dk&&FW.br&&dkOnSpan(x,z)){}else if(FW.dk){const dh=Math.abs(q.h-h),rw=FW.rw||2.7;h+=(q.h-h)*sstep(rw+dh*1.3+0.8,rw,q.d);}else h+=(q.h-h)*q.w;}}
   return h;}
 // the trail beds near a point, mixed by nearness: on a trail you get its own bed, and between two trails close together the ground runs smoothly from one to the other
 function trailMix(x,z){let md=1e9;const c=FCELL,gx=Math.floor((x-FW.x0)/c),gz=Math.floor((z-FW.z0)/c),PX=FW.PX,PZ=FW.PZ,PH=FW.PH;let sw=0,sh=0,mw=0;
@@ -4360,7 +4362,7 @@ const FPOI=[
   {n:tr_('صخره‌های شرقی'),u:1720,v:330,k:'top'},{n:tr_('دریاچهٔ کاج'),u:-1330,v:600,k:'view',lake:1},{n:tr_('جنگل تاریک'),u:-260,v:760,k:'view'},
   {n:tr_('پناهگاه کوهستان'),u:-650,v:1480,k:'cabin'},{n:tr_('قلهٔ برفی'),u:250,v:1650,k:'top'},{n:tr_('دریاچهٔ یخی'),u:900,v:1130,k:'view',lake:2},
   {n:tr_('دماغهٔ شمالی'),u:1150,v:2000,k:'view'},{n:tr_('معدن متروکه'),u:1950,v:-720,k:'view'},{n:tr_('خلیج غربی'),u:-2050,v:280,k:'view'}];
-function freeInit(){if(FW)return;if(FMAP==='dayk'){dkInit();return;}const t0=performance.now();
+function freeInit(){if(FW)return;if(RMAP(FMAP)){dkInit();return;}const t0=performance.now();
   FW={lakes:[{u:-900,v:-500,a:175,b:110,ang:0.4,dep:7},{u:-1560,v:720,a:135,b:90,ang:-0.3,dep:6},{u:1040,v:1270,a:85,b:62,ang:0.7,dep:5}],pois:[],trails:[],PX:[],PZ:[],PH:[],cells:new Map(),x0:FX-FR-300,z0:FZ-FR-300,found:new Set(),extra:[]};
   // lakes: the water stands a little below the lowest point of the shore
   for(const L of FW.lakes){L.x=FX+L.u;L.z=FZ+L.v;let lo=1e9;for(let a=0;a<6.283;a+=0.2){const c=Math.cos(L.ang),s=Math.sin(L.ang),p=Math.cos(a),q=Math.sin(a);lo=Math.min(lo,freeRaw(L.x+L.a*p*c+L.b*q*s,L.z-L.a*p*s+L.b*q*c));}L.level=lo-0.8;}
@@ -4480,24 +4482,34 @@ function freeRescue(){const k=freeTrailNear(S.x,S.z);if(k>=0)placeAt(FW.PX[k],FW
    the samples and given fine relief of its own. The road, every house and the places come from OpenStreetMap
    (© OpenStreetMap contributors, ODbL): each house stands where it really stands, at its real size and turn. */
 const FWS={},ISL={FX:40000,FZ:-20000,FR:2600,FG:20,FSNOWH:230};
-let DKS=Object.assign({found:[0],x:null,z:null,th:0},saved.dayk&&typeof saved.dayk==='object'?saved.dayk:{});if(!Array.isArray(DKS.found))DKS.found=[0];
-function FSC(){return FMAP==='dayk'?DKS:FS;}
-function DKON(){return FREE&&FMAP==='dayk';}
+const DKSM={};for(const m of ['dayk','bamir']){const o=Object.assign({found:[0],x:null,z:null,th:0},saved[m]&&typeof saved[m]==='object'?saved[m]:{});if(!Array.isArray(o.found))o.found=[0];DKSM[m]=o;}let DKS=DKSM.dayk;
+function FSC(){return RMAP(FMAP)?DKS:FS;}
+function DKON(){return FREE&&RMAP(FMAP);}
 // round the villages: small round almond and apricot trees on the slopes, poplars by the houses
 const DKTREE=[['dkpop',0.62,0.85,1.25],['dkorch',0.38,0.8,1.2]];
-function dkConsts(){if(FMAP==='dayk'){FX=DK.cx;FZ=DK.cz;FR=DK.fr;FG=60;FSNOWH=1450;}else{FX=ISL.FX;FZ=ISL.FZ;FR=ISL.FR;FG=ISL.FG;FSNOWH=ISL.FSNOWH;}}
-function dkLoad(){if(DK.H)return Promise.resolve();
-  return new Promise((ok,bad)=>{try{const el=document.getElementById('daykJSON');const D=JSON.parse(el.textContent);Object.assign(DK,D);
-    const img=new Image();img.onload=()=>{try{const c=document.createElement('canvas');c.width=DK.nx;c.height=DK.nz;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0);
-      const px=x.getImageData(0,0,DK.nx,DK.nz).data,n=DK.nx*DK.nz,H=new Float32Array(n);for(let i=0;i<n;i++)H[i]=(px[i*4]*256+px[i*4+1])/10+1000-DK.eb;DK.H=H;DK.dem=null;
-      DK.cx=DK.x0+(DK.nx-1)*DK.cell/2;DK.cz=DK.z0+(DK.nz-1)*DK.cell/2;DK.fr=Math.max(DK.nx,DK.nz)*DK.cell/2;
-      // the road: stored every 4 m in decimetres; the game wants a point every 2 m
-      const r=DK.route,m=r.dx.length+1,X=new Float64Array(m),Z=new Float64Array(m),Hh=new Float64Array(m);X[0]=r.x0;Z[0]=r.z0;Hh[0]=r.h0;
+function dkConsts(){if(RMAP(FMAP)){DK=DKM[FMAP]||DK;DKS=DKSM[FMAP];FX=DK.cx;FZ=DK.cz;FR=DK.fr;FG=60;FSNOWH=DK.sn||1450;}else{FX=ISL.FX;FZ=ISL.FZ;FR=ISL.FR;FG=ISL.FG;FSNOWH=ISL.FSNOWH;}}
+// a real map's data: Daykundi is inside the page, the others are files next to it (loaded only when that map is chosen)
+function dkLoad(map){map=map||'dayk';const T=DKM[map]||(DKM[map]={vz:0});if(T.H)return Promise.resolve();
+  const src=map==='dayk'?Promise.resolve().then(()=>JSON.parse(document.getElementById('daykJSON').textContent)):fetch('maps/'+map+'.json').then(r=>{if(!r.ok)throw new Error('map '+map);return r.json();});
+  const pix=(url,w,h)=>new Promise((ok,bad)=>{const img=new Image();img.onload=()=>{try{const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0);ok(x.getImageData(0,0,w,h).data);}catch(e){bad(e);}};img.onerror=bad;img.src=url;});
+  return src.then(D=>{Object.assign(T,D);return Promise.all([pix(T.dem,T.nx,T.nz),T.lg?pix(T.lg.img,T.lg.nx,T.lg.nz):null]);}).then(([px,lp])=>{
+    const n=T.nx*T.nz,H=new Float32Array(n);for(let i=0;i<n;i++)H[i]=(px[i*4]*256+px[i*4+1])/10+1000-T.eb;T.H=H;T.dem=null;
+    T.cx=T.x0+(T.nx-1)*T.cell/2;T.cz=T.z0+(T.nz-1)*T.cell/2;T.fr=Math.max(T.nx,T.nz)*T.cell/2;
+    // the lakes: signed distance to the shore every 8 m (negative in the water) and which lake
+    if(lp){const m=T.lg.nx*T.lg.nz,sd=new Float32Array(m),id=new Uint8Array(m);for(let i=0;i<m;i++){sd[i]=lp[i*4]-128;id[i]=Math.round(lp[i*4+1]/30);}T.lg.sd=sd;T.lg.id=id;T.lg.img=null;}
+    // the roads: stored every 4 m in decimetres; the game wants a point every 2 m. The main road first, then any other
+    T.PX=[];T.PZ=[];T.PH=[];T.trs=[];T.pv=[];
+    for(const r of [T.route,T.route2]){if(!r)continue;const m=r.dx.length+1,X=new Float64Array(m),Z=new Float64Array(m),Hh=new Float64Array(m);X[0]=r.x0;Z[0]=r.z0;Hh[0]=r.h0;
       for(let k=1;k<m;k++){X[k]=X[k-1]+r.dx[k-1];Z[k]=Z[k-1]+r.dz[k-1];Hh[k]=Hh[k-1]+r.dh[k-1];}
-      DK.PX=[];DK.PZ=[];DK.PH=[];for(let k=0;k<m;k++){DK.PX.push(X[k]/10);DK.PZ.push(Z[k]/10);DK.PH.push(Hh[k]/10);if(k<m-1){DK.PX.push((X[k]+X[k+1])/20);DK.PZ.push((Z[k]+Z[k+1])/20);DK.PH.push((Hh[k]+Hh[k+1])/20);}}
-      // which of the road's lands the real map borrows its plants, grass and animals from: the windy plateau
-      const f=FREE;FREE=false;const zs=[];for(let z=0;z<ROADLEN;z+=400)if(zoneOf(z)===4)zs.push(z);FREE=f;DK.vz=zs.length?zs[zs.length>>1]:120000;
-      ok();}catch(e){bad(e);}};img.onerror=bad;img.src=DK.dem;}catch(e){bad(e);}});}
+      const i0=T.PX.length,pav=new Uint8Array(m);for(const [a,b] of (r.pav||[]))for(let k=a;k<=b&&k<m;k++)pav[k]=1;
+      for(let k=0;k<m;k++){T.PX.push(X[k]/10);T.PZ.push(Z[k]/10);T.PH.push(Hh[k]/10);T.pv.push(pav[k]);if(k<m-1){T.PX.push((X[k]+X[k+1])/20);T.PZ.push((Z[k]+Z[k+1])/20);T.PH.push((Hh[k]+Hh[k+1])/20);T.pv.push(pav[k]&pav[k+1]);}}
+      T.trs.push([i0,T.PX.length-1]);}
+    // which of the road's lands the real map borrows its plants, grass and animals from: the windy plateau
+    const f=FREE;FREE=false;const zs=[];for(let z=0;z<ROADLEN;z+=400)if(zoneOf(z)===4)zs.push(z);FREE=f;T.vz=zs.length?zs[zs.length>>1]:120000;});}
+// the lake round a point: how far inside (negative) or outside its shore, and its water level
+function dkLake(x,z){const L=DK.lg;if(!L||!L.sd)return null;const fx=(x-L.x0)/L.c,fz=(z-L.z0)/L.c;if(fx<0||fz<0||fx>=L.nx-1||fz>=L.nz-1)return null;
+  const i=Math.floor(fx),j=Math.floor(fz),u=fx-i,v=fz-j,k=j*L.nx+i,S=L.sd,sd=(S[k]*(1-u)+S[k+1]*u)*(1-v)+(S[k+L.nx]*(1-u)+S[k+L.nx+1]*u)*v;if(sd>60)return null;
+  const id=L.id[k+(u>0.5?1:0)+(v>0.5?L.nx:0)]||L.id[k];if(!id)return null;const lk=DK.lakes[id-1];return {sd,lv:lk.lv,i:id-1};}
 // the real height, joined smoothly (Catmull-Rom) between the 30 m samples, with fine relief of its own
 function dkH(x,z){const D=DK,c=D.cell,fx=(x-D.x0)/c,fz=(z-D.z0)/c,nx=D.nx,nz=D.nz,H=D.H;let i=Math.floor(fx),j=Math.floor(fz);const u=fx-i,v=fz-j;
   if(i<1)i=1;if(j<1)j=1;if(i>nx-3)i=nx-3;if(j>nz-3)j=nz-3;
@@ -4513,20 +4525,22 @@ function dkGround(x,z,h,ny,ad,out){const n1=vnoise(x*0.02+3,z*0.02-8),n2=vnoise(
   dkT.copy(DKC.rk1).lerp(DKC.rk2,n2);out.lerp(dkT,sstep(0.88,0.66,ny)*(0.75+0.25*n3));
   const rq=FW&&FW.rc?dkRiv(x,z):null;if(rq&&rq.d<rq.w+4){dkT.set('#97928a').lerp(DKC.road,0.15*n2);out.lerp(dkT,sstep(rq.w+4,rq.w-2,rq.d));}
   const v=dkVil(x,z);if(v>0.02){dkT.copy(DKC.fld).lerp(DKC.fld2,n2);out.lerp(dkT,clamp((v-0.45)*1.6,0,0.7)*sstep(0.94,0.985,ny)*(0.55+0.45*n1));}
-  out.lerp(C_SNOW,sstep(1450,1520,h+(n1-0.5)*60)*sstep(0.5,0.75,ny));
-  if(ad<2.6)out.lerp(DKC.road,0.75*sstep(2.6,1.3,ad));
+  out.lerp(C_SNOW,sstep(DK.sn||1450,(DK.sn||1450)+70,h+(n1-0.5)*60)*sstep(0.5,0.75,ny));
+  if(FW&&FW.lg){const l=dkLake(x,z);if(l){if(l.sd<0){dkT.set('#a9b7ae');out.lerp(dkT,sstep(0,-4,l.sd));}else{dkT.set('#d9cdb2').lerp(DKC.road,0.2*n2);out.lerp(dkT,sstep(30,4,l.sd)*(0.7+0.3*n1));}}}
+  {const rw=FW&&FW.rw?FW.rw+0.1:2.6;if(ad<rw)out.lerp(DKC.road,0.75*sstep(rw,rw-1.3,ad));}
   out.offsetHSL(0,-0.04,(n2-0.5)*0.05);return out;}
 // how much of a village is round a point (0 = bare mountain, 1 = among the houses), from the houses themselves
 function dkVil(x,z){const V=DK.vil;if(V&&FW&&FW.rc){const q=dkRiv(x,z);if(q&&q.d>q.w+1&&q.d<q.w+70){const b=sstep(q.w+70,q.w+12,q.d)*0.8;const i=Math.floor((x-DK.x0)/40),j=Math.floor((z-DK.z0)/40);const a=(i<0||j<0||i>=V.nx||j>=V.nz)?0:V.a[j*V.nx+i];return Math.max(a,b);}}if(!V)return 0;const i=Math.floor((x-DK.x0)/40),j=Math.floor((z-DK.z0)/40);if(i<0||j<0||i>=V.nx||j>=V.nz)return 0;return V.a[j*V.nx+i];}
 function dkHouseAt(x,z,m){if(!FW||!FW.hc)return false;const L=FW.hc.get(Math.floor(x/32)*65536+Math.floor(z/32));if(!L)return false;
   for(const H of L){const dx=x-H.x,dz=z-H.z,u=dx*H.ca+dz*H.sa,w=-dx*H.sa+dz*H.ca;if(Math.abs(u)<H.w/2+m&&Math.abs(w)<H.d/2+m)return true;}return false;}
 function dkInit(){const t0=performance.now();
-  {const n=DK.PX.length,raw=new Float32Array(n);for(let k=0;k<n;k++)raw[k]=dkH(DK.PX[k],DK.PZ[k]);const sm=new Float32Array(n);for(let k=0;k<n;k++){let a=0,c=0;for(let q=Math.max(0,k-6);q<=Math.min(n-1,k+6);q++){a+=raw[q];c++;}sm[k]=a/c;}
-    for(let it=0;it<6;it++){for(let k=1;k<n;k++)sm[k]=clamp(sm[k],sm[k-1]-0.72,sm[k-1]+0.72);for(let k=n-2;k>=0;k--)sm[k]=clamp(sm[k],sm[k+1]-0.72,sm[k+1]+0.72);}DK.PH=Array.from(sm);}
-  FW={dk:true,lakes:[],pois:[],trails:[],PX:DK.PX.slice(),PZ:DK.PZ.slice(),PH:DK.PH.slice(),cells:new Map(),x0:DK.x0-400,z0:DK.z0-400,found:new Set(),extra:[],houses:[],hc:new Map(),chunks:new Map(),hT:0,oT:0,sT:0};
+  const TRS=DK.trs||[[0,DK.PX.length-1]],tid=new Uint8Array(DK.PX.length);TRS.forEach(([a,b],t)=>{for(let k=a;k<=b;k++)tid[k]=t;});
+  {const n=DK.PX.length,raw=new Float32Array(n);for(let k=0;k<n;k++)raw[k]=dkH(DK.PX[k],DK.PZ[k]);const sm=new Float32Array(n);for(let k=0;k<n;k++){let a=0,c=0;for(let q=Math.max(0,k-6);q<=Math.min(n-1,k+6);q++){if(tid[q]!==tid[k])continue;a+=raw[q];c++;}sm[k]=a/c;}
+    for(let it=0;it<6;it++){for(let k=1;k<n;k++)if(tid[k]===tid[k-1])sm[k]=clamp(sm[k],sm[k-1]-0.72,sm[k-1]+0.72);for(let k=n-2;k>=0;k--)if(tid[k]===tid[k+1])sm[k]=clamp(sm[k],sm[k+1]-0.72,sm[k+1]+0.72);}DK.PH=Array.from(sm);}
+  FW={dk:true,map:FMAP,tid,pv:DK.pv?Uint8Array.from(DK.pv):null,lg:!!(DK.lg&&DK.lg.sd),rw:FMAP==='bamir'?3.9:2.7,lakes:[],pois:[],trails:[],PX:DK.PX.slice(),PZ:DK.PZ.slice(),PH:DK.PH.slice(),cells:new Map(),x0:DK.x0-400,z0:DK.z0-400,found:new Set(),extra:[],houses:[],hc:new Map(),chunks:new Map(),hT:0,oT:0,sT:0};
   const m=FW.PX.length;
-  for(let k=0;k<m-1;k++)for(const [x,z] of [[FW.PX[k],FW.PZ[k]],[FW.PX[k+1],FW.PZ[k+1]]]){const ck=Math.floor((x-FW.x0)/FCELL)*8192+Math.floor((z-FW.z0)/FCELL);let L=FW.cells.get(ck);if(!L){L=[];FW.cells.set(ck,L);}if(L[L.length-1]!==k)L.push(k);}
-  FW.trails.push({a:0,b:DK.poi.length-1,i0:0,i1:m-1,L:m*2});
+  for(let k=0;k<m-1;k++){if(tid[k]!==tid[k+1])continue;for(const [x,z] of [[FW.PX[k],FW.PZ[k]],[FW.PX[k+1],FW.PZ[k+1]]]){const ck=Math.floor((x-FW.x0)/FCELL)*8192+Math.floor((z-FW.z0)/FCELL);let L=FW.cells.get(ck);if(!L){L=[];FW.cells.set(ck,L);}if(L[L.length-1]!==k)L.push(k);}}
+  TRS.forEach(([a,b])=>FW.trails.push({a:0,b:DK.poi.length-1,i0:a,i1:b,L:(b-a+1)*2}));
   // the coarse height grid behind the map picture
   const G=FG,gx0=FX-FR-200,gz0=FZ-FR-200,n=Math.ceil((2*FR+400)/G)+1,H=new Float32Array(n*n);
   for(let j=0;j<n;j++)for(let i=0;i<n;i++)H[j*n+i]=dkH(gx0+i*G,gz0+j*G);Object.assign(FW,{gx0,gz0,gn:n,H,WT:new Uint8Array(n*n)});
@@ -4548,7 +4562,7 @@ function dkInit(){const t0=performance.now();
     for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const key=i*65536+j;let L=FW.rc.get(key);if(!L)FW.rc.set(key,L=[]);L.push(ri,k);}}});
   dkRoadBed();
   for(const H of FW.houses){let s=0;for(const [u,w] of [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5],[0,0]])s+=freeHf(H.x+u*H.w*H.ca-w*H.d*H.sa,H.z+u*H.w*H.sa+w*H.d*H.ca);H.ph=s/5;}FW.pads=true;
-  freeBuildScene();for(const B of FW.br)FW.group.add(B.mesh);dkRiverMeshes();dkSchoolWall();FW.ms=Math.round(performance.now()-t0);}
+  freeBuildScene();for(const B of FW.br)FW.group.add(B.mesh);dkRiverMeshes();if(FMAP==='dayk')dkSchoolWall();else FW.walls=[];dkLakeMeshes();dkAsphalt();FW.ms=Math.round(performance.now()-t0);}
 // the nearest river: distance to the bed's middle, to the water channel (which wanders inside the bed), and the bed height there
 function dkChan(Rv,ri,s){let o=(Rv.w-Rv.c-2)*0.55*Math.sin(s/90+ri)*Math.min(1,s/60);if(Rv.pins)for(const P of Rv.pins){const w=sstep(160,30,Math.abs(s-P.s));o+=(P.o-o)*w;}return o;}
 function dkRiv(x,z){const L=FW.rc.get(Math.floor(x/32)*65536+Math.floor(z/32));if(!L)return null;let best=null,bd=1e9;
@@ -4564,11 +4578,42 @@ function dkRiverMeshes(){const P=[],I=[],U=[];for(const Rv of FW.riv){const n=Rv
       if(k<n-1){const a=base+k*2;I.push(a,a+2,a+1,a+1,a+2,a+3);}}}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);g.computeVertexNormals();
   const m=new THREE.Mesh(g,new THREE.MeshPhongMaterial({color:'#6b5d4c',specular:0x2a2218,shininess:40}));m.frustumCulled=false;FW.group.add(m);}
+// ---- Band-e Amir: each lake's water lies flat at its own level inside its real shore, deep ultramarine blue as it is
+const lakeMat=waterize(new THREE.MeshPhongMaterial({normalMap:waterNrm,normalScale:new THREE.Vector2(0.3,0.3),color:'#07337a',emissive:'#05214f',specular:0xffffff,shininess:220,transparent:true,opacity:0.95,envMap:carEnv,reflectivity:0.14,combine:THREE.MixOperation,depthWrite:false,side:THREE.DoubleSide}),0.05,'0.03,0.24,0.55');
+function dkLakeMeshes(){if(!DK.lakes)return;for(const L of DK.lakes){const p=L.p,pts=[];for(let i=0;i<p.length;i+=2)pts.push(new THREE.Vector2(p[i],p[i+1]));
+    if(pts.length>3&&pts[0].distanceTo(pts[pts.length-1])<0.5)pts.pop();if(pts.length<3)continue;let tris;try{tris=THREE.ShapeUtils.triangulateShape(pts,[]);}catch(e){continue;}
+    const P=[],N=[],U=[],I=[];for(const v of pts){P.push(v.x,L.lv,v.y);N.push(0,1,0);U.push(v.x/40,v.y/40);}for(const t of tris)I.push(t[0],t[1],t[2]);
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);
+    const m=new THREE.Mesh(g,lakeMat);m.renderOrder=1;FW.group.add(m);}}
+// ---- the asphalt road: a smooth dark ribbon on the road bed where the real road is paved, worn white edge lines and a dashed middle
+const asphTex=(function(){const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d'),R=mulberry32(5);g.fillStyle='#808080';g.fillRect(0,0,128,128);
+  for(let i=0;i<2600;i++){const v=R();g.fillStyle=v<0.5?'rgba(40,40,40,'+(0.15+R()*0.25)+')':'rgba(200,200,200,'+(0.08+R()*0.18)+')';g.fillRect(R()*128,R()*128,1+R()*1.6,1+R()*1.6);}
+  for(let i=0;i<10;i++){g.strokeStyle='rgba(30,30,30,.35)';g.lineWidth=1;g.beginPath();let x=R()*128,y=R()*128;g.moveTo(x,y);for(let k=0;k<5;k++){x+=(R()-0.5)*26;y+=(R()-0.5)*26;g.lineTo(x,y);}g.stroke();}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;return t;})();
+const asphMat=new THREE.MeshLambertMaterial({vertexColors:true,map:asphTex,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+function dkAsphalt(){const pv=FW.pv,tid=FW.tid;if(!pv)return;const n=FW.PX.length,W=3.4;let k=0;
+  while(k<n-1){if(!pv[k]||tid[k]!==tid[k+1]){k++;continue;}const a=k;while(k<n-1&&pv[k+1]&&tid[k+1]===tid[a]&&k-a<300)k++;const b=k;if(b-a<3){k++;continue;}
+    const P=[],C=[],U=[],I=[],LP=[],LC=[],LI=[];
+    for(let i=a;i<=b;i++){const ip=Math.max(a,i-1),inx=Math.min(b,i+1),tx=FW.PX[inx]-FW.PX[ip],tz=FW.PZ[inx]-FW.PZ[ip],tl=Math.hypot(tx,tz)||1,nx=tz/tl,nz=-tx/tl,x=FW.PX[i],z=FW.PZ[i],y=FW.PH[i]+0.05,u=i*0.25;
+      for(const e of [-W-0.25,-W,0,W,W+0.25]){const ed=Math.abs(e)>W-0.01;P.push(x+nx*e,y-(ed?0.04:0)-(Math.abs(e)>W+0.1?0.06:0),z+nz*e);const nn=0.27+0.05*hash2(i,Math.round(e*3)),c=Math.abs(e)>W+0.1?nn*1.25:nn;C.push(c,c,c*1.02);U.push(e*0.25,u);}
+      if(i<b){const o=(i-a)*5;for(let q=0;q<4;q++)I.push(o+q,o+5+q,o+q+1,o+q+1,o+5+q,o+5+q+1);}
+      // painted lines: the two edges, and the middle in 4 m dashes with 4 m gaps
+      const wear=0.55+0.35*vnoise(i*0.01,3),lines=[[-W+0.35,0.12],[W-0.35,0.12]];if(Math.floor(i/2)%2===0)lines.push([0,0.07]);
+      for(const [o,hw] of lines){const lb=LP.length/3;for(const e of [o-hw,o+hw]){LP.push(x+nx*e,y+0.012,z+nz*e);const cc=0.62+0.3*wear;LC.push(cc,cc,cc*0.97);}
+        if(i<b){const j=i+1,jp=Math.max(a,j-1),jn=Math.min(b,j+1),sx=FW.PX[jn]-FW.PX[jp],sz=FW.PZ[jn]-FW.PZ[jp],sl=Math.hypot(sx,sz)||1,mx=sz/sl,mz=-sx/sl,X=FW.PX[j],Zz=FW.PZ[j],Y=FW.PH[j]+0.062;
+          for(const e of [o-hw,o+hw]){LP.push(X+mx*e,Y,Zz+mz*e);LC.push(0.62+0.3*wear,0.62+0.3*wear,(0.62+0.3*wear)*0.97);}LI.push(lb,lb+2,lb+1,lb+1,lb+2,lb+3);}}}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);g.computeVertexNormals();g.computeBoundingSphere();
+    const m=new THREE.Mesh(g,asphMat);m.receiveShadow=true;FW.group.add(m);
+    if(LI.length){const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(LP,3));lg.setAttribute('color',new THREE.Float32BufferAttribute(LC,3));lg.setIndex(LI);lg.computeVertexNormals();lg.computeBoundingSphere();const lm=new THREE.Mesh(lg,lineMat);lm.receiveShadow=true;FW.group.add(lm);}
+    k=b;}}
 function dkStart(){const ok=DKS.x!==null&&DKS.x>DK.x0&&DKS.x<DK.x0+DK.nx*DK.cell&&DKS.z>DK.z0&&DKS.z<DK.z0+DK.nz*DK.cell;
-  if(ok){placeAt(DKS.x,DKS.z,DKS.th);toast(tr_('دایکندی · ')+fa(FW.found.size)+tr_(' از ')+fa(FW.pois.length)+tr_(' جا رسیدی'));}
-  else{freeGo(0);toast(tr_('شیخ میران، اشترلی — راه واقعی تا نیلی ۵۶ کیلومتر است'));}}
-function dkPlaceName(){const q=trailQ(S.x,S.z,400);const km=q?q.s*2/1000:-1;if(km<0)return tr_('کوه‌های دایکندی');if(km<6)return tr_('شیخ میران · اشترلی');if(km>49)return tr_('نیلی');
+  if(ok){placeAt(DKS.x,DKS.z,DKS.th);toast(tr_(FMAP==='bamir'?'بامیان · ':'دایکندی · ')+fa(FW.found.size)+tr_(' از ')+fa(FW.pois.length)+tr_(' جا رسیدی'));}
+  else{if(FMAP==='bamir'){const k=Math.min(FW.trails[0].i1,220);placeAt(FW.PX[k],FW.PZ[k],freeHeading(k));}else freeGo(0);toast(FMAP==='bamir'?tr_('بازار بامیان — راه واقعی تا بند امیر ۶۸ کیلومتر است: ۵۴ کیلومتر قیر، بعد راه خامه'):tr_('شیخ میران، اشترلی — راه واقعی تا نیلی ۵۶ کیلومتر است'));}}
+function dkPlaceName(){if(FMAP==='bamir')return bmPlaceName();const q=trailQ(S.x,S.z,400);const km=q?q.s*2/1000:-1;if(km<0)return tr_('کوه‌های دایکندی');if(km<6)return tr_('شیخ میران · اشترلی');if(km>49)return tr_('نیلی');
   return tr_('راه شیخ میران – نیلی · ')+fa(Math.round(km))+tr_(' کیلومتر');}
+function bmPlaceName(){const l=FW.lg?dkLake(S.x,S.z):null;if(l&&l.sd<120)return tr_(DK.lakes[l.i].n);const q=trailQ(S.x,S.z,400);if(!q)return tr_('کوه‌های بامیان');
+  const T=FW.trails.find(t=>q.s>=t.i0&&q.s<=t.i1)||FW.trails[0],km=(q.s-T.i0)*2/1000;if(T!==FW.trails[0])return tr_('راه خامهٔ بند امیر · ')+fa(Math.round(km))+tr_(' کیلومتر');
+  if(km<4)return tr_('شهر بامیان');if(km>63)return tr_('بند امیر');return tr_('راه بامیان – بند امیر · ')+fa(Math.round(km))+tr_(' کیلومتر');}
 // the map picture: the real land shaded, the villages as dots
 function dkMapImg(){const n=FW.gn,c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d'),id=x.createImageData(n,n),H=FW.H,col=new THREE.Color();
   for(let j=1;j<n-1;j++)for(let i=1;i<n-1;i++){const k=j*n+i,h=H[k],sh=clamp(1+((H[k-1])-(H[k+1])+(H[k-n])-(H[k+n]))*0.012,0.5,1.4);
@@ -4661,8 +4706,8 @@ function dkRoadBed(){const n=FW.PX.length,cs=FW.cells;FW.cells=new Map();const r
     for(let k=a;k<=b;k++){const t=(k-a)/(b-a);raw[k]=ha+(hb-ha)*t+lift*Math.sin(Math.PI*t)*0.6+lift*0.4*Math.min(1,Math.min(t,1-t)*6);span[k]=1;}
     FW.br.push({a,b,rh});const m=(a+b)>>1,mx=FW.PX[m],mz=FW.PZ[m];FW.riv.forEach((Rv,ri)=>{let bd=1e9,bs=0,bo=0;for(let k=0;k<Rv.x.length-1;k++){const ax=Rv.x[k],az=Rv.z[k],vx=Rv.x[k+1]-ax,vz=Rv.z[k+1]-az,l2=vx*vx+vz*vz||1;let t=((mx-ax)*vx+(mz-az)*vz)/l2;t=clamp(t,0,1);const dx=mx-ax-vx*t,dz=mz-az-vz*t,d=Math.hypot(dx,dz);if(d<bd){bd=d;bs=(k+t)*10;bo=(dx*vz-dz*vx)/Math.sqrt(l2);}}
       if(bd<Rv.w+90)(Rv.pins=Rv.pins||[]).push({s:bs,o:bo});});}
-  const sm=new Float32Array(n);for(let k=0;k<n;k++){if(span[k]){sm[k]=raw[k];continue;}let s=0,c=0;for(let q=Math.max(0,k-6);q<=Math.min(n-1,k+6);q++){s+=raw[q];c++;}sm[k]=s/c;}
-  for(let it=0;it<6;it++){for(let k=1;k<n;k++)if(!span[k])sm[k]=clamp(sm[k],sm[k-1]-0.72,sm[k-1]+0.72);for(let k=n-2;k>=0;k--)if(!span[k])sm[k]=clamp(sm[k],sm[k+1]-0.72,sm[k+1]+0.72);}
+  const tid=FW.tid||new Uint8Array(n),sm=new Float32Array(n);for(let k=0;k<n;k++){if(span[k]){sm[k]=raw[k];continue;}let s=0,c=0;for(let q=Math.max(0,k-6);q<=Math.min(n-1,k+6);q++){if(tid[q]!==tid[k])continue;s+=raw[q];c++;}sm[k]=s/c;}
+  for(let it=0;it<6;it++){for(let k=1;k<n;k++)if(!span[k]&&tid[k]===tid[k-1])sm[k]=clamp(sm[k],sm[k-1]-0.72,sm[k-1]+0.72);for(let k=n-2;k>=0;k--)if(!span[k]&&tid[k]===tid[k+1])sm[k]=clamp(sm[k],sm[k+1]-0.72,sm[k+1]+0.72);}
   for(let k=0;k<n;k++)FW.PH[k]=sm[k];FW.span=span;
   for(const Q of FW.pois){const q=trailQ(Q.x,Q.z,30);if(q)Q.h=q.h+0.15;}
   // the bridges' cells for quick lookup, and their meshes: a concrete deck, square posts with two rails each side, piers down to the riverbed
@@ -4711,7 +4756,7 @@ setTimeout(()=>{try{mechLoad();}catch(e){}},20000);
 function brkOn(){return FREE&&S.mode==='play'&&!RIDE.pid&&V&&V.type!=='tank'&&V.type!=='crawler';}
 function brkReset(){if(typeof BRK!=='object')return;if(BRK.rep)repEnd(true);BRK.flat=-1;BRK.heat=0.45;BRK.lights=true;BRK.hotWarn=false;BRK.spare=1;BRK.odo=0;
   // only one to three punctures in a whole drive, at random places along the way
-  const n=1+Math.floor(Math.random()*3);BRK.marks=[];for(let i=0;i<n;i++)BRK.marks.push(1500+Math.random()*(FMAP==='dayk'?32000:14000));BRK.marks.sort((a,b)=>a-b);}
+  const n=1+Math.floor(Math.random()*3);BRK.marks=[];for(let i=0;i<n;i++)BRK.marks.push(1500+Math.random()*(RMAP(FMAP)?32000:14000));BRK.marks.sort((a,b)=>a-b);}
 function puncture(){const L=V.wheels.map((w,i)=>w.g?i:-1).filter(i=>i>=0);if(!L.length)return;BRK.flat=L[Math.floor(Math.random()*L.length)];
   tone(3200,1.0,0.02,'sawtooth',1800);SFX.hit(3);toast(tr_('پنچر شد! بایست و با دکمهٔ آچار چرخ را عوض کن'));brkUI();}
 function brkHit(v){if(typeof evtHit==='function')evtHit(v);if(!brkOn())return;if(v>7&&BRK.lights&&Math.random()<0.55){BRK.lights=false;tone(2600,0.12,0.04,'square',1900);toast(tr_('چراغ‌های جلو شکست'));brkUI();}
@@ -5065,8 +5110,8 @@ $('evClose').addEventListener('click',()=>{const E=EVT.cur;if(E)E.declined=true;
 window.__EVT={EVT,evSpawn,evAct,evtStep,evReset,evtHonk,evWhere,evAhead};
 
 // switching between the stage road and the free map
-function setWorld(fw,map){brkReset();if(typeof evReset==='function'&&(EVT.cur||EVT.mis))evReset();fw=!!fw;if(fw&&map&&map!==FMAP){if(FW&&FW.group)FW.group.visible=false;if(FW)FWS[FMAP]=FW;FMAP=map;dkConsts();FW=FWS[map]||null;FSNOWQ=null;if(FREE){FREE=false;dkClearHouses();}}
-  if(fw)freeInit();noSnowP.value=fw&&FMAP==='dayk'?1:0;if(fw===FREE)return;if(!fw)dkClearHouses();FREE=fw;FW.group&&(FW.group.visible=FREE);
+function setWorld(fw,map){brkReset();if(fw&&RMAP(map||FMAP)){DK=DKM[map||FMAP]||DK;DKS=DKSM[map||FMAP];}if(typeof evReset==='function'&&(EVT.cur||EVT.mis))evReset();fw=!!fw;if(fw&&map&&map!==FMAP){if(FW&&FW.group)FW.group.visible=false;if(FW)FWS[FMAP]=FW;FMAP=map;dkConsts();FW=FWS[map]||null;FSNOWQ=null;if(FREE){FREE=false;dkClearHouses();}}
+  if(fw)freeInit();noSnowP.value=fw&&RMAP(FMAP)?1:0;if(fw===FREE)return;if(!fw)dkClearHouses();FREE=fw;FW.group&&(FW.group.visible=FREE);
   mhCache.clear();treeCache.clear();for(const [,T] of tiles)disposeTile(T);tiles.clear();blkBuild();tileQueue=[];pTile=[1e9,1e9];
   for(const [,rc] of roadChunks)rc.meshes.forEach(m=>{scene.remove(m);if(m.geometry&&!m.userData.shared)m.geometry.dispose();});roadChunks.clear();roadCiLast=1e9;
   for(const [,m] of grass)m.forEach(x=>{scene.remove(x);x.dispose&&x.dispose();});grass.clear();
@@ -5140,7 +5185,7 @@ function freeFrame(dt){if(FW.dk)dkFrame(dt);evtStep(dt);for(const Q of FW.pois){
     toast(tr_('پیدا شد: ')+Q.n+' · +'+fa(prize)+tr_(' سکه (')+fa(FW.found.size)+tr_(' از ')+fa(FW.pois.length)+')');if(FW.found.size===FW.pois.length){S.coins+=20000;setTimeout(()=>toast(FW.dk?tr_('از شیخ میران تا نیلی رسیدی! +۲۰٬۰۰۰ سکه'):tr_('همهٔ جاهای جزیره را پیدا کردی! +۲۰٬۰۰۰ سکه')),2600);}save();}}}
 function freeWx(dt){FW.wxT-=dt;if(FW.wxT<=0){const v=S.z-FZ,L=FW.dk?['clear']:v>900?['clear','snow','fog','clear','snow']:v<-900?['clear','rain','clear','fog','clear']:['clear','rain','fog','clear','hail','clear'];FW.wx=L[Math.floor(Math.random()*L.length)];FW.wxT=150+Math.random()*180;}return FW.wx;}
 function freeHUD(){const k=zoneOf(S.z);let near=null,bd=1e9;for(const Q of FW.pois){const d=Math.hypot(S.x-Q.x,S.z-Q.z);if(d<bd){bd=d;near=Q;}}
-  $('zoneName').textContent=(FW.dk?tr_('دایکندی · '):tr_('نقشهٔ آزاد · '))+(near&&bd<(FW.dk?600:160)&&FW.found.has(near.i)?near.n:FW.dk?dkPlaceName():ZB[k].n);$('km').textContent=fa(FW.found.size);$('kmTot').textContent=fa(FW.pois.length);$('kmU').textContent=tr_('جا پیدا شده');$('trackFill').style.width=(FW.found.size/FW.pois.length*100)+'%';}
+  $('zoneName').textContent=(FW.dk?tr_(FMAP==='bamir'?'بامیان · ':'دایکندی · '):tr_('نقشهٔ آزاد · '))+(near&&bd<(FW.dk?600:160)&&FW.found.has(near.i)?near.n:FW.dk?dkPlaceName():ZB[k].n);$('km').textContent=fa(FW.found.size);$('kmTot').textContent=fa(FW.pois.length);$('kmU').textContent=tr_('جا پیدا شده');$('trackFill').style.width=(FW.found.size/FW.pois.length*100)+'%';}
 
 setTimeout(()=>{window.__FREE={setWorld,freeInit,get FW(){return FW;},freeHf,trailQ,FX,FZ,FR};},0);
 /* ---------- Traffic on the paved highway ----------
