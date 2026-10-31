@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=159</script>
+<script>window.GAME_CODE=160</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -3739,7 +3739,7 @@ function updateEnv(dt){
   moon.position.copy(SUNDIR).multiplyScalar(-4500);moon.material.opacity=sstep(0.6,0.1,dayF)*(1-wa*0.8);
   if(el>-0.06){sun.position.copy(SUNDIR);sun.color.set('#fff3dc').lerp(cTmp.set('#ffae66'),warm);sun.intensity=dayF*1.05*(1-Math.min(1,wa)*0.6)*(1-vis*0.65)*(FILMIC?1.5:1);if(sandA>0)sun.color.lerp(cTmp.set('#e0a060'),sandA*0.7);}
   else{sun.position.copy(SUNDIR).multiplyScalar(-1);sun.color.set('#9fb4e0');sun.intensity=0.28*(1-wa*0.5)*(FREE?0.55:1);}
-  hemi.color.set('#33406a').lerp(cTmp.set('#cfe3ff'),dayF);hemi.groundColor.set('#1c1a24').lerp(cTmp.set('#8a7350'),dayF);if(sandA>0)hemi.color.lerp(cTmp.set('#e2b483'),sandA*0.6);hemi.intensity=(lerp(0.32,0.6,dayF)+wa*0.07+WX.flash*1.2)*(FILMIC?0.82:1)*(FREE?lerp(0.38,1,dayF):1);
+  hemi.color.set('#33406a').lerp(cTmp.set('#cfe3ff'),dayF);hemi.groundColor.set('#1c1a24').lerp(cTmp.set('#8a7350'),dayF);if(sandA>0)hemi.color.lerp(cTmp.set('#e2b483'),sandA*0.6);hemi.intensity=(lerp(0.32,0.6,dayF)+wa*0.07+WX.flash*1.2)*(FILMIC?0.82:1)*(FREE?lerp(0.38,1,dayF):1)*(FREE&&FMAP==='bamir'?lerp(1,1.55,dayF):1);
   cloudMat.color.set('#ffffff').lerp(cTmp.set('#5d6470'),rainA*0.8).multiplyScalar(0.35+0.65*Math.max(dayF,0.15));
   const auto=dayF<0.5||wa>0.55||vis>0.5;S.lightsOn=S.lightOverride===null?auto:S.lightOverride;if(S.lightOverride!==null&&S.lightOverride===auto)S.lightOverride=null;
   const night=1-dayF,tn=performance.now()/1000;
@@ -4504,7 +4504,8 @@ function dkConsts(){if(RMAP(FMAP)){DK=DKM[FMAP]||DK;DKS=DKSM[FMAP];FX=DK.cx;FZ=D
 function dkLoad(map){map=map||'dayk';const T=DKM[map]||(DKM[map]={vz:0});if(T.H)return Promise.resolve();
   const src=map==='dayk'?Promise.resolve().then(()=>JSON.parse(document.getElementById('daykJSON').textContent)):fetch('maps/'+map+'.json').then(r=>{if(!r.ok)throw new Error('map '+map);return r.json();});
   const pix=(url,w,h)=>new Promise((ok,bad)=>{const img=new Image();img.onload=()=>{try{const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0);ok(x.getImageData(0,0,w,h).data);}catch(e){bad(e);}};img.onerror=bad;img.src=url;});
-  return src.then(D=>{Object.assign(T,D);return Promise.all([pix(T.dem,T.nx,T.nz),T.lg?pix(T.lg.img,T.lg.nx,T.lg.nz):null,T.drape?pix(T.drape.img,T.drape.nx,T.drape.nz):null,T.fdrape?pix(T.fdrape.img,T.fdrape.nx,T.fdrape.nz):null,T.fdem?pix(T.fdem.img,T.fdem.nx,T.fdem.nz):null]);}).then(([px,lp,dp,fp,hp])=>{
+  return src.then(D=>{Object.assign(T,D);return Promise.all([pix(T.dem,T.nx,T.nz),T.lg?pix(T.lg.img,T.lg.nx,T.lg.nz):null,T.drape?pix(T.drape.img,T.drape.nx,T.drape.nz):null,T.fdrape?pix(T.fdrape.img,T.fdrape.nx,T.fdrape.nz):null,T.fdem?pix(T.fdem.img,T.fdem.nx,T.fdem.nz):null,T.wide?pix(T.wide.img,T.wide.nx,T.wide.nz):null]);}).then(([px,lp,dp,fp,hp,wp])=>{
+    if(wp){const m=T.wide.nx*T.wide.nz,H=new Float32Array(m);for(let i=0;i<m;i++)H[i]=wp[i*4]*256+wp[i*4+1]+1000-T.eb;T.wide.H=H;T.wide.img=null;}
     if(hp){const m=T.fdem.nx*T.fdem.nz,H=new Float32Array(m);for(let i=0;i<m;i++)H[i]=(hp[i*4]*256+hp[i*4+1])/10+1000-T.eb;T.fdem.H=H;T.fdem.img=null;}
     for(const [Q,a] of [[T.drape,dp],[T.fdrape,fp]])if(Q&&a){const m=Q.nx*Q.nz,rgb=new Uint8Array(m*3);for(let i=0;i<m;i++){rgb[i*3]=a[i*4];rgb[i*3+1]=a[i*4+1];rgb[i*3+2]=a[i*4+2];}Q.px=rgb;Q.img=null;}
     const n=T.nx*T.nz,H=new Float32Array(n);for(let i=0;i<n;i++)H[i]=(px[i*4]*256+px[i*4+1])/10+1000-T.eb;T.H=H;T.dem=null;
@@ -4553,14 +4554,18 @@ function dkGround(x,z,h,ny,ad,out){if(DK.drape&&DK.drape.px)return dkGroundSat(x
   out.offsetHSL(0,-0.04,(n2-0.5)*0.05);return out;}
 function dkGroundSat(x,z,h,ny,ad,out){const c=dkSat(x,z);if(!c){out.copy(DKC.dry1);return out;}
   const n2=vnoise(x*0.07,z*0.07);out.setRGB(Math.pow(c[0]/255,2.3)*0.74,Math.pow(c[1]/255,2.3)*0.74,Math.pow(c[2]/255,2.3)*0.74);
-  if(FMAP==='bamir'){out.getHSL(_hsl);const veg=_hsl.h>0.2&&_hsl.h<0.45&&_hsl.s>0.12;out.setHSL(veg?_hsl.h:0.03+_hsl.h*0.25,_hsl.s*(veg?1:0.32),_hsl.l*(veg?1:0.8));
+  if(FMAP==='bamir'){out.getHSL(_hsl);const veg=_hsl.h>0.2&&_hsl.h<0.45&&_hsl.s>0.12;out.setHSL(veg?_hsl.h:0.045+_hsl.h*0.3,_hsl.s*(veg?1:0.34),_hsl.l*(veg?1:0.88));
     if(ny<0.62&&h>760){dkT.setRGB(0.33,0.2,0.15).multiplyScalar(0.85+0.3*vnoise(h*0.4,x*0.01));out.lerp(dkT,sstep(0.62,0.45,ny)*sstep(760,860,h));}}
   else out.offsetHSL(0,0.1,0);
   if(DK.fdem&&ny<0.7){const F=DK.fdem;if(x>F.x0&&z>F.z0&&x<F.x0+F.nx*F.c&&z<F.z0+F.nz*F.c){const b1=vnoise(h*0.31,x*0.002+z*0.002),b2=vnoise(h*1.3+3,x*0.01),w=sstep(0.7,0.45,ny)*0.8;
       dkT.setRGB(0.6,0.56,0.48).lerp(_trv.setRGB(0.44,0.42,0.39),sstep(0.4,0.7,b1)).lerp(_trv.setRGB(0.5,0.4,0.3),sstep(0.62,0.85,b2)*0.5).multiplyScalar(0.9+0.2*vnoise(h*2.1,x*0.05));out.lerp(dkT,w*0.75);}}
   if(FW&&FW.lg){const l=dkLake(x,z);if(l&&l.sd<0){dkT.set('#c9d2c8');out.lerp(dkT,sstep(0,-6,l.sd));}
     else if(l&&l.sd<16&&ny<0.75){const st=vnoise(x*0.9,z*0.9+h*0.05),rs=vnoise(x*0.25+h*0.3,z*0.25);dkT.setRGB(0.62,0.56,0.45).lerp(_trv.setRGB(0.5,0.33,0.18),sstep(0.55,0.8,rs)*0.6).multiplyScalar(0.85+0.3*st);out.lerp(dkT,sstep(16,8,l.sd)*sstep(0.75,0.5,ny));}}
-  {const rw=FW&&FW.rw?FW.rw+0.1:2.6;if(ad<rw){dkT.set('#c4b49a');out.lerp(dkT,0.6*sstep(rw,rw-1.3,ad));}}
+  {const rw=FW&&FW.rw?FW.rw+0.1:2.6;let pav=false,rh=0;if(ad<7&&FW&&FW.pv){const q=trailQ(x,z,8);if(q){pav=!!FW.pv[Math.floor(q.s)];rh=q.h;}}
+    if(pav){// the highway: a gravel shoulder, and on the cut side a lined concrete ditch that takes the water off the road
+      if(ad<5.6){dkT.setRGB(0.5,0.47,0.42).multiplyScalar(0.92+0.16*n2);out.lerp(dkT,0.85*sstep(5.6,4.6,ad));}
+      if(h>rh+0.25&&ad>4.3&&ad<5.5){dkT.setRGB(0.55,0.55,0.53);out.lerp(dkT,0.9*sstep(4.3,4.5,ad)*sstep(5.5,5.3,ad));}}
+    else if(ad<rw){dkT.set('#c4b49a');out.lerp(dkT,0.6*sstep(rw,rw-1.3,ad));}}
   out.offsetHSL(0,0,(n2-0.5)*0.03);return out;}
 // how much of a village is round a point (0 = bare mountain, 1 = among the houses), from the houses themselves
 function dkVil(x,z){const V=DK.vil;if(V&&FW&&FW.rc){const q=dkRiv(x,z);if(q&&q.d>q.w+1&&q.d<q.w+70){const b=sstep(q.w+70,q.w+12,q.d)*0.8;const i=Math.floor((x-DK.x0)/40),j=Math.floor((z-DK.z0)/40);const a=(i<0||j<0||i>=V.nx||j>=V.nz)?0:V.a[j*V.nx+i];return Math.max(a,b);}}if(!V)return 0;const i=Math.floor((x-DK.x0)/40),j=Math.floor((z-DK.z0)/40);if(i<0||j<0||i>=V.nx||j>=V.nz)return 0;return V.a[j*V.nx+i];}
@@ -4595,7 +4600,7 @@ function dkInit(){const t0=performance.now();
     for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const key=i*65536+j;let L=FW.rc.get(key);if(!L)FW.rc.set(key,L=[]);L.push(ri,k);}}});
   dkRoadBed();
   for(const H of FW.houses){let s=0;for(const [u,w] of [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5],[0,0]])s+=freeHf(H.x+u*H.w*H.ca-w*H.d*H.sa,H.z+u*H.w*H.sa+w*H.d*H.ca);H.ph=s/5;}FW.pads=true;
-  freeBuildScene();for(const B of FW.br)FW.group.add(B.mesh);dkRiverMeshes();if(FMAP==='dayk')dkSchoolWall();else FW.walls=[];dkLakeMeshes();dkFalls();dkAsphalt();dkBoats();if(DK.drape)dkFarMesh();FW.ms=Math.round(performance.now()-t0);}
+  freeBuildScene();for(const B of FW.br)FW.group.add(B.mesh);dkRiverMeshes();if(FMAP==='dayk')dkSchoolWall();else FW.walls=[];dkLakeMeshes();dkFalls();dkAsphalt();dkBoats();dkSkyline();if(DK.drape)dkFarMesh();FW.ms=Math.round(performance.now()-t0);}
 // the nearest river: distance to the bed's middle, to the water channel (which wanders inside the bed), and the bed height there
 function dkChan(Rv,ri,s){let o=(Rv.w-Rv.c-2)*0.55*Math.sin(s/90+ri)*Math.min(1,s/60);if(Rv.pins)for(const P of Rv.pins){const w=sstep(160,30,Math.abs(s-P.s));o+=(P.o-o)*w;}return o;}
 function dkRiv(x,z){const L=FW.rc.get(Math.floor(x/32)*65536+Math.floor(z/32));if(!L)return null;let best=null,bd=1e9;
@@ -4646,6 +4651,19 @@ function dkFalls(){if(!DK.falls||!DK.lakes)return;const P=[],U=[],I=[],list=DK.f
       if(s>8&&lk.lv-h>2&&Math.abs(freeHf(x+dx*3,z+dz*3)-h)<0.25)break;}}
   if(!I.length)return;const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);g.computeBoundingSphere();
   FW.group.add(new THREE.Mesh(g,fallMat));}
+// ---- the skyline: the mountains up to 80 km off (Koh-e Baba's snow to the south) drawn behind everything, scaled in toward the
+// camera like a sky so they always fit; hazier the further off they are
+const skyCamU={value:new THREE.Vector3()},wideMat=new THREE.MeshLambertMaterial({vertexColors:true,fog:false,depthWrite:false,depthTest:false});
+wideMat.onBeforeCompile=sh=>{sh.uniforms.uCam=skyCamU;sh.uniforms.uHor=skyU.hor;sh.vertexShader='uniform vec3 uCam;varying float vWd;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvWd=length(position.xz-uCam.xz);');
+  sh.fragmentShader='uniform vec3 uHor;varying float vWd;\n'+sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\ngl_FragColor.rgb=mix(gl_FragColor.rgb,uHor,smoothstep(2500.0,70000.0,vWd)*0.82);');};
+function dkSkyline(){const W=DK.wide;if(!W||!W.H)return;const nx=W.nx,nz=W.nz,P=new Float32Array(nx*nz*3),C=new Float32Array(nx*nz*3),I=[],col=new THREE.Color(),sn=4250-DK.eb;
+  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const v=j*nx+i,h=W.H[v],x=W.x0+i*W.c,z=W.z0+j*W.c;P[v*3]=x;P[v*3+1]=h;P[v*3+2]=z;
+    const n=vnoise(x*0.0011,z*0.0011);col.setRGB(0.4,0.34,0.31).lerp(_trv.setRGB(0.46,0.45,0.44),sstep(2900-DK.eb,3700-DK.eb,h)).multiplyScalar(0.85+0.3*n);
+    const hl=W.H[Math.max(0,v-1)],hr=W.H[Math.min(nx*nz-1,v+1)],hu=W.H[Math.max(0,v-nx)],hd=W.H[Math.min(nx*nz-1,v+nx)],sl=Math.hypot(hr-hl,hd-hu)/(2*W.c);
+    col.lerp(_trv.setRGB(0.9,0.92,0.95),sstep(sn-150,sn+120,h+(n-0.5)*300)*sstep(0.9,0.5,sl));C[v*3]=col.r;C[v*3+1]=col.g;C[v*3+2]=col.b;
+    if(i<nx-1&&j<nz-1)I.push(v,v+nx,v+1,v+1,v+nx,v+nx+1);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('color',new THREE.BufferAttribute(C,3));g.setIndex(I);g.computeVertexNormals();
+  const m=new THREE.Mesh(g,wideMat);m.frustumCulled=false;m.renderOrder=-1;FW.group.add(m);FW.sky=m;}
 // ---- the far land: the whole real map every 120 m in its satellite colours, so the mountains far off stand on the skyline as
 // they really are; sunk a little with distance so the detailed ground near you always covers it
 const farMat=new THREE.MeshLambertMaterial({vertexColors:true});
@@ -4716,21 +4734,25 @@ function dkMapImg(){const n=FW.gn,c=document.createElement('canvas');c.width=c.h
   x.putImageData(id,0,0);x.fillStyle='rgba(70,50,30,.85)';for(const Hh of FW.houses){const a=(Hh.x-FW.gx0)/FG,b=(Hh.z-FW.gz0)/FG;x.fillRect(a,b,1,1);}return FW.mapC=c;}
 // ---- the houses: mud-brick walls, flat roofs with a low parapet, small framed windows; the big ones get corner towers like a qala
 let dkMats=null;
-function dkHouseMats(){if(dkMats)return dkMats;const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');
-  g.fillStyle='#bfa27c';g.fillRect(0,0,256,256);const R=mulberry32(77);
-  for(let i=0;i<2600;i++){const x=R()*256,y=R()*256,v=R();g.fillStyle=v<0.5?'rgba(120,90,60,'+(0.08+R()*0.12)+')':'rgba(235,215,180,'+(0.06+R()*0.1)+')';g.fillRect(x,y,1+R()*3,1+R()*2);}
-  for(let i=0;i<220;i++){const x=R()*256,y=R()*256;g.strokeStyle='rgba(200,170,110,.35)';g.beginPath();g.moveTo(x,y);g.lineTo(x+(R()-0.5)*8,y+(R()-0.5)*3);g.stroke();}
-  for(let y=24;y<256;y+=30){g.fillStyle='rgba(110,85,60,.07)';g.fillRect(0,y,256,2);}
-  g.fillStyle='rgba(90,70,50,.25)';g.fillRect(0,250,256,6);
-  // the window: dark glass in a pale wooden frame with a bar across
-  const wx=96,wy=84,ww=64,wh=74;g.fillStyle='#e2dccd';g.fillRect(wx-6,wy-6,ww+12,wh+12);g.fillStyle='#2b2a27';g.fillRect(wx,wy,ww,wh);
-  g.fillStyle='#e2dccd';g.fillRect(wx+ww/2-2,wy,4,wh);g.fillRect(wx,wy+wh/2-2,ww,4);g.fillStyle='rgba(120,150,170,.35)';g.fillRect(wx+4,wy+4,ww/2-8,wh/2-8);
-  g.fillStyle='rgba(80,60,40,.35)';g.fillRect(wx-8,wy+wh+6,ww+16,5);
-  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;if(FILMIC)t.encoding=THREE.sRGBEncoding;
-  const wall=new THREE.MeshLambertMaterial({map:t});
-  wall.onBeforeCompile=sh=>{sh.vertexShader=sh.vertexShader.replace('#include <uv_vertex>',['#include <uv_vertex>','#ifdef USE_INSTANCING',
-    'vec3 isc=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));vec3 lp=(position+0.5)*isc;',
-    'vUv=(abs(normal.x)>0.5?vec2(lp.z,lp.y):abs(normal.z)>0.5?vec2(lp.x,lp.y):vec2(0.02,0.02))/vec2(3.4,2.9)+vec2(0.0,-0.10);','#endif'].join('\n'));};
+function dkHouseMats(){if(dkMats)return dkMats;const R=mulberry32(77);
+  // the mud-and-straw plaster (kahgel) of the Hazara houses: warm grey-brown, smoothed by hand, darker where the damp rises at the
+  // foot; small windows in wooden frames painted blue, green or left as wood, with a bar across
+  const mkWall=(frame,glass)=>{const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');
+    g.fillStyle='#b9a283';g.fillRect(0,0,256,256);
+    for(let i=0;i<3200;i++){const x=R()*256,y=R()*256,v=R();g.fillStyle=v<0.5?'rgba(110,88,62,'+(0.06+R()*0.12)+')':'rgba(228,212,184,'+(0.05+R()*0.1)+')';g.fillRect(x,y,1+R()*4,1+R()*2);}
+    for(let i=0;i<260;i++){const x=R()*256,y=R()*256;g.strokeStyle='rgba(205,180,130,.35)';g.lineWidth=0.7;g.beginPath();g.moveTo(x,y);g.lineTo(x+(R()-0.5)*9,y+(R()-0.5)*2);g.stroke();}
+    for(let i=0;i<14;i++){const x=R()*256;g.fillStyle='rgba(90,72,52,.08)';g.fillRect(x,0,3+R()*8,256);}
+    const gr=g.createLinearGradient(0,200,0,256);gr.addColorStop(0,'rgba(80,62,44,0)');gr.addColorStop(1,'rgba(80,62,44,.45)');g.fillStyle=gr;g.fillRect(0,200,256,56);
+    const wx=100,wy=80,ww=56,wh=68;g.fillStyle='rgba(70,55,40,.35)';g.fillRect(wx-9,wy-9,ww+18,wh+18);g.fillStyle=frame;g.fillRect(wx-5,wy-5,ww+10,wh+10);g.fillStyle=glass;g.fillRect(wx,wy,ww,wh);
+    g.fillStyle=frame;g.fillRect(wx+ww/2-2,wy,4,wh);g.fillRect(wx,wy+wh*0.4-2,ww,4);g.fillStyle='rgba(150,175,190,.28)';g.fillRect(wx+3,wy+3,ww/2-6,wh*0.4-6);
+    g.fillStyle='rgba(60,46,32,.4)';g.fillRect(wx-8,wy+wh+5,ww+16,6);
+    const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;if(FILMIC)t.encoding=THREE.sRGBEncoding;
+    const m=new THREE.MeshLambertMaterial({map:t});
+    m.onBeforeCompile=sh=>{sh.vertexShader=sh.vertexShader.replace('#include <uv_vertex>',['#include <uv_vertex>','#ifdef USE_INSTANCING',
+      'vec3 isc=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));vec3 lp=(position+0.5)*isc;',
+      'vUv=(abs(normal.x)>0.5?vec2(lp.z,lp.y):abs(normal.z)>0.5?vec2(lp.x,lp.y):vec2(0.02,0.02))/vec2(3.4,2.9)+vec2(0.0,-0.10);','#endif'].join('\n'));};
+    m.customProgramCacheKey=()=>'dkwall';return m;};
+  const wall=mkWall('#d9d2c2','#2b2a27'),wall2=mkWall('#3d6f9e','#25313a'),wall3=mkWall('#4f7d4a','#262e28'),wall4=mkWall('#7a5534','#2a2622');
   const roof=new THREE.MeshLambertMaterial({color:0xffffff});
   const c2=document.createElement('canvas');c2.width=c2.height=256;const h2=c2.getContext('2d');h2.fillStyle='#8f857a';h2.fillRect(0,0,256,256);for(let y=0;y<256;y+=14)for(let x=((y/14)%2)*11;x<256;x+=22){const g=0.75+R()*0.4;h2.fillStyle='rgb('+Math.round(150*g)+','+Math.round(140*g)+','+Math.round(126*g)+')';h2.fillRect(x+1,y+1,20,12);}
   for(let i=0;i<1400;i++){h2.fillStyle='rgba(255,255,255,'+(0.04+R()*0.06)+')';h2.fillRect(R()*256,R()*256,2,2);}
@@ -4749,7 +4771,7 @@ function dkHouseMats(){if(dkMats)return dkMats;const c=document.createElement('c
   h3.fillStyle='#5f8f3a';h3.fillRect(68,40,120,160);h3.fillStyle='#e9e2cf';h3.fillRect(76,48,104,144);h3.fillStyle='#5f8f3a';h3.fillRect(125,48,6,144);h3.fillRect(76,108,104,5);h3.fillStyle='rgba(70,80,80,.35)';h3.fillRect(80,52,42,52);
   const t3=new THREE.CanvasTexture(c3);t3.wrapS=t3.wrapT=THREE.RepeatWrapping;t3.anisotropy=4;if(FILMIC)t3.encoding=THREE.sRGBEncoding;
   const blue=new THREE.MeshLambertMaterial({map:t3});blue.color.setRGB(1.35,1.35,1.35);blue.onBeforeCompile=school.onBeforeCompile;
-  return dkMats={wall,roof,school,metal,blue};}
+  return dkMats={wall,wall2,wall3,wall4,roof,school,metal,blue};}
 // a gable roof (a triangular prism one unit wide, high and long), for the schools' metal roofs
 const dkGable=(function(){const g=new THREE.BufferGeometry(),P=[-0.5,0,-0.5, 0.5,0,-0.5, 0,1,-0.5, -0.5,0,0.5, 0.5,0,0.5, 0,1,0.5],I=[0,2,1, 3,4,5, 0,3,5, 0,5,2, 1,2,5, 1,5,4];g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);g.computeVertexNormals();return g.toNonIndexed();})();
 dkGable.computeVertexNormals();
@@ -4760,7 +4782,7 @@ const dkYurtM=(function(){const c=document.createElement('canvas');c.width=128;c
   g.fillStyle='#8a2f2a';g.fillRect(58,10,12,22);for(let i=0;i<300;i++){g.fillStyle='rgba(120,100,80,'+(Math.random()*0.08)+')';g.fillRect(Math.random()*128,Math.random()*32,2,2);}
   const t=new THREE.CanvasTexture(c);t.wrapS=THREE.RepeatWrapping;if(FILMIC)t.encoding=THREE.sRGBEncoding;return {w:new THREE.MeshLambertMaterial({map:t,side:THREE.DoubleSide}),r:new THREE.MeshLambertMaterial({color:'#e2dccd'})};})();
 function dkChunk(ci,cj){if(!FW.hByC){FW.hByC=new Map();for(const H of FW.houses){const k=Math.floor(H.x/400)+','+Math.floor(H.z/400);let L=FW.hByC.get(k);if(!L)FW.hByC.set(k,L=[]);L.push(H);}}const L=FW.hByC.get(ci+','+cj)||[];if(!L.length)return {meshes:[]};
-  const M=dkHouseMats(),W=[],Rf=[],SW=[],SR=[],BW=[],BR=[],YW=[],YR=[],SW2=[],DM=[],col=new THREE.Color(),q=new THREE.Quaternion(),e=new THREE.Euler(),mt=new THREE.Matrix4(),ox=ci*400,oz=cj*400;
+  const M=dkHouseMats(),W=[],W2=[],W3=[],W4=[],Rf=[],SW=[],SR=[],BW=[],BR=[],YW=[],YR=[],SW2=[],DM=[],col=new THREE.Color(),q=new THREE.Quaternion(),e=new THREE.Euler(),mt=new THREE.Matrix4(),ox=ci*400,oz=cj*400;
   for(const H of L){let lo=1e9,hi=-1e9;for(const [u,w] of [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5],[0,0]]){const x=H.x+u*H.w*H.ca-w*H.d*H.sa,z=H.z+u*H.w*H.sa+w*H.d*H.ca,h=Hf(x,z);lo=Math.min(lo,h);hi=Math.max(hi,h);}
     const tall=(H.k===4?2.4:2.8*H.fl+0.3),base=lo-1.2,top=Math.min(lo,hi)+tall+Math.min(1.2,(hi-lo)*0.5),r=hash2(Math.round(H.x*3),Math.round(H.z*3));H.y=top;
     const tint=H.k===2||H.k===3?[1.12,1.12,1.1]:H.k===4?[1.3,1.32,1.32]:[0.9+0.16*r,0.88+0.15*r,0.86+0.14*r];
@@ -4769,8 +4791,11 @@ function dkChunk(ci,cj){if(!FW.hByC){FW.hByC=new Map();for(const H of FW.houses)
     if(H.k===6){const st=lo-0.6,tp=lo+3.8;BW.push([H.x,(st+tp)/2,H.z,H.w,tp-st,H.d,H.a,[1,1,1]]);BR.push([H.x,tp+0.12,H.z,H.w+1.6,0.32,H.d+1.6,H.a,[0.45,0.62,0.26]]);BR.push([H.x,tp+0.32,H.z,H.w+0.6,0.18,H.d+0.6,H.a,[0.86,0.88,0.86]]);H.y=tp;continue;}
     if(H.k===2){const st=lo-0.4,tp=lo+3.6,ridgeAlongW=H.w>=H.d;SW.push([H.x,(st+tp)/2,H.z,H.w,tp-st,H.d,H.a,[1,1,1]]);
       SR.push([H.x,tp,H.z,(ridgeAlongW?H.d:H.w)+1.0,1.5,(ridgeAlongW?H.w:H.d)+1.0,H.a+(ridgeAlongW?Math.PI/2:0),[0.42,0.68,0.82]]);H.y=tp;continue;}
-    W.push([H.x,(base+top)/2,H.z,H.w,top-base,H.d,H.a,tint]);
+    (r<0.45?W:r<0.64?W2:r<0.82?W3:W4).push([H.x,(base+top)/2,H.z,H.w,top-base,H.d,H.a,tint]);
     Rf.push([H.x,top+0.12,H.z,H.w+0.3,0.36,H.d+0.3,H.a,[0.62+0.1*r,0.55+0.08*r,0.45+0.07*r]]);
+    // newer houses in Bamiyan carry a pitched roof of painted corrugated iron (green, blue, red or bare)
+    {const r2=hash2(Math.round(H.x*7),Math.round(H.z*5));if(FMAP==='bamir'&&H.k!==3&&H.k!==4&&r2<0.28){const along=H.w>=H.d,pc=[[0.32,0.55,0.33],[0.32,0.48,0.72],[0.68,0.27,0.22],[0.74,0.74,0.72]][Math.floor(r2*14.3)%4];
+      SR.push([H.x,top+0.3,H.z,(along?H.d:H.w)+0.8,1.1+0.1*Math.min(H.w,H.d)/4,(along?H.w:H.d)+0.8,H.a+(along?Math.PI/2:0),pc]);}}
     // as real mud houses are built: the poplar roof beams poke out of the walls under the roof edge, and a wooden door
     {const P=(u,w)=>[H.x+u*H.ca-w*H.sa,H.z+u*H.sa+w*H.ca],alongW=H.w>=H.d,L=alongW?H.w:H.d,S2=alongW?H.d:H.w,nb=Math.max(2,Math.floor((L-0.6)/0.95)),bc=[0.42+0.08*r,0.33+0.06*r,0.24+0.05*r];
       for(let k=0;k<nb;k++){const t=-L/2+0.3+(k+0.5)*(L-0.6)/nb,[x,z]=alongW?P(t,0):P(0,t);Rf.push([x,top-0.2+0.03*Math.sin(k*1.7),z,alongW?0.15:S2+0.7,0.15,alongW?S2+0.7:0.15,H.a,bc]);}
@@ -4780,9 +4805,9 @@ function dkChunk(ci,cj){if(!FW.hByC){FW.hByC=new Map();for(const H of FW.houses)
       W.push([x,(base+top+1.6)/2,z,2.6,top+1.6-base,2.6,H.a,tint]);Rf.push([x,top+1.72,z,2.9,0.3,2.9,H.a,Rf[Rf.length-1][7]]);}}
   const mk=(arr,mat,geo)=>{if(!arr.length)return null;const im=new THREE.InstancedMesh(geo||dkBox,mat,arr.length);arr.forEach((a,i)=>{e.set(0,-a[6],0);q.setFromEuler(e);mt.compose(new THREE.Vector3(a[0]-ox,a[1],a[2]-oz),q,new THREE.Vector3(a[3],a[4],a[5]));im.setMatrixAt(i,mt);col.setRGB(a[7][0],a[7][1],a[7][2]);im.setColorAt(i,col);});
     im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;im.position.set(ox,0,oz);im.castShadow=true;im.receiveShadow=true;im.frustumCulled=false;scene.add(im);return im;};
-  return {meshes:[mk(W,M.wall),mk(Rf,M.roof),mk(SW,M.school),mk(SR,M.metal,dkGable),mk(BW,M.blue),mk(BR,M.roof),mk(YW,dkYurtM.w,dkYurtG.w),mk(YR,dkYurtM.r,dkYurtG.r),mk(SW2,M.wall),mk(DM,M.roof,dkDome)].filter(Boolean),cx:ox+200,cz:oz+200};}
+  return {meshes:[mk(W,M.wall),mk(W2,M.wall2),mk(W3,M.wall3),mk(W4,M.wall4),mk(Rf,M.roof),mk(SW,M.school),mk(SR,M.metal,dkGable),mk(BW,M.blue),mk(BR,M.roof),mk(YW,dkYurtM.w,dkYurtG.w),mk(YR,dkYurtM.r,dkYurtG.r),mk(SW2,M.wall),mk(DM,M.roof,dkDome)].filter(Boolean),cx:ox+200,cz:oz+200};}
 function dkClearHouses(){if(!FW||!FW.chunks)return;for(const [,C] of FW.chunks)C.meshes.forEach(m=>{scene.remove(m);m.dispose&&m.dispose();});FW.chunks.clear();dkObst.length=0;}
-function dkFrame(dt){FW.hT-=dt;FW.oT-=dt;FW.sT-=dt;if(FW.boats)for(const b of FW.boats){b.ph+=dt;b.g.position.y=b.lv+0.12+Math.sin(b.ph*1.3)*0.04;b.g.rotation.z=Math.sin(b.ph*0.9)*0.025;b.g.rotation.y+=dt*0.01;}
+function dkFrame(dt){FW.hT-=dt;FW.oT-=dt;FW.sT-=dt;if(FW.sky){const k=0.05;FW.sky.scale.setScalar(k);FW.sky.position.copy(camera.position).multiplyScalar(1-k);skyCamU.value.copy(camera.position);}if(FW.boats)for(const b of FW.boats){b.ph+=dt;b.g.position.y=b.lv+0.12+Math.sin(b.ph*1.3)*0.04;b.g.rotation.z=Math.sin(b.ph*0.9)*0.025;b.g.rotation.y+=dt*0.01;}
   if(FW.hT<=0){FW.hT=0.4;const ci=Math.floor(S.x/400),cj=Math.floor(S.z/400);let built=0;
     const want=[];for(let j=-4;j<=4;j++)for(let i=-4;i<=4;i++){const k=(ci+i)+','+(cj+j);if(FW.chunks.has(k))continue;const d=Math.hypot((ci+i+0.5)*400-S.x,(cj+j+0.5)*400-S.z);if(d<=1600)want.push([d,ci+i,cj+j,k]);}
     want.sort((a,b)=>a[0]-b[0]);for(const [d,a,b,k] of want){if(built>=2)break;FW.chunks.set(k,dkChunk(a,b));built++;}
