@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=155</script>
+<script>window.GAME_CODE=156</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1650,7 +1650,7 @@ function waterize(m,sc,tint){m.onBeforeCompile=sh=>{sh.uniforms.uT=timeU;sh.unif
     sh.fragmentShader='uniform float uT;uniform vec3 uHor,uMid;varying vec3 vWP;\n'+sh.fragmentShader.replace('#include <normal_fragment_maps>',
       'vec2 wq=vWP.xz*'+sc.toFixed(3)+';vec3 n1=texture2D(normalMap,wq+vec2(uT*0.021,uT*0.013)).xyz*2.0-1.0;vec3 n2=texture2D(normalMap,wq*1.93+vec2(-uT*0.017,uT*0.024)).xyz*2.0-1.0;vec3 n3=texture2D(normalMap,wq*0.31+vec2(uT*0.006,-uT*0.004)).xyz*2.0-1.0;'
       +'vec2 sl=(n1.xy+n2.xy*0.55+n3.xy*0.9)*normalScale;normal=normalize((viewMatrix*vec4(normalize(vec3(-sl.x,1.0,-sl.y)),0.0)).xyz);')
-      .replace('#include <tonemapping_fragment>','float wfr=pow(1.0-clamp(dot(normalize(vViewPosition),normal),0.0,1.0),4.0);gl_FragColor.rgb=mix(gl_FragColor.rgb,'+(tint?'mix(mix(uHor,uMid,0.6),vec3('+tint+'),0.55)':'mix(uHor,uMid,0.35)*0.92')+',wfr*'+(tint?'0.45':'0.85')+');gl_FragColor.a=mix(gl_FragColor.a,1.0,wfr*0.7);\n#include <tonemapping_fragment>');};
+      .replace('#include <tonemapping_fragment>','float wfr=pow(1.0-clamp(dot(normalize(vViewPosition),normal),0.0,1.0),4.0);gl_FragColor.rgb=mix(gl_FragColor.rgb,'+(tint?'mix(mix(uHor,uMid,0.6),vec3('+tint+'),0.55)':'mix(uHor,uMid,0.35)*0.92')+',wfr*'+(tint?'0.16':'0.85')+');gl_FragColor.a=mix(gl_FragColor.a,1.0,wfr*0.7);\n#include <tonemapping_fragment>');};
   m.customProgramCacheKey=()=>'water'+sc+(tint||'');return m;}
 const waterMat=waterize(new THREE.MeshPhongMaterial({normalMap:waterNrm,normalScale:new THREE.Vector2(0.42,0.42),color:'#1f5f7a',specular:0xfff0d0,shininess:180,transparent:true,opacity:0.86,envMap:carEnv,reflectivity:0.5,combine:THREE.MixOperation,depthWrite:false}),0.045);
 // the body of the water under the surface: darker toward the bottom (seen from the side, from a beam, a cliff or a bank)
@@ -4495,7 +4495,8 @@ function dkConsts(){if(RMAP(FMAP)){DK=DKM[FMAP]||DK;DKS=DKSM[FMAP];FX=DK.cx;FZ=D
 function dkLoad(map){map=map||'dayk';const T=DKM[map]||(DKM[map]={vz:0});if(T.H)return Promise.resolve();
   const src=map==='dayk'?Promise.resolve().then(()=>JSON.parse(document.getElementById('daykJSON').textContent)):fetch('maps/'+map+'.json').then(r=>{if(!r.ok)throw new Error('map '+map);return r.json();});
   const pix=(url,w,h)=>new Promise((ok,bad)=>{const img=new Image();img.onload=()=>{try{const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0);ok(x.getImageData(0,0,w,h).data);}catch(e){bad(e);}};img.onerror=bad;img.src=url;});
-  return src.then(D=>{Object.assign(T,D);return Promise.all([pix(T.dem,T.nx,T.nz),T.lg?pix(T.lg.img,T.lg.nx,T.lg.nz):null,T.drape?pix(T.drape.img,T.drape.nx,T.drape.nz):null,T.fdrape?pix(T.fdrape.img,T.fdrape.nx,T.fdrape.nz):null]);}).then(([px,lp,dp,fp])=>{
+  return src.then(D=>{Object.assign(T,D);return Promise.all([pix(T.dem,T.nx,T.nz),T.lg?pix(T.lg.img,T.lg.nx,T.lg.nz):null,T.drape?pix(T.drape.img,T.drape.nx,T.drape.nz):null,T.fdrape?pix(T.fdrape.img,T.fdrape.nx,T.fdrape.nz):null,T.fdem?pix(T.fdem.img,T.fdem.nx,T.fdem.nz):null]);}).then(([px,lp,dp,fp,hp])=>{
+    if(hp){const m=T.fdem.nx*T.fdem.nz,H=new Float32Array(m);for(let i=0;i<m;i++)H[i]=(hp[i*4]*256+hp[i*4+1])/10+1000-T.eb;T.fdem.H=H;T.fdem.img=null;}
     for(const [Q,a] of [[T.drape,dp],[T.fdrape,fp]])if(Q&&a){const m=Q.nx*Q.nz,rgb=new Uint8Array(m*3);for(let i=0;i<m;i++){rgb[i*3]=a[i*4];rgb[i*3+1]=a[i*4+1];rgb[i*3+2]=a[i*4+2];}Q.px=rgb;Q.img=null;}
     const n=T.nx*T.nz,H=new Float32Array(n);for(let i=0;i<n;i++)H[i]=(px[i*4]*256+px[i*4+1])/10+1000-T.eb;T.H=H;T.dem=null;
     T.cx=T.x0+(T.nx-1)*T.cell/2;T.cz=T.z0+(T.nz-1)*T.cell/2;T.fr=Math.max(T.nx,T.nz)*T.cell/2;
@@ -4526,6 +4527,8 @@ function dkH(x,z){const D=DK,c=D.cell,fx=(x-D.x0)/c,fz=(z-D.z0)/c,nx=D.nx,nz=D.n
   let h=0;const wv0=v*((2-v)*v-1)*0.5,wv1=(v*v*(3*v-5)+2)*0.5,wv2=v*((4-3*v)*v+1)*0.5,wv3=v*v*(v-1)*0.5;
   const wu0=u*((2-u)*u-1)*0.5,wu1=(u*u*(3*u-5)+2)*0.5,wu2=u*((4-3*u)*u+1)*0.5,wu3=u*u*(u-1)*0.5;
   for(let b=0;b<4;b++){const k=(j-1+b)*nx+i-1,row=H[k]*wu0+H[k+1]*wu1+H[k+2]*wu2+H[k+3]*wu3;h+=row*(b===0?wv0:b===1?wv1:b===2?wv2:wv3);}
+  const F=D.fdem;if(F&&F.H){const gx=(x-F.x0)/F.c,gz=(z-F.z0)/F.c;if(gx>0&&gz>0&&gx<F.nx-2&&gz<F.nz-2){const a=Math.floor(gx),b=Math.floor(gz),u2=gx-a,v2=gz-b,k=b*F.nx+a,Q=F.H;
+      const hf=(Q[k]*(1-u2)+Q[k+1]*u2)*(1-v2)+(Q[k+F.nx]*(1-u2)+Q[k+F.nx+1]*u2)*v2,e=Math.min(gx,gz,F.nx-2-gx,F.nz-2-gz)*F.c;h+=(hf-h)*sstep(0,80,e);}}
   const rk=D.rel===undefined?1:D.rel;return h+((vnoise(x*0.021+7,z*0.021-3)-0.5)*5+(vnoise(x*0.06,z*0.06+9)-0.5)*1.6)*rk+(vnoise(x*0.17+2,z*0.17)-0.5)*0.5;}
 // colours of the land as in the photos: dry tan slopes, grey-brown layered rock, green fields and orchards round the villages
 const DKC={dry1:new THREE.Color('#968470'),dry2:new THREE.Color('#857463'),hi:new THREE.Color('#8f8579'),rk1:new THREE.Color('#9a846c'),rk2:new THREE.Color('#7d6b5a'),
@@ -4541,6 +4544,8 @@ function dkGround(x,z,h,ny,ad,out){if(DK.drape&&DK.drape.px)return dkGroundSat(x
   out.offsetHSL(0,-0.04,(n2-0.5)*0.05);return out;}
 function dkGroundSat(x,z,h,ny,ad,out){const c=dkSat(x,z);if(!c){out.copy(DKC.dry1);return out;}
   const n2=vnoise(x*0.07,z*0.07);out.setRGB(Math.pow(c[0]/255,2.3)*0.74,Math.pow(c[1]/255,2.3)*0.74,Math.pow(c[2]/255,2.3)*0.74);out.offsetHSL(0,0.1,0);
+  if(DK.fdem&&ny<0.7){const F=DK.fdem;if(x>F.x0&&z>F.z0&&x<F.x0+F.nx*F.c&&z<F.z0+F.nz*F.c){const b1=vnoise(h*0.31,x*0.002+z*0.002),b2=vnoise(h*1.3+3,x*0.01),w=sstep(0.7,0.45,ny)*0.55;
+      dkT.setRGB(0.58,0.5,0.4).lerp(_trv.setRGB(0.46,0.42,0.38),sstep(0.4,0.7,b1)).lerp(_trv.setRGB(0.55,0.36,0.22),sstep(0.62,0.85,b2)*0.7).multiplyScalar(0.9+0.2*vnoise(h*2.1,x*0.05));out.lerp(dkT,w*0.75);}}
   if(FW&&FW.lg){const l=dkLake(x,z);if(l&&l.sd<0){dkT.set('#c9d2c8');out.lerp(dkT,sstep(0,-6,l.sd));}
     else if(l&&l.sd<16&&ny<0.75){const st=vnoise(x*0.9,z*0.9+h*0.05),rs=vnoise(x*0.25+h*0.3,z*0.25);dkT.setRGB(0.62,0.56,0.45).lerp(_trv.setRGB(0.5,0.33,0.18),sstep(0.55,0.8,rs)*0.6).multiplyScalar(0.85+0.3*st);out.lerp(dkT,sstep(16,8,l.sd)*sstep(0.75,0.5,ny));}}
   {const rw=FW&&FW.rw?FW.rw+0.1:2.6;if(ad<rw){dkT.set('#c4b49a');out.lerp(dkT,0.6*sstep(rw,rw-1.3,ad));}}
@@ -4578,7 +4583,7 @@ function dkInit(){const t0=performance.now();
     for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const key=i*65536+j;let L=FW.rc.get(key);if(!L)FW.rc.set(key,L=[]);L.push(ri,k);}}});
   dkRoadBed();
   for(const H of FW.houses){let s=0;for(const [u,w] of [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5],[0,0]])s+=freeHf(H.x+u*H.w*H.ca-w*H.d*H.sa,H.z+u*H.w*H.sa+w*H.d*H.ca);H.ph=s/5;}FW.pads=true;
-  freeBuildScene();for(const B of FW.br)FW.group.add(B.mesh);dkRiverMeshes();if(FMAP==='dayk')dkSchoolWall();else FW.walls=[];dkLakeMeshes();dkFalls();dkAsphalt();if(DK.drape)dkFarMesh();FW.ms=Math.round(performance.now()-t0);}
+  freeBuildScene();for(const B of FW.br)FW.group.add(B.mesh);dkRiverMeshes();if(FMAP==='dayk')dkSchoolWall();else FW.walls=[];dkLakeMeshes();dkFalls();dkAsphalt();dkBoats();if(DK.drape)dkFarMesh();FW.ms=Math.round(performance.now()-t0);}
 // the nearest river: distance to the bed's middle, to the water channel (which wanders inside the bed), and the bed height there
 function dkChan(Rv,ri,s){let o=(Rv.w-Rv.c-2)*0.55*Math.sin(s/90+ri)*Math.min(1,s/60);if(Rv.pins)for(const P of Rv.pins){const w=sstep(160,30,Math.abs(s-P.s));o+=(P.o-o)*w;}return o;}
 function dkRiv(x,z){const L=FW.rc.get(Math.floor(x/32)*65536+Math.floor(z/32));if(!L)return null;let best=null,bd=1e9;
@@ -4595,14 +4600,14 @@ function dkRiverMeshes(){const P=[],I=[],U=[];for(const Rv of FW.riv){const n=Rv
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);g.computeVertexNormals();
   const m=new THREE.Mesh(g,new THREE.MeshPhongMaterial({color:'#6b5d4c',specular:0x2a2218,shininess:40}));m.frustumCulled=false;FW.group.add(m);}
 // ---- Band-e Amir: each lake's water lies flat at its own level inside its real shore, deep ultramarine blue as it is
-const lakeMat=waterize(new THREE.MeshPhongMaterial({normalMap:waterNrm,normalScale:new THREE.Vector2(0.3,0.3),vertexColors:true,color:'#ffffff',emissive:'#010714',specular:0xffffff,shininess:220,transparent:true,opacity:0.95,envMap:carEnv,reflectivity:0.14,combine:THREE.MixOperation,depthWrite:false,side:THREE.DoubleSide}),0.05,'0.03,0.24,0.55');
+const lakeMat=waterize(new THREE.MeshPhongMaterial({normalMap:waterNrm,normalScale:new THREE.Vector2(0.3,0.3),vertexColors:true,color:'#ffffff',emissive:'#000000',specular:0xffffff,shininess:220,transparent:true,opacity:0.95,envMap:carEnv,reflectivity:0.08,combine:THREE.MixOperation,depthWrite:false,side:THREE.DoubleSide}),0.05,'0.005,0.04,0.16');
 function dkLakeMeshes(){const L=DK.lg;if(!DK.lakes||!L||!L.sd)return;const st=2,cx=(L.cx||L.c)*st,cz=(L.cz||L.c)*st,nx=Math.floor((L.nx-1)/st)+1,nz=Math.floor((L.nz-1)/st)+1;
-  const deep=new THREE.Color(0.006,0.05,0.24),turq=new THREE.Color(0.02,0.36,0.45),cc=new THREE.Color();
+  const deep=new THREE.Color(0.002,0.016,0.085),turq=new THREE.Color(0.01,0.16,0.26),cc=new THREE.Color();
   DK.lakes.forEach((lk,li)=>{const P=[],C=[],U=[],I=[],vid=new Int32Array(nx*nz).fill(-1);
     const sdAt=(i,j)=>{const k=(j*st)*L.nx+i*st;return L.id[k]===li+1||(L.sd[k]>0&&L.id[k]===li+1)?L.sd[k]:127;};
     const vert=(i,j)=>{const q=j*nx+i;if(vid[q]>=0)return vid[q];let x=L.x0+i*cx,z=L.z0+j*cz;{const k0=(j*st)*L.nx+i*st,sd0=L.sd[k0];if(sd0>-1){const ii=i*st,jj=j*st,g=(a,b)=>L.sd[clamp(b,0,L.nz-1)*L.nx+clamp(a,0,L.nx-1)];let gx=(g(ii+1,jj)-g(ii-1,jj))/(2*(L.cx||L.c)),gz=(g(ii,jj+1)-g(ii,jj-1))/(2*(L.cz||L.c));const gl=Math.hypot(gx,gz)||1;gx/=gl;gz/=gl;x-=gx*(sd0+1.2);z-=gz*(sd0+1.2);}}vid[q]=P.length/3;P.push(x,lk.lv,z);U.push(x/40,z/40);
       const c=dkSat(x,z);let t=0.3;if(c){const bright=(c[0]+c[1]+c[2])/3;t=clamp((c[1]-c[0]*0.9-8)/55,0,1)*sstep(120,60,bright)+clamp((c[1]-35)/80,0,1)*0.35;}
-      cc.copy(deep).lerp(turq,clamp(t,0,1));const k=(j*st)*L.nx+i*st,sd=L.sd[k];if(sd>-12)cc.lerp(turq,sstep(-12,0,sd)*0.6);C.push(cc.r,cc.g,cc.b);return vid[q];};
+      cc.copy(deep).lerp(turq,clamp(t,0,1));const k=(j*st)*L.nx+i*st,sd=L.sd[k];if(sd>-8)cc.lerp(turq,sstep(-8,0,sd)*0.45);C.push(cc.r,cc.g,cc.b);return vid[q];};
     for(let j=0;j<nz-1;j++)for(let i=0;i<nx-1;i++){const k=(j*st)*L.nx+i*st,k2=((j+1)*st)*L.nx+(i+1)*st;
       // a cell is water if any corner is this lake's water or within a few metres of its shore (the rim then hides the edge)
       let ok=false;for(const kk of [k,k+st,k2,k2-st])if(L.id[kk]===li+1&&L.sd[kk]<4){ok=true;break;}if(!ok)continue;
@@ -4661,6 +4666,19 @@ function dkAsphalt(){const pv=FW.pv,tid=FW.tid;if(!pv)return;const n=FW.PX.lengt
     const m=new THREE.Mesh(g,asphMat);m.receiveShadow=true;FW.group.add(m);
     if(LI.length){const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(LP,3));lg.setAttribute('color',new THREE.Float32BufferAttribute(LC,3));lg.setIndex(LI);lg.computeVertexNormals();lg.computeBoundingSphere();const lm=new THREE.Mesh(lg,lineMat);lm.receiveShadow=true;FW.group.add(lm);}
     k=b;}}
+function swanBoat(){const g=new THREE.Group(),white=new THREE.MeshLambertMaterial({color:'#f3f1ea'}),orange=new THREE.MeshLambertMaterial({color:'#e8742a'}),dark=new THREE.MeshLambertMaterial({color:'#24486e'}),blk=new THREE.MeshBasicMaterial({color:'#111'});
+  const hull=new THREE.Mesh(new THREE.SphereGeometry(1,20,12),white);hull.scale.set(0.95,0.5,1.55);g.add(hull);
+  const seat=new THREE.Mesh(new THREE.BoxGeometry(1.15,0.35,0.9),dark);seat.position.set(0,0.42,-0.2);g.add(seat);
+  const back=new THREE.Mesh(new THREE.BoxGeometry(1.15,0.55,0.12),dark);back.position.set(0,0.65,-0.62);g.add(back);
+  for(const sd of [-1,1]){const wing=new THREE.Mesh(new THREE.SphereGeometry(1,14,8),white);wing.scale.set(0.18,0.45,0.95);wing.position.set(sd*0.82,0.42,-0.35);wing.rotation.z=sd*0.25;g.add(wing);}
+  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(0,0.3,1.0),new THREE.Vector3(0,0.9,1.25),new THREE.Vector3(0,1.6,1.05),new THREE.Vector3(0,2.0,1.3)]);
+  const neck=new THREE.Mesh(new THREE.TubeGeometry(curve,16,0.13,8,false),white);g.add(neck);const head=new THREE.Mesh(new THREE.SphereGeometry(0.2,12,8),white);head.scale.set(0.9,0.9,1.3);head.position.set(0,2.02,1.38);g.add(head);
+  const beak=new THREE.Mesh(new THREE.ConeGeometry(0.08,0.3,8),orange);beak.rotation.x=Math.PI/2;beak.position.set(0,1.98,1.66);g.add(beak);
+  for(const sd of [-1,1]){const eye=new THREE.Mesh(new THREE.SphereGeometry(0.035,6,4),blk);eye.position.set(sd*0.15,2.08,1.45);g.add(eye);}
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true;});return g;}
+function dkBoats(){FW.boats=[];if(!DK.boats||!FW.lg)return;let n=0;for(const [bx,bz] of DK.boats){const l0=dkLake(bx,bz);if(!l0)continue;const lk=DK.lakes[l0.i];
+    for(let a=0;a<40&&n<6;a++){const ang=a*2.4,r=18+a*2.2,x=bx+Math.cos(ang)*r,z=bz+Math.sin(ang)*r,l=dkLake(x,z);if(!l||l.sd>-8||l.i!==l0.i)continue;if(FW.boats.some(b=>Math.hypot(b.x-x,b.z-z)<7))continue;
+      const g=swanBoat();g.position.set(x,lk.lv+0.12,z);g.rotation.y=Math.random()*6.28;FW.group.add(g);FW.boats.push({g,x,z,lv:lk.lv,ph:Math.random()*6});n++;}}}
 function dkStart(){const ok=DKS.x!==null&&DKS.x>DK.x0&&DKS.x<DK.x0+DK.nx*DK.cell&&DKS.z>DK.z0&&DKS.z<DK.z0+DK.nz*DK.cell;
   if(ok){placeAt(DKS.x,DKS.z,DKS.th);toast(tr_(FMAP==='bamir'?'بامیان · ':'دایکندی · ')+fa(FW.found.size)+tr_(' از ')+fa(FW.pois.length)+tr_(' جا رسیدی'));}
   else{if(FMAP==='bamir'){const k=Math.min(FW.trails[0].i1,220);placeAt(FW.PX[k],FW.PZ[k],freeHeading(k));}else freeGo(0);toast(FMAP==='bamir'?tr_('بازار بامیان — راه واقعی تا بند امیر ۶۸ کیلومتر است: ۵۴ کیلومتر قیر، بعد راه خامه'):tr_('شیخ میران، اشترلی — راه واقعی تا نیلی ۵۶ کیلومتر است'));}}
@@ -4715,11 +4733,16 @@ function dkHouseMats(){if(dkMats)return dkMats;const c=document.createElement('c
 const dkGable=(function(){const g=new THREE.BufferGeometry(),P=[-0.5,0,-0.5, 0.5,0,-0.5, 0,1,-0.5, -0.5,0,0.5, 0.5,0,0.5, 0,1,0.5],I=[0,2,1, 3,4,5, 0,3,5, 0,5,2, 1,2,5, 1,5,4];g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);g.computeVertexNormals();return g.toNonIndexed();})();
 dkGable.computeVertexNormals();
 const dkBox=new THREE.BoxGeometry(1,1,1);
+const dkYurtG={w:new THREE.CylinderGeometry(1,1,1,20,1,true),r:new THREE.ConeGeometry(1,1,20,1)};
+const dkYurtM=(function(){const c=document.createElement('canvas');c.width=128;c.height=32;const g=c.getContext('2d');g.fillStyle='#ece6d8';g.fillRect(0,0,128,32);g.fillStyle='#b9a98c';g.fillRect(0,4,128,2);g.fillRect(0,26,128,2);
+  g.fillStyle='#8a2f2a';g.fillRect(58,10,12,22);for(let i=0;i<300;i++){g.fillStyle='rgba(120,100,80,'+(Math.random()*0.08)+')';g.fillRect(Math.random()*128,Math.random()*32,2,2);}
+  const t=new THREE.CanvasTexture(c);t.wrapS=THREE.RepeatWrapping;if(FILMIC)t.encoding=THREE.sRGBEncoding;return {w:new THREE.MeshLambertMaterial({map:t,side:THREE.DoubleSide}),r:new THREE.MeshLambertMaterial({color:'#e2dccd'})};})();
 function dkChunk(ci,cj){if(!FW.hByC){FW.hByC=new Map();for(const H of FW.houses){const k=Math.floor(H.x/400)+','+Math.floor(H.z/400);let L=FW.hByC.get(k);if(!L)FW.hByC.set(k,L=[]);L.push(H);}}const L=FW.hByC.get(ci+','+cj)||[];if(!L.length)return {meshes:[]};
-  const M=dkHouseMats(),W=[],Rf=[],SW=[],SR=[],BW=[],BR=[],col=new THREE.Color(),q=new THREE.Quaternion(),e=new THREE.Euler(),mt=new THREE.Matrix4(),ox=ci*400,oz=cj*400;
+  const M=dkHouseMats(),W=[],Rf=[],SW=[],SR=[],BW=[],BR=[],YW=[],YR=[],col=new THREE.Color(),q=new THREE.Quaternion(),e=new THREE.Euler(),mt=new THREE.Matrix4(),ox=ci*400,oz=cj*400;
   for(const H of L){let lo=1e9,hi=-1e9;for(const [u,w] of [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5],[0,0]]){const x=H.x+u*H.w*H.ca-w*H.d*H.sa,z=H.z+u*H.w*H.sa+w*H.d*H.ca,h=Hf(x,z);lo=Math.min(lo,h);hi=Math.max(hi,h);}
     const tall=(H.k===4?2.4:2.8*H.fl+0.3),base=lo-1.2,top=Math.min(lo,hi)+tall+Math.min(1.2,(hi-lo)*0.5),r=hash2(Math.round(H.x*3),Math.round(H.z*3));H.y=top;
     const tint=H.k===2||H.k===3?[1.12,1.12,1.1]:H.k===4?[1.3,1.32,1.32]:[0.9+0.16*r,0.88+0.15*r,0.86+0.14*r];
+    if(H.k===7){const r=Math.max(2.2,Math.min(H.w,H.d)/2);YW.push([H.x,lo-0.3+1.15,H.z,r,2.3+0.3,r,0,[1,1,1]]);YR.push([H.x,lo+2.15,H.z,r*1.06,r*0.42,r*1.06,0,[1,1,1]]);H.y=lo+2.6;continue;}
     if(H.k===6){const st=lo-0.6,tp=lo+3.8;BW.push([H.x,(st+tp)/2,H.z,H.w,tp-st,H.d,H.a,[1,1,1]]);BR.push([H.x,tp+0.12,H.z,H.w+1.6,0.32,H.d+1.6,H.a,[0.45,0.62,0.26]]);BR.push([H.x,tp+0.32,H.z,H.w+0.6,0.18,H.d+0.6,H.a,[0.86,0.88,0.86]]);H.y=tp;continue;}
     if(H.k===2){const st=lo-0.4,tp=lo+3.6,ridgeAlongW=H.w>=H.d;SW.push([H.x,(st+tp)/2,H.z,H.w,tp-st,H.d,H.a,[1,1,1]]);
       SR.push([H.x,tp,H.z,(ridgeAlongW?H.d:H.w)+1.0,1.5,(ridgeAlongW?H.w:H.d)+1.0,H.a+(ridgeAlongW?Math.PI/2:0),[0.42,0.68,0.82]]);H.y=tp;continue;}
@@ -4734,9 +4757,9 @@ function dkChunk(ci,cj){if(!FW.hByC){FW.hByC=new Map();for(const H of FW.houses)
       W.push([x,(base+top+1.6)/2,z,2.6,top+1.6-base,2.6,H.a,tint]);Rf.push([x,top+1.72,z,2.9,0.3,2.9,H.a,Rf[Rf.length-1][7]]);}}
   const mk=(arr,mat,geo)=>{if(!arr.length)return null;const im=new THREE.InstancedMesh(geo||dkBox,mat,arr.length);arr.forEach((a,i)=>{e.set(0,-a[6],0);q.setFromEuler(e);mt.compose(new THREE.Vector3(a[0]-ox,a[1],a[2]-oz),q,new THREE.Vector3(a[3],a[4],a[5]));im.setMatrixAt(i,mt);col.setRGB(a[7][0],a[7][1],a[7][2]);im.setColorAt(i,col);});
     im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;im.position.set(ox,0,oz);im.castShadow=true;im.receiveShadow=true;im.frustumCulled=false;scene.add(im);return im;};
-  return {meshes:[mk(W,M.wall),mk(Rf,M.roof),mk(SW,M.school),mk(SR,M.metal,dkGable),mk(BW,M.blue),mk(BR,M.roof)].filter(Boolean),cx:ox+200,cz:oz+200};}
+  return {meshes:[mk(W,M.wall),mk(Rf,M.roof),mk(SW,M.school),mk(SR,M.metal,dkGable),mk(BW,M.blue),mk(BR,M.roof),mk(YW,dkYurtM.w,dkYurtG.w),mk(YR,dkYurtM.r,dkYurtG.r)].filter(Boolean),cx:ox+200,cz:oz+200};}
 function dkClearHouses(){if(!FW||!FW.chunks)return;for(const [,C] of FW.chunks)C.meshes.forEach(m=>{scene.remove(m);m.dispose&&m.dispose();});FW.chunks.clear();dkObst.length=0;}
-function dkFrame(dt){FW.hT-=dt;FW.oT-=dt;FW.sT-=dt;
+function dkFrame(dt){FW.hT-=dt;FW.oT-=dt;FW.sT-=dt;if(FW.boats)for(const b of FW.boats){b.ph+=dt;b.g.position.y=b.lv+0.12+Math.sin(b.ph*1.3)*0.04;b.g.rotation.z=Math.sin(b.ph*0.9)*0.025;b.g.rotation.y+=dt*0.01;}
   if(FW.hT<=0){FW.hT=0.4;const ci=Math.floor(S.x/400),cj=Math.floor(S.z/400);let built=0;
     const want=[];for(let j=-4;j<=4;j++)for(let i=-4;i<=4;i++){const k=(ci+i)+','+(cj+j);if(FW.chunks.has(k))continue;const d=Math.hypot((ci+i+0.5)*400-S.x,(cj+j+0.5)*400-S.z);if(d<=1600)want.push([d,ci+i,cj+j,k]);}
     want.sort((a,b)=>a[0]-b[0]);for(const [d,a,b,k] of want){if(built>=2)break;FW.chunks.set(k,dkChunk(a,b));built++;}
