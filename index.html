@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=144</script>
+<script>window.GAME_CODE=145</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -2962,7 +2962,7 @@ const SPOTS=[];(function(){const r=mulberry32(4711);for(let z=600;z<ROADLEN-300;
   const kind=lake?'lake':(k<=1&&r()<0.55)?'village':b==='coast'?'coast':b==='danger'||b==='crow'?(k===5||k===4?'wolves':'crows'):'birds';
   SPOTS.push({z,k:kind,side:r()<0.5?1:-1,calls:2+Math.floor(r()*2),done:false});}})();
 const LOOPS=['rain','rainroof','wind','forest','night','stream','gravel','road','skid','horn','crank','gulls','frogs','flock','r_gravel','r_gravin','r_roadin','r_windin','r_snow'];
-const SHOTS=['r_reverse','r_crank','r_start2','r_start','r_shift','r_door','r_hit1','r_hit2','r_hit3','r_hit4','r_hit5','r_hit6','r_crash','r_crashb','r_bump1','r_bump2','r_bump3','r_bump4','r_knock1','r_knock2','r_creak1','r_creak2','r_creak3','r_stone1','r_stone2','r_stone3','r_stone4','r_wiper','r_pop1','r_pop2','r_pop3','thunder1','thunder2','thunder3','thunder4','splash1','splash2','splash3','mud1','mud2','crow','tick','skidshot','thud1','thud2','crash1','crash2','shift',
+const SHOTS=['r_crank','r_start2','r_start','r_shift','r_door','r_hit1','r_hit2','r_hit3','r_hit4','r_hit5','r_hit6','r_crash','r_crashb','r_bump1','r_bump2','r_bump3','r_bump4','r_knock1','r_knock2','r_creak1','r_creak2','r_creak3','r_stone1','r_stone2','r_stone3','r_stone4','r_wiper','r_pop1','r_pop2','r_pop3','thunder1','thunder2','thunder3','thunder4','splash1','splash2','splash3','mud1','mud2','crow','tick','skidshot','thud1','thud2','crash1','crash2','shift',
   'robin1','blackbird1','nightingale1','blackcap1','owl1','owlb1','owlb2','crowb1','duck1','sheep1','sheepb1','sheepc1','cow1','cowb1','donkey1','donkeyb1','dog1','dog2','dogb1','wolf1'];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 function setT(p,v,tc){if(AU.ac)p.setTargetAtTime(v,AU.ac.currentTime,tc||0.08);}
@@ -3068,7 +3068,7 @@ let ambT=6;
 // reversing: the gearbox whine of a car going backwards, louder and higher the faster it goes
 const REVS={g:null};function revStep(){const ac=AU.ac;if(!ac||!SND.buf.r_reverse)return;if(!REVS.g){REVS.g=AU.G(0);REVS.g.connect(AU.master);REVS.s=loopSrc(SND.buf.r_reverse,REVS.g);}
   const on=S.mode==='play'&&S.engineOn&&S.sel==='R',sp=Math.abs(S.v||0),t=ac.currentTime;REVS.g.gain.setTargetAtTime(on&&sp>0.4?clamp(sp*0.11,0,0.7)*(S.cam===4?0.8:1):0,t,0.08);REVS.s.playbackRate.setTargetAtTime(clamp(0.85+sp*0.07,0.8,1.35),t,0.1);}
-function updateAudio(dt,env){try{revStep();}catch(e){}
+function updateAudio(dt,env){
   if(!AU.ac||AU.ac.state!=='running')return;
   const t=AU.ac.currentTime,L=SND.loops;
   setT(AU.master.gain,SET.sound?SET.vol:0,0.15);
