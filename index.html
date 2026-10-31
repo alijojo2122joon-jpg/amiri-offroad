@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=137</script>
+<script>window.GAME_CODE=138</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -634,7 +634,8 @@ const PERF={lvl:(navigator.hardwareConcurrency||4)>=8&&(navigator.deviceMemory||
 // the level that kept this phone smooth last time is where it starts
 // every phone starts at the top level; one that cannot keep up steps down to the next (less grass and view distance),
 // never below level 1: the picture always keeps at least one dot per screen pixel, so it never turns blurry or blocky
-PERF.lvl=3;PERF.ps=1;SET.quality='auto';try{const pl=JSON.parse(localStorage.getItem('amiri-perf2')||'null');if(pl&&pl.lvl>=1&&pl.lvl<=3)PERF.lvl=pl.lvl;}catch(e){}
+// always the highest quality on every phone (Amir's choice): nothing ever lowers it
+PERF.lvl=3;PERF.ps=1;SET.quality='auto';try{localStorage.removeItem('amiri-perf2');}catch(e){}
 function perfKeep(){try{localStorage.setItem('amiri-perf2',JSON.stringify({lvl:PERF.lvl}));}catch(e){}}
 const QL=()=>PERF.lvl,QV=a=>a[QL()];
 // each camera mode remembers how you turned and moved it (one finger: turn; two fingers: pinch to zoom, drag to move)
@@ -5628,7 +5629,7 @@ function cabinLight(env){const on=V&&S.mode==='play'&&S.cam===4;if(!on){CABL.int
   const f=V.fpp;cabTmp.set(f[0]*0.3,f[1]+0.05,f[2]+0.55);V.body.localToWorld(cabTmp);CABL.position.copy(cabTmp);
   CABL.intensity=(0.6+0.9*(env&&env.dayF!==undefined?env.dayF:1))*(V.type==='glb'?1.25:1);}
 // watch the frame rate while driving and step the graphics level down or up
-function perfStep(rd){if(S.mode!=='play'||S.modal||rd>0.5)return;PERF.acc+=rd;PERF.n++;PERF.t+=rd;
+function perfStep(rd){return;if(S.mode!=='play'||S.modal||rd>0.5)return;PERF.acc+=rd;PERF.n++;PERF.t+=rd;
   if(PERF.t<3)return;const fps=PERF.n/PERF.acc,now=performance.now();PERF.acc=PERF.n=PERF.t=0;
   if(fps<40&&PERF.lvl>1){PERF.lvl--;PERF.downAt=now;PERF.good=0;applySettings();perfKeep();}
   else if(fps>57){PERF.good++;if(PERF.good>=6&&now-PERF.downAt>45000&&PERF.lvl<3){PERF.lvl++;PERF.good=0;applySettings();perfKeep();}}else PERF.good=0;}
