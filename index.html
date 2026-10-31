@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=165</script>
+<script>window.GAME_CODE=166</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1340,7 +1340,8 @@ const G={};
   G.bush=mergeGeos([[0,0.45,0,0.65],[0.5,0.35,0.2,0.5],[-0.45,0.38,-0.15,0.52]].map(([x,y,z,r],k)=>paintGeo(jiggle(tr(new THREE.IcosahedronGeometry(r,0),x,y,z),0.25,k),(px,py,pz,c)=>{c.set(k===1?'#56803f':'#4b7438');c.multiplyScalar(0.75+0.35*clamp(py/0.9,0,1));})));
   // the steppe shrubs of the Bamiyan uplands (wormwood, camelthorn): low, airy clumps of small grey-green tufts, dull at the base
   G.shrub=(()=>{const R=mulberry32(61),L=[],_shB=new THREE.Color();for(let k=0;k<9;k++){const a=R()*6.283,d=Math.sqrt(R())*0.42,r=0.13+R()*0.15;L.push([Math.cos(a)*d,0.12+R()*0.26-d*0.25,Math.sin(a)*d,r]);}
-    return mergeGeos(L.map(([x,y,z,r],k)=>paintGeo(jiggle(tr(new THREE.IcosahedronGeometry(r,0),x,y,z),0.35,k+20),(px,py,pz,c)=>{c.set(k%3===0?'#a3a88f':k%3===1?'#8f9a7c':'#b0a98e');c.lerp(_shB.set('#6a6452'),clamp(1-py/0.35,0,1)*0.6);})));})();
+    const tw=[];for(let k=0;k<10;k++){const a=R()*6.283,d=R()*0.35;tw.push(paintGeo(tr(new THREE.ConeGeometry(0.025,0.45+R()*0.35,3),Math.cos(a)*d,0.25,Math.sin(a)*d,(R()-0.5)*0.9,0,(R()-0.5)*0.9),(px,py,pz,c)=>{c.set('#8a7f68');}));}
+    return mergeGeos(L.map(([x,y,z,r],k)=>paintGeo(jiggle(tr(new THREE.IcosahedronGeometry(r,0),x,y*0.8,z,0,0,0,1),0.5,k+20),(px,py,pz,c)=>{c.set(k%3===0?'#a3a88f':k%3===1?'#8f9a7c':'#b0a98e');c.lerp(_shB.set('#6a6452'),clamp(1-py/0.35,0,1)*0.6);})).concat(tw));})();
   G.rock=paintGeo(jiggle(new THREE.IcosahedronGeometry(1,1),0.45,9),(x,y,z,c)=>{c.set('#9a9188').lerp(new THREE.Color('#7f776e'),hash2(Math.floor(x*9),Math.floor(z*9)));if(y>0.55)c.lerp(new THREE.Color('#6f7f4a'),clamp((y-0.55)*2.2,0,0.6));});
   G.stone=paintGeo(jiggle(new THREE.IcosahedronGeometry(1,0),0.35,4),(x,y,z,c)=>c.set('#8f877e').multiplyScalar(0.85+y*0.1));
   G.log=paintGeo(new THREE.CylinderGeometry(1,1,1,9,1),(x,y,z,c)=>{if(Math.abs(y)>0.49&&Math.hypot(x,z)<0.99)c.set('#c9a679');else c.set('#5e4532').multiplyScalar(0.85+0.2*hash2(Math.floor(x*20),Math.floor(y*12)));});
@@ -4387,7 +4388,7 @@ function freeHf(x,z){let h=freeBase(x,z);if(!FW)return h;if(FW.dk&&FW.rc){const 
       if(l.sd>0.3&&l.sd<30&&FW.dk){const L=DK.lg,cx=L.cx||L.c,cz=L.cz||L.c,i=Math.round((x-L.x0)/cx),j=Math.round((z-L.z0)/cz),g=(a,b)=>L.sd[clamp(b,0,L.nz-1)*L.nx+clamp(a,0,L.nx-1)];let gx=g(i+1,j)-g(i-1,j),gz=g(i,j+1)-g(i,j-1);const gl=Math.hypot(gx,gz);
         if(gl>0.3){gx/=gl;gz/=gl;const r=30-l.sd,hf=dkH(x+gx*r,z+gz*r);if(hf>l.lv+9){const top=Math.min(hf,l.lv+45);h=Math.max(h,l.lv+0.3+(top-l.lv-0.3)*sstep(0.6,5.5,l.sd));}}}
       // where the land falls away below the lake the travertine stands as a wall: the ground at the foot is brought right up to the rim
-      if(l.sd>3&&l.sd<34&&FW.dk){const L=DK.lg,cx=L.cx||L.c,cz=L.cz||L.c,fi=(x-L.x0)/cx,fj=(z-L.z0)/cz,i=Math.round(fi),j=Math.round(fj),g=(a,b)=>L.sd[clamp(b,0,L.nz-1)*L.nx+clamp(a,0,L.nx-1)];let gx=g(i+1,j)-g(i-1,j),gz=g(i,j+1)-g(i,j-1);const gl=Math.hypot(gx,gz);if(gl>0.3){gx/=gl;gz/=gl;const r=36-l.sd,hf=dkH(x+gx*r,z+gz*r);if(hf<l.lv-4&&hf<h)h+=(hf-h)*sstep(4,6.8,l.sd);}}}}}
+      if(l.sd>3&&l.sd<34&&FW.dk){const L=DK.lg,cx=L.cx||L.c,cz=L.cz||L.c,fi=(x-L.x0)/cx,fj=(z-L.z0)/cz,i=Math.round(fi),j=Math.round(fj),g=(a,b)=>L.sd[clamp(b,0,L.nz-1)*L.nx+clamp(a,0,L.nx-1)];let gx=g(i+1,j)-g(i-1,j),gz=g(i,j+1)-g(i,j-1);const gl=Math.hypot(gx,gz);if(gl>0.3){gx/=gl;gz/=gl;const r=36-l.sd,hf=dkH(x+gx*r,z+gz*r);if(hf<l.lv-4&&hf<h)h+=(hf-h)*sstep(3.4,5.4,l.sd);}}}}}
     if(FW.cliff){const C=FW.cliff,dx=x-C.x0,dz=z-C.z0,sA=dx*C.ux+dz*C.uz,dA=dx*C.nx+dz*C.nz;if(sA>C.from&&sA<C.to&&dA>-10&&dA<90){const q=C.pts[clamp(Math.round((sA-C.from)/24),0,C.pts.length-1)],fl=q[2]+2;if(h>fl)h+=(fl+(dA-12)*0.03-h)*sstep(90,40,dA)*sstep(-10,6,dA);}}
     if(FW.pads){const L=FW.hc.get(Math.floor(x/32)*65536+Math.floor(z/32));if(L)for(const H of L){if(H.ph===undefined)continue;const dx=x-H.x,dz=z-H.z,u=Math.abs(dx*H.ca+dz*H.sa)-H.w/2,w=Math.abs(-dx*H.sa+dz*H.ca)-H.d/2,e=Math.max(u,w);if(e<3){h+=(H.ph-h)*sstep(3,0.6,e);}}}}
   for(const P of FW.pois){if(!P.fin)continue;const dx=x-P.x,dz=z-P.z;if(dx*dx+dz*dz<900){const d=Math.sqrt(dx*dx+dz*dz);h+=(P.h-h)*sstep(28,16,d);}}
@@ -4591,7 +4592,7 @@ function dkGroundSat(x,z,h,ny,ad,out){const c=dkSat(x,z);if(!c){out.copy(DKC.dry
   const n2=vnoise(x*0.07,z*0.07);
   // (colour work in the picture's own sRGB: setHSL here turns sRGB into the linear light the renderer uses)
   if(FMAP==='bamir'){_satC.r=c[0]/255;_satC.g=c[1]/255;_satC.b=c[2]/255;_satC.getHSL(_hsl);const veg=_hsl.h>0.2&&_hsl.h<0.45&&_hsl.s>0.12;
-    out.setHSL(veg?_hsl.h:0.04+_hsl.h*0.35,_hsl.s*(veg?0.95:0.64),veg?0.17+_hsl.l*1.05:Math.max(0.2+_hsl.l*0.2,Math.pow(_hsl.l,1.3)*0.98));out.multiplyScalar(0.78);
+    out.setHSL(veg?_hsl.h:0.04+_hsl.h*0.35,_hsl.s*(veg?0.95:0.64),veg?0.17+_hsl.l*1.05:Math.max(0.3+_hsl.l*0.22,Math.pow(_hsl.l,1.3)*0.98));out.multiplyScalar(0.78);
     if(ny<0.62&&h>760){dkT.setRGB(0.33,0.2,0.15).multiplyScalar(0.85+0.3*vnoise(h*0.4,x*0.01));out.lerp(dkT,sstep(0.62,0.45,ny)*sstep(760,860,h));}}
   else{out.setRGB(Math.pow(c[0]/255,2.3)*0.74,Math.pow(c[1]/255,2.3)*0.74,Math.pow(c[2]/255,2.3)*0.74);out.offsetHSL(0,0.1,0);}
   if(DK.fdem&&ny<0.7){const F=DK.fdem;if(x>F.x0&&z>F.z0&&x<F.x0+F.nx*F.c&&z<F.z0+F.nz*F.c){const b1=vnoise(h*0.31,x*0.002+z*0.002),b2=vnoise(h*1.3+3,x*0.01),w=sstep(0.7,0.45,ny)*0.8;
@@ -4691,12 +4692,18 @@ const damFallMat=new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,
 damFallMat.onBeforeCompile=sh=>{sh.uniforms.uT=timeU;sh.vertexShader='uniform float uT;\n'+sh.vertexShader.replace('#include <uv_vertex>','#include <uv_vertex>\nvUv.y-=uT*1.2;');};
 function dkFalls(){if(!DK.falls||!DK.lakes)return;const P=[],U=[],I=[],list=DK.falls.slice();
   // (the falls all along the dams are made with the dams themselves)
-  const mists=[],P2=[],U2=[],I2=[];
+  const mists=[],P2=[],U2=[],I2=[],pools=[];
   // the small falls over the dams: a ribbon from the lake over the cap and down the face, hugging the curtain
   {const df=dkDams()||[];for(const [x,z,li,w,A,B] of df){const lk=DK.lakes[li];if(!lk||!A.rows.length)continue;const tx=B.rows[0][0]-A.rows[0][0],tz=B.rows[0][2]-A.rows[0][2],tl=Math.hypot(tx,tz)||1,nx=tx/tl,nz=tz/tl,gx=A.gx,gz=A.gz;
     const pts=[[A.rows[0][0]-gx*3,lk.lv+0.08,A.rows[0][2]-gz*3]];for(let r=0;r<A.rows.length;r++){const a=A.rows[r],b=B.rows[r];pts.push([(a[0]+b[0])/2+gx*0.14,(a[1]+b[1])/2+(r<3?0.07:0),(a[2]+b[2])/2+gz*0.14]);}
     let base=P2.length/3;const u0=hash2(Math.round(x),Math.round(z))*4;pts.forEach((q,r)=>{const ww=w*0.5*(1+r*0.04);for(const e of [-ww,ww]){P2.push(q[0]+nx*e,q[1],q[2]+nz*e);U2.push(u0+e/3,(r<3?r*0.6:2+(pts[2][1]-q[1])/6));}if(r>0){const a=base+(r-1)*2;I2.push(a,a+2,a+1,a+1,a+2,a+3);}});
-    const f=pts[pts.length-2];mists.push([f[0]+gx*0.8,f[1]-A.drop*0.08,f[2]+gz*0.8,w]);}}
+    const f=pts[pts.length-2];mists.push([f[0]+gx*0.8,f[1]-A.drop*0.08,f[2]+gz*0.8,w]);
+    // a small clear pool where the bigger falls land, scoured into the sinter at the foot of the dam
+    if(w>0.9){const La=A.rows[A.rows.length-1],Lb=B.rows[B.rows.length-1],r=1.1+w*0.8,cx=(La[0]+Lb[0])/2+gx*(r+0.2),cz=(La[2]+Lb[2])/2+gz*(r+0.2);let lo=1e9;for(let k=0;k<8;k++){const a=k*0.785;lo=Math.min(lo,freeHf(cx+Math.cos(a)*r*0.8,cz+Math.sin(a)*r*0.8));}pools.push([cx,lo+0.1,cz,r]);}}
+  if(pools.length){const P3=[],C3=[],U3=[],N3=[],I3=[];for(const [x,y,z,r] of pools){const b=P3.length/3;P3.push(x,y,z);C3.push(0.03,0.3,0.4);U3.push(x/8,z/8);N3.push(0,1,0);
+      for(let k=0;k<=18;k++){const a=k/18*6.283,rr=r*(0.85+0.3*vnoise(x+Math.cos(a)*2,z+Math.sin(a)*2));P3.push(x+Math.cos(a)*rr,y,z+Math.sin(a)*rr);C3.push(0.2,0.48,0.5);U3.push((x+Math.cos(a)*rr)/8,(z+Math.sin(a)*rr)/8);N3.push(0,1,0);if(k>0)I3.push(b,b+k+1,b+k);}}
+    const g3=new THREE.BufferGeometry();g3.setAttribute('position',new THREE.Float32BufferAttribute(P3,3));g3.setAttribute('color',new THREE.Float32BufferAttribute(C3,3));g3.setAttribute('uv',new THREE.Float32BufferAttribute(U3,2));g3.setAttribute('normal',new THREE.Float32BufferAttribute(N3,3));g3.setIndex(I3);g3.computeBoundingSphere();
+    const m3=new THREE.Mesh(g3,lakeMat);m3.renderOrder=1;FW.group.add(m3);}}
 
   for(const [x0,z0,dx,dz,li] of list){const fw=0;const lk=DK.lakes[li];if(!lk)continue;const nx=dz,nz=-dx;let rows=0,base=P.length/3,hPrev=lk.lv+0.08,lx=x0,lz=z0,lh=lk.lv;
     // from the lip, down the face of the travertine wall to where the ground levels out
