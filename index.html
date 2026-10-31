@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=149</script>
+<script>window.GAME_CODE=150</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1158,7 +1158,7 @@ terrainMat.onBeforeCompile=sh=>{sh.uniforms.uSnow=snowU;sh.uniforms.uSnowD=snowD
     ' vec2 a=vWp.xz*0.21,b=vWp.xz*0.047+0.31;',
     ' vec4 mm=texture2D(uGround,vWp.xz*0.0025),bb=texture2D(uGround,vWp.xz*0.019+0.37);',
     ' vec3 dc=diffuseColor.rgb;float mx=max(dc.r,max(dc.g,dc.b)),mn=min(dc.r,min(dc.g,dc.b));',
-    ' float green=clamp((dc.g-(dc.r+dc.b)*0.5)*14.0,0.0,1.0),rock=smoothstep(0.86,0.6,vNy);',
+    ' float green=clamp((dc.g-(dc.r+dc.b)*0.5)*14.0,0.0,1.0),rock=max(smoothstep(0.86,0.6,vNy),smoothstep(0.96,0.8,vNy)*smoothstep(0.58,0.74,bb.g)*0.9);',
     ' float snow=smoothstep(0.45,0.7,mx)*smoothstep(0.14,0.05,mx-mn)*(1.0-green)*(1.0-uNoSnowP);',
     ' float wr=rock,ws=snow*(1.0-wr),wg=green*(1.0-wr)*(1.0-ws),wv=smoothstep(0.42,0.66,bb.b)*(1.0-wr)*(1.0-ws)*(1.0-wg)*0.85,wo=max(0.0,1.0-wr-ws-wg-wv);',
     ' vec3 R=vec3(0.0);',
@@ -1171,6 +1171,12 @@ terrainMat.onBeforeCompile=sh=>{sh.uniforms.uSnow=snowU;sh.uniforms.uSnowD=snowD
     ' diffuseColor.rgb*=R;',
     ' gWg=wg;gWo=wo;gWv=wv;gWr=wr;gNr=nr;',
     ' diffuseColor.rgb*=0.88+0.24*mm.a;',
+    // weathering: rain has cut fine gullies down every slope (dark streaks along the fall line, lighter ridges between) and
+    // the hills carry broad patches of darker and paler earth, so far slopes read as real eroded land, not smooth sand
+    ' {float sl=1.0-vNy;vec2 dh=vWN.xz;float dl=length(dh);if(dl>0.02&&sl>0.03){dh/=dl;vec2 pp=vec2(-dh.y,dh.x);',
+    '  float g1=texture2D(uGround,vec2(dot(vWp.xz,pp)*0.045,dot(vWp.xz,dh)*0.004+vWp.y*0.004)).a,g2=texture2D(uGround,vec2(dot(vWp.xz,pp)*0.13+0.5,dot(vWp.xz,dh)*0.012+vWp.y*0.012)).b;',
+    '  float k=smoothstep(0.04,0.3,sl)*(1.0-0.6*ws)*(1.0-wg);float st=mix(g1,g2,0.35);diffuseColor.rgb*=1.0-k*(0.26*smoothstep(0.5,0.78,st)-0.08*smoothstep(0.45,0.2,st));}',
+    '  float pt=texture2D(uGround,vWp.xz*0.0009+0.21).a;diffuseColor.rgb*=mix(vec3(1.0),mix(vec3(0.84,0.82,0.8),vec3(1.07,1.04,0.98),smoothstep(0.3,0.7,pt)),0.8);}',
     '}else if(uDetail>0.5){',
     ' float near=1.0-smoothstep(25.0,140.0,vDist);',
     ' vec4 a=texture2D(uGround,vWp.xz*0.11),b=texture2D(uGround,vWp.xz*0.023+0.37),m=texture2D(uGround,vWp.xz*0.0025);',
@@ -1273,10 +1279,10 @@ const FU0=0.14,FU1=0.99;
 function barkGeo(r0,r1,len,x,y,z,rx,rz,col,seg){const g=tr(new THREE.CylinderGeometry(r1,r0,len,seg||8,3),x,y,z,rx||0,0,rz||0);const uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,0.01+uv.getX(i)*0.1,uv.getY(i)*len*0.35);
   return paintGeo(g,(px,py,pz,c)=>c.set(col).multiplyScalar(0.8+0.2*Math.min(1,py/6)));}
 // a crown: clusters of cards, each card facing roughly outward, shaded as part of one rounded volume (inner cards darker)
-function crown(clusters,per,size,seed,ctr,rad){const Rn=mulberry32(seed),P=[],N=[],U=[],C=[],up=new THREE.Vector3(0,1,0),v=new THREE.Vector3(),t1=new THREE.Vector3(),t2=new THREE.Vector3(),o=new THREE.Vector3();
+function crown(clusters,per,size,seed,ctr,rad,vs){vs=vs||1;const Rn=mulberry32(seed),P=[],N=[],U=[],C=[],up=new THREE.Vector3(0,1,0),v=new THREE.Vector3(),t1=new THREE.Vector3(),t2=new THREE.Vector3(),o=new THREE.Vector3();
   for(const [cx,cy,cz,cr] of clusters)for(let i=0;i<per;i++){
     let a=Rn()*6.283,b=Math.acos(2*Rn()-1),r=Math.cbrt(Rn())*cr*0.85;o.set(cx+Math.sin(b)*Math.cos(a)*r,cy+Math.cos(b)*r*0.8,cz+Math.sin(b)*Math.sin(a)*r);
-    v.set(o.x-ctr[0]+(Rn()-0.5)*1.2,o.y-ctr[1]+(Rn()-0.5)*1.2+0.4,o.z-ctr[2]+(Rn()-0.5)*1.2).normalize();
+    v.set(o.x-ctr[0]+(Rn()-0.5)*1.2,(o.y-ctr[1]+(Rn()-0.5)*1.2+0.4)*vs,o.z-ctr[2]+(Rn()-0.5)*1.2).normalize();
     t1.crossVectors(v,Math.abs(v.y)>0.9?new THREE.Vector3(1,0,0):up).normalize();t2.crossVectors(v,t1);const sp=Rn()*6.283,cs=Math.cos(sp),sn=Math.sin(sp),sz=size*(0.7+Rn()*0.6)/2;
     const A=t1.clone().multiplyScalar(cs).addScaledVector(t2,sn),B=t1.clone().multiplyScalar(-sn).addScaledVector(t2,cs);
     const corners=[[-1,-1,FU0,0.01],[1,-1,FU1,0.01],[1,1,FU1,0.99],[-1,1,FU0,0.99]],q=corners.map(([i2,j2,u,w])=>[o.x+(A.x*i2+B.x*j2)*sz,o.y+(A.y*i2+B.y*j2)*sz,o.z+(A.z*i2+B.z*j2)*sz,u,w]);
@@ -1305,13 +1311,14 @@ const G={};
   const PCL=[];for(let y=2.8;y<=9.2;y+=0.8){const r=0.55+0.75*Math.sin(Math.PI*clamp((y-2.2)/7.4,0,1));PCL.push([0,y,0,r]);}
   const poplarTree=(per,seg)=>mergeGeos([barkGeo(0.26,0.08,8.4,0,4.2,0,0,0,'#8a7e6c',seg),crown(PCL,per,1.15,37,[0,6,0],[1.3,3.6,1.3])]);
   G.poplar=poplarTree(11,8);G.poplarLo=poplarTree(4,5);
-  {const tk=paintGeo(tr(new THREE.CylinderGeometry(0.09,0.16,3,6),0,1.5,0),(x,y,z,c)=>c.set('#8a7f72'));const P=[tk];
-    for(let k=0;k<9;k++){const y=2.4+k*1.05,r=0.95*Math.sin(Math.PI*(0.12+0.82*k/8))+0.15;
-      const g=jiggle(new THREE.IcosahedronGeometry(1,1),0.35,k*3);g.scale(r,1.05,r);g.translate(0.05*Math.sin(k*2.1),y,0.05*Math.cos(k*1.7));P.push(paintGeo(g,(x,yy,z,c)=>{c.setRGB(1,1,1).multiplyScalar(0.7+0.32*clamp((yy-2)/9,0,1)+0.1*hash2(Math.round(x*9),Math.round(yy*9)));}));}
-    G.dkpop=mergeGeos(P.filter(g=>g&&g.attributes));G.dkpopLo=G.dkpop;}
-  {const P=[paintGeo(tr(new THREE.CylinderGeometry(0.08,0.12,1.3,6),0,0.65,0),(x,y,z,c)=>c.set('#7a6b5c'))];
-    [[0,1.9,0,1.1],[0.55,1.6,0.2,0.75],[-0.5,1.7,-0.25,0.8],[0.1,2.4,-0.1,0.75]].forEach(([x,y,z,r],k)=>{const g=jiggle(new THREE.IcosahedronGeometry(r,1),0.3,k*5);g.translate(x,y,z);P.push(paintGeo(g,(px,py,pz,c)=>c.setRGB(1,1,1).multiplyScalar(0.72+0.3*clamp((py-1)/2,0,1))));});
-    G.dkorch=mergeGeos(P);G.dkorchLo=G.dkorch;}
+  // Daykundi: slim column poplars and round orchard trees, the same shapes as before but made of real leaves
+  // (photographed leaf cards round a bark trunk) instead of smooth green balls
+  {const DPC=[];for(let k=0;k<14;k++){const y=2.3+k*0.66,r=0.95*Math.sin(Math.PI*(0.1+0.84*k/13))+0.2;DPC.push([0.06*Math.sin(k*2.1),y,0.06*Math.cos(k*1.7),r]);}
+    const BK='#f2e9dc',dkp=(per,seg)=>mergeGeos([barkGeo(0.15,0.05,9.6,0,4.8,0,0,0,BK,seg),barkGeo(0.05,0.02,1.3,0.25,4.2,0.1,0,-0.7,BK,4),barkGeo(0.05,0.02,1.2,-0.2,6.3,-0.1,0,0.75,BK,4),crown(DPC,per,1.45,41,[0,6.6,0],[1.1,4.6,1.1],0.22)]);
+    G.dkpop=dkp(15,8);G.dkpopLo=dkp(6,5);}
+  {const OCL=[[0,1.9,0,1.1],[0.55,1.6,0.2,0.75],[-0.5,1.7,-0.25,0.8],[0.1,2.4,-0.1,0.75],[0.35,2.1,-0.55,0.6],[-0.3,2.2,0.5,0.6]];
+    const dko=(per,seg)=>mergeGeos([barkGeo(0.13,0.08,1.5,0,0.75,0,0,0,'#e6d8c6',seg),barkGeo(0.06,0.03,1.0,0.35,1.5,0.1,0,-0.8,'#e6d8c6',4),barkGeo(0.06,0.03,1.0,-0.3,1.55,-0.1,0,0.8,'#e6d8c6',4),crown(OCL,per,1.15,29,[0,1.9,0],[1.4,1.0,1.4])]);
+    G.dkorch=dko(16,7);G.dkorchLo=dko(6,5);}
   const pineTree=(tiers,per,seg)=>mergeGeos([barkGeo(0.34,0.05,8.8,0,4.4,0,0,0,'#6e5a46',seg),conifer(tiers,2.2,8.4,2.7,per,51)]);
   G.pine=pineTree(10,9,8);G.pineLo=pineTree(6,5,5);
   const dk=[paintGeo(tr(new THREE.CylinderGeometry(0.14,0.3,4.4,6),0,2.2,0),(x,y,z,c)=>c.set('#6e5a4a').multiplyScalar(0.8+y*0.05))];
@@ -1340,7 +1347,7 @@ const G={};
   G.flower=new THREE.BufferGeometry();G.flower.setAttribute('position',new THREE.Float32BufferAttribute(fl,3));G.flower.setAttribute('color',new THREE.Float32BufferAttribute(fc,3));G.flower.computeVertexNormals();
 })();
 const VMAT={signPost:new THREE.MeshPhongMaterial({color:'#9aa0a6',specular:0x666666,shininess:60}),
-  dkpop:swayMat({vertexColors:true},{k:0.02,base:2.4}),dkorch:swayMat({vertexColors:true},{k:0.03,base:1}),dkpopLo:new THREE.MeshLambertMaterial({vertexColors:true}),dkorchLo:new THREE.MeshLambertMaterial({vertexColors:true}),
+  dkpop:swayMat({vertexColors:true,map:TEX.leaf,alphaTest:0.42,side:THREE.DoubleSide},{k:0.02,base:2.4}),dkorch:swayMat({vertexColors:true,map:TEX.leaf,alphaTest:0.42,side:THREE.DoubleSide},{k:0.03,base:1}),dkpopLo:new THREE.MeshLambertMaterial({vertexColors:true,map:TEX.leaf,alphaTest:0.42,side:THREE.DoubleSide}),dkorchLo:new THREE.MeshLambertMaterial({vertexColors:true,map:TEX.leaf,alphaTest:0.42,side:THREE.DoubleSide}),
   poplar:swayMat({vertexColors:true,map:TEX.leaf,alphaTest:0.42,side:THREE.DoubleSide},{k:0.018,base:2.2}),poplarLo:new THREE.MeshLambertMaterial({vertexColors:true,map:TEX.leaf,alphaTest:0.42,side:THREE.DoubleSide}),
   pine:swayMat({vertexColors:true,map:TEX.needle,alphaTest:0.4,side:THREE.DoubleSide},{k:0.012,base:2.6}),leaf:swayMat({vertexColors:true,map:TEX.leaf,alphaTest:0.42,side:THREE.DoubleSide},{k:0.02,base:3}),birch:swayMat({vertexColors:true,map:TEX.birch,alphaTest:0.42,side:THREE.DoubleSide},{k:0.03,base:3}),dead:new THREE.MeshLambertMaterial({vertexColors:true}),palm:swayMat({vertexColors:true},{k:0.03,base:3}),
   pineLo:new THREE.MeshLambertMaterial({vertexColors:true,map:TEX.needle,alphaTest:0.4,side:THREE.DoubleSide}),leafLo:new THREE.MeshLambertMaterial({vertexColors:true,map:TEX.leaf,alphaTest:0.42,side:THREE.DoubleSide}),birchLo:new THREE.MeshLambertMaterial({vertexColors:true,map:TEX.birch,alphaTest:0.42,side:THREE.DoubleSide}),deadLo:new THREE.MeshLambertMaterial({vertexColors:true}),palmLo:new THREE.MeshLambertMaterial({vertexColors:true}),
@@ -1380,7 +1387,7 @@ function instGroup(map,geoKey,matKey){const arr=map[geoKey];if(!arr||!arr.length
 const TINT={dkpop:[0.25,0.4,0.5],dkorch:[0.26,0.45,0.48],poplar:[0.24,0.42,0.42],pine:[0.3,0.35,0.42],leaf:[0.24,0.45,0.46],birch:[0.17,0.4,0.6],dead:[0.08,0.15,0.55],palm:[0.28,0.4,0.55]};
 function buildTileVeg(T){
   const list=treeList(T.ix,T.iz),M={},lo=T.lod>0,obst=[];
-  list.forEach(t=>{const [x,y,z,type,s,ry,tint,ad]=t;if(lo&&s<2.0&&type!=='pine'&&type!=='leaf'&&type!=='dkpop'&&type!=='dkorch')return;const key=lo?type+'Lo':type;const ti=TINT[type];if(type==='dkpop')colT.setHSL(0.23+tint*0.05,0.35+tint*0.15,0.5+(tint-0.5)*0.12);else if(type==='dkorch')colT.setHSL(tint>0.92?0.95:0.25+(tint-0.5)*0.05,tint>0.92?0.45:0.5,tint>0.92?0.78:0.48+(tint-0.5)*0.1);else if(DKON()&&type==='poplar')colT.setHSL(tint<0.25?0.13+tint*0.1:0.25+(tint-0.5)*0.05,0.5,0.66+(tint-0.5)*0.1);else if(DKON()&&type==='leaf')colT.setHSL(0.26+(tint-0.5)*0.06,0.5,0.4+(tint-0.5)*0.12);else colT.setHSL(ti[0]+(tint-0.5)*0.05,ti[1],ti[2]+(tint-0.5)*0.14);
+  list.forEach(t=>{const [x,y,z,type,s,ry,tint,ad]=t;if(lo&&s<2.0&&type!=='pine'&&type!=='leaf'&&type!=='dkpop'&&type!=='dkorch')return;const key=lo?type+'Lo':type;const ti=TINT[type];if(type==='dkpop')colT.setHSL(tint<0.18?0.12:0.15+tint*0.06,tint<0.18?0.5:0.16+tint*0.08,0.7+(tint-0.5)*0.1);else if(type==='dkorch')colT.setHSL(tint>0.92?0.95:0.16+(tint-0.5)*0.05,tint>0.92?0.5:0.24,tint>0.92?0.9:0.74+(tint-0.5)*0.1);else if(DKON()&&type==='poplar')colT.setHSL(tint<0.25?0.13+tint*0.1:0.25+(tint-0.5)*0.05,0.5,0.66+(tint-0.5)*0.1);else if(DKON()&&type==='leaf')colT.setHSL(0.26+(tint-0.5)*0.06,0.5,0.4+(tint-0.5)*0.12);else colT.setHSL(ti[0]+(tint-0.5)*0.05,ti[1],ti[2]+(tint-0.5)*0.14);
     (M[key]=M[key]||[]).push([x,y,z,s,ry,colT.getHex()]);if(!lo)obst.push({x,z,r:(type==='palm'?0.25:type==='birch'?0.2:0.32)*s});});
   if(!lo){
     const R=mulberry32((T.ix*91183)^(T.iz*71993)^4242),x0=T.ix*TILE,z0=T.iz*TILE,zc=z0+TILE/2,k=zoneOf(zc),rough=tab(tR,zc);
@@ -2107,11 +2114,11 @@ const MPT={},TMAT=new Map();
    whatever shape each car's glass has), feathery and uneven, fixed to the glass itself. How far from the edge each point
    of a pane is, is worked out once from that pane's own outline. The wipers do not clear it: it is on the glass, not water. */
 const frostU={value:0},frostLU={value:1};window.__frost=frostU;const wipeU={p1:{value:new THREE.Vector3(0,-1e4,0)},p2:{value:new THREE.Vector3(0,-1e4,0)},len:{value:0}};
-function frostify(m){if(m.userData.frost)return m;m.userData.frost=true;m.customProgramCacheKey=()=>'frost1';
+function frostify(m){if(m.userData.frost)return m;m.userData.frost=true;m.customProgramCacheKey=()=>'frost2';
   m.onBeforeCompile=sh=>{sh.uniforms.uFrost=frostU;sh.uniforms.uFL=frostLU;sh.uniforms.uWP1=wipeU.p1;sh.uniforms.uWP2=wipeU.p2;sh.uniforms.uWL=wipeU.len;
     sh.vertexShader='attribute float aEdge;varying float vEdge;varying vec3 vFp;varying vec3 vFw;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdge=aEdge;vFp=position;vFw=(modelMatrix*vec4(position,1.0)).xyz;');
     sh.fragmentShader='uniform float uFrost;uniform float uFL;uniform vec3 uWP1;uniform vec3 uWP2;uniform float uWL;varying float vEdge;varying vec3 vFp;varying vec3 vFw;\nfloat fh(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat fn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(fh(i),fh(i+vec3(1,0,0)),f.x),mix(fh(i+vec3(0,1,0)),fh(i+vec3(1,1,0)),f.x),f.y),mix(mix(fh(i+vec3(0,0,1)),fh(i+vec3(1,0,1)),f.x),mix(fh(i+vec3(0,1,1)),fh(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
-      +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nif(uFrost>0.001){float n=fn(vFp*9.0)*0.5+fn(vFp*23.0)*0.3+fn(vFp*61.0)*0.2;float reach=uFrost*0.42;float f=smoothstep(reach,reach-0.22,vEdge+(n-0.5)*0.3);float vein=smoothstep(0.55,0.75,fn(vFp*38.0+n*3.0));f*=0.72+0.28*vein;float wd=min(distance(vFw,uWP1),distance(vFw,uWP2));f*=smoothstep(uWL*0.95,uWL*1.06,wd);gl_FragColor=vec4(mix(gl_FragColor.rgb,vec3(0.86,0.92,0.97)*uFL,f),max(gl_FragColor.a,f*0.9));}');};
+      +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nif(uFrost>0.001){float n=fn(vFp*9.0)*0.5+fn(vFp*23.0)*0.3+fn(vFp*61.0)*0.2;float reach=uFrost*0.42;float f=smoothstep(reach,reach-0.22,vEdge+(n-0.5)*0.3);float vein=smoothstep(0.55,0.75,fn(vFp*38.0+n*3.0));f*=0.72+0.28*vein;float wd=min(distance(vFw,uWP1),distance(vFw,uWP2));f*=smoothstep(uWL*0.95,uWL*1.06,wd);float fl=clamp(uFL,0.0,1.0);gl_FragColor=vec4(mix(gl_FragColor.rgb,vec3(0.86,0.92,0.97)*max(fl,0.16),f),max(gl_FragColor.a,f*mix(0.3,0.9,smoothstep(0.08,0.6,fl))));}');};
   return m;}
 // how far each vertex of a pane lies from that pane's edge (0 at the edge, 1 in the middle)
 function frostPrep(root){const done=new Set();root.traverse(o=>{if(!o.isMesh||!o.material||!o.material.userData||!o.material.userData.frost)return;const g=o.geometry;if(!g||done.has(g)||g.attributes.aEdge)return;done.add(g);
@@ -3709,7 +3716,7 @@ function updateEnv(dt){
   const snowTarget=snowA>0.3?1:0;snowU.value+=snowTarget>snowU.value?(1-snowU.value)*dt*0.12*snowA:-dt*(snowyAt(S.x,S.y,S.z)?0:meltK);snowU.value=clamp(snowU.value,0,1);
   trkMat.color.copy(TRK_DIRT).lerp(TRK_SNOW,clamp(snowU.value*1.4,0,1));trkMat.opacity=lerp(0.26,0.6,clamp(snowU.value*1.4,0,1));
   carSnowStep(dt,snowA,rainA);
-  {const cold=snowA>0.2;frostU.value=clamp(frostU.value+(cold?dt/70:-dt/40),0,1);frostLU.value=(0.05+0.95*dayF)*(1-0.45*Math.min(1,wa));}
+  {const cold=snowA>0.2;frostU.value=clamp(frostU.value+(cold?dt/70:-dt/40),0,1);frostLU.value=(0.05+0.95*dayF+(S.lightsOn?0.22*(1-dayF):0))*(1-0.45*Math.min(1,wa));}
   wetU.value+=(rainA-wetU.value)*dt*0.1;windU.value=1+wa*1.5+(zoneOf(S.z)===4?0.8:0);
   cTop.copy(CN.top).lerp(CD.top,dayF);cMid.copy(CN.mid).lerp(CD.mid,dayF);cHor.copy(CN.hor).lerp(CD.hor,dayF).lerp(CDUSK,warm*0.75);
   if(zoneOf(S.z)===3)cHor.lerp(CCANYON,dayF*0.35);
@@ -4613,6 +4620,11 @@ function dkChunk(ci,cj){if(!FW.hByC){FW.hByC=new Map();for(const H of FW.houses)
       SR.push([H.x,tp,H.z,(ridgeAlongW?H.d:H.w)+1.0,1.5,(ridgeAlongW?H.w:H.d)+1.0,H.a+(ridgeAlongW?Math.PI/2:0),[0.42,0.68,0.82]]);H.y=tp;continue;}
     W.push([H.x,(base+top)/2,H.z,H.w,top-base,H.d,H.a,tint]);
     Rf.push([H.x,top+0.12,H.z,H.w+0.3,0.36,H.d+0.3,H.a,[0.62+0.1*r,0.55+0.08*r,0.45+0.07*r]]);
+    // as real mud houses are built: the poplar roof beams poke out of the walls under the roof edge, and a wooden door
+    {const P=(u,w)=>[H.x+u*H.ca-w*H.sa,H.z+u*H.sa+w*H.ca],alongW=H.w>=H.d,L=alongW?H.w:H.d,S2=alongW?H.d:H.w,nb=Math.max(2,Math.floor((L-0.6)/0.95)),bc=[0.42+0.08*r,0.33+0.06*r,0.24+0.05*r];
+      for(let k=0;k<nb;k++){const t=-L/2+0.3+(k+0.5)*(L-0.6)/nb,[x,z]=alongW?P(t,0):P(0,t);Rf.push([x,top-0.2+0.03*Math.sin(k*1.7),z,alongW?0.15:S2+0.7,0.15,alongW?S2+0.7:0.15,H.a,bc]);}
+      if(H.k!==4){const off=(r-0.5)*L*0.5,[dx,dz]=alongW?P(off,H.d/2+0.04):P(H.w/2+0.04,off),g=Hf(dx,dz),dt=Math.min(top-0.4,g+1.95);
+        if(dt-g>1.4)Rf.push([dx,(g+dt)/2,dz,alongW?1.0:0.1,dt-g,alongW?0.1:1.0,H.a,[0.3+0.06*r,0.21+0.04*r,0.14+0.03*r]]);}}
     if(H.k===0&&H.fl===1&&H.w*H.d>230&&H.w>11&&H.d>11)for(const [u,w] of [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5]]){const x=H.x+u*H.w*H.ca-w*H.d*H.sa,z=H.z+u*H.w*H.sa+w*H.d*H.ca;
       W.push([x,(base+top+1.6)/2,z,2.6,top+1.6-base,2.6,H.a,tint]);Rf.push([x,top+1.72,z,2.9,0.3,2.9,H.a,Rf[Rf.length-1][7]]);}}
   const mk=(arr,mat,geo)=>{if(!arr.length)return null;const im=new THREE.InstancedMesh(geo||dkBox,mat,arr.length);arr.forEach((a,i)=>{e.set(0,-a[6],0);q.setFromEuler(e);mt.compose(new THREE.Vector3(a[0]-ox,a[1],a[2]-oz),q,new THREE.Vector3(a[3],a[4],a[5]));im.setMatrixAt(i,mt);col.setRGB(a[7][0],a[7][1],a[7][2]);im.setColorAt(i,col);});
