@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=143</script>
+<script>window.GAME_CODE=144</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -2951,11 +2951,9 @@ const SND={buf:{},base:'snd/',loading:false,loops:null,eng:null,engType:null};
 const PADS=2048/44100;
 // real-recording engines: each layer is a recorded loop, the rpm it was recorded at, and the rpm where the next layer
 // takes over (with a fade that wide). Ferrari V8 idle and fast idle below, a 1972 911 flat-six at speed above.
-// engine: Amir's pick (BigSoundBank, Car engine 2): its steady idle stretches, and its revved stretches played as they are
-// and a little slower for the middle, so no layer is sped up much (that made it thin)
-const REALENG={f6:{L:[['e_bi',900],['e_bm',1750],['e_bh',2800]],B:[[1300,380],[2900,700],[4700,900]]},
+const REALENG={f6:{L:[['r_idle',1000],['r_fast',1560],['r_high',3400],['r_high2',4420]],B:[[1300,380],[2900,700],[4700,900]]},
   // the trucks' V8: the same recordings played slower and deeper
-  v8r:{L:[['e_bi',1100],['e_bm',2100],['e_bh',3300]],B:[[1400,420],[3000,800],[4900,1000]]}};
+  v8r:{L:[['r_idle',1200],['r_fast',1900],['r_high',4300],['r_high2',5600]],B:[[1400,420],[3000,800],[4900,1000]]}};
 const ENGRPM={i4:[800,1400,2200,3200,4400,5800],i6:[800,1400,2200,3200,4400,5800],v8:[750,1300,2100,3100,4300,5600],d6:[600,900,1300,1800,2400,3000]};
 // fixed animal places along the route: villages and livestock in the Bamiyan valley and lake land, birds in green lands,
 // ducks and frogs at the lakes, crows over dry lands, wolves in the high mountains, gulls at the coast
@@ -2964,7 +2962,7 @@ const SPOTS=[];(function(){const r=mulberry32(4711);for(let z=600;z<ROADLEN-300;
   const kind=lake?'lake':(k<=1&&r()<0.55)?'village':b==='coast'?'coast':b==='danger'||b==='crow'?(k===5||k===4?'wolves':'crows'):'birds';
   SPOTS.push({z,k:kind,side:r()<0.5?1:-1,calls:2+Math.floor(r()*2),done:false});}})();
 const LOOPS=['rain','rainroof','wind','forest','night','stream','gravel','road','skid','horn','crank','gulls','frogs','flock','r_gravel','r_gravin','r_roadin','r_windin','r_snow'];
-const SHOTS=['r_reverse','r_start','r_shift','r_door','r_hit1','r_hit2','r_hit3','r_hit4','r_hit5','r_hit6','r_crash','r_crashb','r_bump1','r_bump2','r_bump3','r_bump4','r_knock1','r_knock2','r_creak1','r_creak2','r_creak3','r_stone1','r_stone2','r_stone3','r_stone4','r_wiper','r_pop1','r_pop2','r_pop3','thunder1','thunder2','thunder3','thunder4','splash1','splash2','splash3','mud1','mud2','crow','tick','skidshot','thud1','thud2','crash1','crash2','shift',
+const SHOTS=['r_reverse','r_crank','r_start2','r_start','r_shift','r_door','r_hit1','r_hit2','r_hit3','r_hit4','r_hit5','r_hit6','r_crash','r_crashb','r_bump1','r_bump2','r_bump3','r_bump4','r_knock1','r_knock2','r_creak1','r_creak2','r_creak3','r_stone1','r_stone2','r_stone3','r_stone4','r_wiper','r_pop1','r_pop2','r_pop3','thunder1','thunder2','thunder3','thunder4','splash1','splash2','splash3','mud1','mud2','crow','tick','skidshot','thud1','thud2','crash1','crash2','shift',
   'robin1','blackbird1','nightingale1','blackcap1','owl1','owlb1','owlb2','crowb1','duck1','sheep1','sheepb1','sheepc1','cow1','cowb1','donkey1','donkeyb1','dog1','dog2','dogb1','wolf1'];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 function setT(p,v,tc){if(AU.ac)p.setTargetAtTime(v,AU.ac.currentTime,tc||0.08);}
@@ -3060,7 +3058,7 @@ const SFX={
     if(s>3)playBuf('r_crash',Math.min(0.9,0.1+s*0.07),0.9+Math.random()*0.2,0,0.15);if(s>7)playBuf('r_crashb',Math.min(0.8,s*0.06),1,0,0.2);
     playBuf(pick(['r_knock1','r_knock2']),Math.min(0.6,0.15+s*0.05),0.9);},
   shift:()=>{AU.shiftDip=0.16;if(!playBuf('r_shift',S.cam===4?0.35:0.14,0.95+Math.random()*0.1))playBuf('shift',0.18,0.9+Math.random()*0.2);AU.popT=Math.random()<0.4?0.05:AU.popT;},
-  start:()=>playBuf('r_start',S.cam===4?0.5:0.65,1),
+  start:()=>{if(!playBuf('r_start2',S.cam===4?0.5:0.65,1))playBuf('r_start',S.cam===4?0.5:0.65,1);},
   door:()=>playBuf('r_door',0.45,0.97+Math.random()*0.06),
   stall:()=>{playBuf('thud2',0.3,0.7);},
   splash:s=>playBuf(pick(['splash1','splash2','splash3']),Math.min(0.9,0.3+s*0.09),0.9+Math.random()*0.2,0,0.15),
@@ -3193,7 +3191,7 @@ function ignition(){
   if(S.crank>0)return;
   if(brkOn()&&BRK.heat>0.75){toast(tr_('موتور هنوز داغ است؛ صبر کن یا آب بریز'));return;}
   const depth=waterAt(S.x,S.z)-Math.max(Hf(S.x,S.z),S.y-0.3),flood=cust(S.veh).snork===2?3.8:2.6;
-  S.crank=0.7+Math.random()*0.5;S.crankOk=depth<flood-0.4&&Math.random()<(WX.type!=='clear'&&WX.amt>0.5?0.6:0.8);S.crankWet=depth>=flood-0.4;
+  S.crank=0.8;playBuf('r_crank',S.cam===4?0.55:0.7,1);S.crankOk=depth<flood-0.4&&Math.random()<(WX.type!=='clear'&&WX.amt>0.5?0.6:0.8);S.crankWet=depth>=flood-0.4;
 }
 function toggleLow(){S.low=!S.low;$('lowBtn').classList.toggle('act',S.low);toast(S.low?tr_('دندهٔ کمکی درگیر شد: آرام اما پرزور (حدود ۸ کیلومتر)'):tr_('دندهٔ کمکی آزاد شد'));}
 function toggleDiff(){S.diff=!S.diff;$('diffBtn').classList.toggle('act',S.diff);toast(S.diff?tr_('قفل دیفرانسیل درگیر شد'):tr_('قفل دیفرانسیل آزاد شد'));}
