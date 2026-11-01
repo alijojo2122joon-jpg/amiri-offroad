@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=166</script>
+<script>window.GAME_CODE=167</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -6041,9 +6041,9 @@ function recStart(){if(!recCan()){toast(tr_('برای ذخیرهٔ خودکار 
 function recStop(){if(REC.mr&&REC.mr.state!=='inactive')REC.mr.stop();}
 // Android's own screen recorder (new app): asks once "start recording?", then films with the phone's hardware encoder
 function recNativeCan(){return !!(window.AndroidApp&&AndroidApp.recNative);}
-window.__recNative=ok=>{DIR.asking=false;REC.native=!!ok;if(S.mode!=='play'||!V)return;DIR.cnt=ok?1.6:3.2;
+window.__recNative=ok=>{DIR.asking=false;REC.native=!!ok;if(S.mode!=='play'||!V){if(ok){REC.native=false;try{AndroidApp.recNativeStop();}catch(e){}}return;}DIR.cnt=ok?1.6:3.2;
   toast(ok?tr_('ضبط شروع شد؛ فیلم خودش در گالری ذخیره می‌شود'):tr_('ضبط نشد؛ اگر خواستی با ضبط صفحهٔ گوشی ضبط کن'));};
-window.__recDone=name=>{toast(name?tr_('فیلم در گالری ذخیره شد: Movies/AmiriOffroad'):tr_('ذخیرهٔ فیلم کامل نشد'));};
+window.__recDone=name=>{const bad=!name||name[0]==='!';REC.native=false;toast(bad?tr_('ذخیرهٔ فیلم کامل نشد')+(name&&name.length>1?' ('+name.slice(1,90)+')':''):tr_('فیلم در گالری ذخیره شد: Movies/AmiriOffroad'));};
 function dirArm(){if(DIR.on||DIR.cnt>0||DIR.asking||S.mode!=='play'||!V)return;SFX.click();
   if(recNativeCan()){DIR.asking=true;let ok=false;try{ok=AndroidApp.recNative();}catch(e){}if(ok)return;DIR.asking=false;}
   DIR.cnt=3.2;toast(recCan()?tr_('فیلم‌برداری ۳ ثانیه دیگر شروع می‌شود؛ خودش در گالری ذخیره می‌شود'):tr_('فیلم‌برداری: ضبط صفحهٔ گوشی را روشن کن؛ ۳ ثانیه دیگر شروع می‌شود'));}
@@ -6076,7 +6076,7 @@ function dirCam(){const k=DIR_SHOTS[DIR.i],u=DIR.t/DIR_LEN,s=Math.sin(S.th),c=Ma
   else if(k==='bonnet'){const f=(V.frontZ||2)*0.25;P=[S.x+s*f,S.y+DIR.top+0.25,S.z+c*f];L=[S.x+s*40,S.y+0.5+(g(S.x+s*40,S.z+c*40)-S.y)*0.6,S.z+c*40];}
   window.__camOv=P?[P[0],P[1],P[2],L[0],L[1],L[2]]:undefined;}
 function dirStep(dt){
-  if(DIR.cnt>0){DIR.cnt-=dt;if(DIR.cnt<=0){DIR.cnt=0;if(S.mode==='play')dirStart();}return;}
+  if(DIR.cnt>0){DIR.cnt-=dt;if(DIR.cnt<=0){DIR.cnt=0;if(S.mode==='play')dirStart();else if(REC.native){REC.native=false;try{AndroidApp.recNativeStop();}catch(e){}}}return;}
   if(!DIR.on)return;if(S.mode!=='play'||!V||BRK.rep||RIDE.pid){dirStop();return;}
   DIR.t+=dt;if(DIR.t>=DIR_LEN){DIR.t=0;DIR.i++;if(DIR.i>=DIR_SHOTS.length){dirStop();return;}dirShot();}
   S.lightsOn=SKY_DAYF()<0.35;if(DIR.drive)dirDrive(dt);else{K.gas=false;}dirCam();}
