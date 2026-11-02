@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=184</script>
+<script>window.GAME_CODE=185</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -4307,12 +4307,14 @@ DIRT.tint=(col)=>{const c=document.createElement('canvas');c.width=c.height=48;c
 DIRT.dust=DIRT.tint('#9c8466');DIRT.dust2=DIRT.tint('#b9a585');DIRT.mud=DIRT.tint('#4b3825');
 const DUSTY={gravel:1,sand:1.5,rock:0.7,grass:0.35,mud:0.9,bog:1.1,snow:0.12,asphalt:0.06,wood:0.05,ice:0.05,water:0};
 window.__dirt=()=>DIRT;
+// the glass-plane mapping is taken right before drawing, from where the car is in this very frame, so the dirt sits still on the glass
+function dirtSync(){if(!dirtU.on.value||!DIRT.T||!V||!V.g)return;V.g.updateMatrixWorld(true);dirtU.M.value.copy(V.body.matrixWorld).invert().premultiply(DIRT.T);}
 function windscreenDirt(dt,env,s){
   const ws=V&&V.ws;if(!ws||!ws.U||!V.body){dirtU.on.value=0;return;}
   const x=DIRT.x,W=DIRTC.width,H=DIRTC.height,R=Math.random,sp=Math.abs(S.v||0),ground=S.mode==='play'&&!S.air;let ch=false;
   // world -> glass plane: across (0..1), up the glass (0..1), off the glass (metres)
   const hw=ws.hw/0.94,T=new THREE.Matrix4().set(1/(2*hw),0,0,0.5, 0,ws.U[1]/ws.ul,ws.U[2]/ws.ul,-(ws.y*ws.U[1]+ws.z*ws.U[2])/ws.ul, 0,ws.N[1],ws.N[2],-(ws.y*ws.N[1]+ws.z*ws.N[2]), 0,0,0,1);
-  dirtU.M.value.copy(V.body.matrixWorld).invert().premultiply(T);dirtU.on.value=1;
+  DIRT.T=T;dirtU.on.value=1;
   const put=(img,px,py,r,al)=>{x.globalAlpha=al;x.drawImage(img,px-r,py-r,r*2,r*2);ch=true;};
   // dust: settles all over, thickest low down and at the sides, faster the faster you go
   const sf=ground?S.surf:'',rainy=Math.max(env.rainA||0,(env.snowA||0)*0.5);
@@ -6235,6 +6237,7 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
   rainbowStep(dt,env);banksStep();elemVisStep(dt);parkLodStep();if(Math.floor(performance.now()/500)!==STG.gT){STG.gT=Math.floor(performance.now()/500);gatesStep();}rivNrm.offset.y-=dt*0.32;commsFrame(dt);animalsStep(dt);{const tn2=performance.now();if(tn2-cabT>500){cabT=tn2;cabinsStep();}}
   // shadows are redrawn every frame on strong phones, every second frame on the others
   PERF.fn++;renderer.shadowMap.needsUpdate=QL()>=3||(PERF.fn&1)===0;
+  try{dirtSync();}catch(e){}
   renderer.render(scene,camera);if(REC.cx&&REC.mr)try{REC.cx.drawImage(canvas,0,0,REC.cv.width,REC.cv.height);}catch(e){}requestAnimationFrame(frame);
 }
 rebuildEnv();scanTiles(true);processTiles(1e9);updateRoad(true);applyVehicle();applySettings();refreshMenu();updateGrass(0,true);
