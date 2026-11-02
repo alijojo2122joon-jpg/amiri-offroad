@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=170</script>
+<script>window.GAME_CODE=171</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -629,7 +629,7 @@ function fbm(x,z,o){let s=0,amp=1,f=1,t=0;for(let i=0;i<o;i++){s+=amp*vnoise(x*f
 
 /* ---------- Settings & save ---------- */
 const SETK='amiri-offroad-settings',SAVE='amiri-offroad-v3';
-const SET={fwx:'auto',fhour:'auto',sound:true,vol:0.8,quality:'auto',weather:'auto',time:'auto',sens:1,mvol:0.7,vvol:1,ptt:false,chat:true,units:'kmh',miniZoom:260,fps:false,vib:true};
+const SET={fwx:'auto',fhour:'auto',sound:true,vol:0.8,quality:'med',weather:'auto',time:'auto',sens:1,mvol:0.7,vvol:1,ptt:false,chat:true,units:'kmh',miniZoom:260,fps:false,vib:true};
 try{Object.assign(SET,JSON.parse(localStorage.getItem(SETK)||'{}'));}catch(e){}
 SET.weather='auto';SET.time='auto';
 // graphics now follow each phone by themselves (smooth on weak phones, full quality on strong ones)
@@ -640,10 +640,10 @@ function saveSet(){try{localStorage.setItem(SETK,JSON.stringify(SET));}catch(e){
 // "high" and "low" in the settings fix it instead.
 if(!SET.qv2){SET.quality='auto';SET.qv2=1;}
 const PERF={lvl:(navigator.hardwareConcurrency||4)>=8&&(navigator.deviceMemory||4)>=6?3:(navigator.hardwareConcurrency||4)>=6&&(navigator.deviceMemory||4)>=4?2:(navigator.hardwareConcurrency||4)<=4||(navigator.deviceMemory||4)<=3?0:1,acc:0,n:0,t:0,good:0,downAt:-1e9,ps:1,fn:0};
-// graphics quality: 'auto' starts from what the phone looks like and steps down if it cannot keep a smooth picture
-// (and back up when it can); low / medium / high / very high are fixed by the player in Settings
+// graphics quality is set by hand in Settings: low / medium (the start) / high / very high
 const Q_LV={low:0,med:1,high:2,ultra:3};PERF.dev=Math.min(2,PERF.lvl);PERF.lvl=PERF.dev;
-if(SET.qv3!==2){SET.qv3=2;SET.quality='auto';try{localStorage.removeItem('amiri-perf3');}catch(e){}}
+if(SET.qv3!==3){SET.qv3=3;SET.quality='med';try{localStorage.removeItem('amiri-perf3');}catch(e){}saveSet();}
+if(Q_LV[SET.quality]===undefined)SET.quality='med';
 if(SET.quality==='auto'){try{const k=JSON.parse(localStorage.getItem('amiri-perf3')||'null');if(k&&typeof k.lvl==='number')PERF.lvl=Math.max(0,Math.min(PERF.dev,k.lvl));}catch(e){}}
 else PERF.lvl=Q_LV[SET.quality]!==undefined?Q_LV[SET.quality]:PERF.dev;
 function perfKeep(){try{localStorage.setItem('amiri-perf3',JSON.stringify({lvl:PERF.lvl}));}catch(e){}}
@@ -3340,7 +3340,7 @@ function renderSettings(){$('setBody').innerHTML=seg(tr_('زبان'),'lang',[['f
   +'<label class="prof">'+tr_('اسم (در بازی آنلاین)')+'<input id="pfName" maxlength="16" autocomplete="nickname"></label>'
   +'<label class="prof">'+tr_('پلاک ماشین')+'<input id="pfPlate" maxlength="10"></label>'
   +tr_('<button class="big alt" id="layBtn">جابه‌جایی و اندازهٔ فرمان و پدال‌ها</button>')+seg(tr_('صدا'),'sound',[[true,tr_('روشن')],[false,tr_('خاموش')]])+range(tr_('بلندی صدا'),'vol',0,1,0.05)+range(tr_('حساسیت فرمان'),'sens',0.6,1.6,0.1)
-  +seg(tr_('کیفیت گرافیک'),'quality',[['auto',tr_('خودکار')],['low',tr_('کم (روان‌ترین)')],['med',tr_('متوسط')],['high',tr_('زیاد')],['ultra',tr_('خیلی زیاد')]])
+  +seg(tr_('کیفیت گرافیک'),'quality',[['low',tr_('کم (روان‌ترین)')],['med',tr_('متوسط')],['high',tr_('زیاد')],['ultra',tr_('خیلی زیاد')]])
   +seg(tr_('واحد سرعت'),'units',[['kmh',tr_('کیلومتر')],['mph',tr_('مایل')]])
   +seg(tr_('بزرگنمایی نقشهٔ کوچک'),'miniZoom',[[160,tr_('نزدیک')],[260,tr_('متوسط')],[480,tr_('دور')]])
   +seg(tr_('لرزش گوشی هنگام ضربه'),'vib',[[true,tr_('روشن')],[false,tr_('خاموش')]])
