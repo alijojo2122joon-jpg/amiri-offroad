@@ -1,179 +1,179 @@
 {
- "code": 177,
+ "code": 178,
  "minApk": 174,
  "apkUrl": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/AmiriOffroad.apk?v=174",
  "files": [
   {
    "path": "index.html",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html?v=177",
-   "sha256": "400b132549e9172c6a22f3b9cfdd1ea1efd121b10cd920321256d8fde59b896c",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html?v=178",
+   "sha256": "08ccd645c426da1f8e86b7cfb01cd370917e67d2ebd06b0e9afc0787fd6f08f4",
    "size": 7114375
   },
   {
    "path": "models/mech.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/mech.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/mech.glb?v=178",
    "sha256": "72b1fc5d4ce870631ccbfe3920a1c4cf4f6a7947c1ecab38689aa5c29a5685c4",
    "size": 6054592
   },
   {
    "path": "snd/r_crank.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/r_crank.ogg?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/r_crank.ogg?v=178",
    "sha256": "6b99c1329513fa3202c0386f454a3fd66f5da024216d8e7078e971c5d50f75d1",
    "size": 12301
   },
   {
    "path": "snd/r_start2.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/r_start2.ogg?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/r_start2.ogg?v=178",
    "sha256": "5aa6d77f3162c3dd2c69514871220d38eb5e9a2107236ff51d97695e76402d4a",
    "size": 28952
   },
   {
    "path": "snd/e_ci.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_ci.ogg?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_ci.ogg?v=178",
    "sha256": "8de61a837fa54a57b1c9175e6a945d88be9ea96a12ccb17a1d4cd784c62f79cc",
    "size": 44795
   },
   {
    "path": "snd/e_c0.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c0.ogg?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c0.ogg?v=178",
    "sha256": "e8649a887dd0751726e8c03f76ddc0946cef44e18cf916aafd2be01e4c216440",
    "size": 29516
   },
   {
    "path": "snd/e_c1.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c1.ogg?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c1.ogg?v=178",
    "sha256": "216a52bef1e467ee7167fdb49bfb400465af3e523fd36cb5c24fd435a8981ba3",
    "size": 18717
   },
   {
    "path": "snd/e_c2.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c2.ogg?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c2.ogg?v=178",
    "sha256": "5d05760dc282bde8964db76fee5106fea31761e744b86a3d8d2db0e94c679fcd",
    "size": 15258
   },
   {
    "path": "snd/e_c3.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c3.ogg?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c3.ogg?v=178",
    "sha256": "978e630b621af15d916e7cbdbe6297a24a03b24414430b2c23f81a9d76b01a6c",
    "size": 16646
   },
   {
    "path": "snd/e_c4.ogg",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c4.ogg?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/snd/e_c4.ogg?v=178",
    "sha256": "cbc188bf2cee10bcdd765f1569474839fc3c1648218338a76fade9d2a248654a",
    "size": 17015
   },
   {
    "path": "maps/bamir.json",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/maps/bamir.json?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/maps/bamir.json?v=178",
    "sha256": "b27f66b29d05d613f4e3336101365906cfb27c2b7516d52574f706299f7ea8a9",
    "size": 9053960
   },
   {
    "path": "models/cruiser.glb",
-   "sha256": "fe6da30699b83a12f9426c9b49e27ee36f835a3675eb6a69566d129a5b6e40a3",
-   "size": 7865248,
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/cruiser.glb?v=177"
+   "sha256": "af846531e00f2450a7de307c391edc4d2a65c31e9d940dd0a364fd45e82a08f2",
+   "size": 7862460,
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/cruiser.glb?v=178"
   },
   {
    "path": "models/cruiser_lo.glb",
-   "sha256": "c24ce314b74e6966dc8bd3c87268a49620490bf80ba89596a1bb2ef4c5c9c82a",
+   "sha256": "e1376dffddaa2d36dbbe693d447e884af2ad6bc396e830afc88a5fadd4c8faab",
    "size": 1336944,
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/cruiser_lo.glb?v=177"
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/cruiser_lo.glb?v=178"
   },
   {
    "path": "video/upd.mp4",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/video/upd.mp4?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/video/upd.mp4?v=178",
    "sha256": "a9ca31f6578edc5fdcf2c84ac8bbb9c794b1678c3e02349fde14899af3c791a9",
    "size": 1634448
   },
   {
    "path": "models/lifted85.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/lifted85.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/lifted85.glb?v=178",
    "sha256": "92aef53e46d60a8cbce8c84150f337ddc1292313de38f6d7866c099742b3f172",
    "size": 1632640
   },
   {
    "path": "models/bokaroo.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/bokaroo.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/bokaroo.glb?v=178",
    "sha256": "f65326c98706d0eb0c2ff3cc5dc6bea5febf016eb8059871e93dd0246b650df7",
    "size": 1352940
   },
   {
    "path": "models/conquer.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/conquer.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/conquer.glb?v=178",
    "sha256": "188e8fa49f3d586e39cd73808b481d3f08dbe34f7358cc7a6430aaa6316bf320",
    "size": 970716
   },
   {
    "path": "models/utility90.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/utility90.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/utility90.glb?v=178",
    "sha256": "b9c2e211cbb36e3ebf806cce82fc3cacb2780a08c5a5ad85d511f3e4c9091524",
    "size": 1185940
   },
   {
    "path": "models/shvan.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/shvan.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/shvan.glb?v=178",
    "sha256": "410e4e7c74598034b4e0b8412f26839cf2c0a2df175da01969dd35bffa39dc47",
    "size": 997552
   },
   {
    "path": "models/shvan_amb.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/shvan_amb.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/shvan_amb.glb?v=178",
    "sha256": "2f37b9ff238cfab286aa1d403637065469d31d363d9e749420244231c6d33640",
    "size": 1147180
   },
   {
    "path": "models/doutrive.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/doutrive.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/doutrive.glb?v=178",
    "sha256": "136081bd3b9dd981aaaadc110165aa7ec034010dda73b19759c73a3211f66515",
    "size": 1119184
   },
   {
    "path": "models/elalamo.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/elalamo.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/elalamo.glb?v=178",
    "sha256": "75c4823d48882d70c531bf59886a2e5ed04d79ad009c3aedea22db0c29beb585",
    "size": 876964
   },
   {
    "path": "models/kiri.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/kiri.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/kiri.glb?v=178",
    "sha256": "d5349deb2e4dcdd1ee0f3afe4982182fbececc65bdcfb5a10038528eed74fea7",
    "size": 933504
   },
   {
    "path": "models/fh_cop.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/fh_cop.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/fh_cop.glb?v=178",
    "sha256": "767ecc487566d02ba052a31dff3aec5ba67bcb00fe0d085f9163023b3d82678d",
    "size": 1069812
   },
   {
    "path": "models/lct3000.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/lct3000.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/lct3000.glb?v=178",
    "sha256": "a246eaac8fa781cfa01ee19e9edbbf34cad5fc03a9804b5cf02ca599024138d0",
    "size": 928656
   },
   {
    "path": "models/negotiator.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/negotiator.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/negotiator.glb?v=178",
    "sha256": "381ec15fb9c23d9ee11ae830606e50f58de58f1a17162bad55eaaf52f3dcc3b6",
    "size": 930240
   },
   {
    "path": "models/phoenix.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/phoenix.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/phoenix.glb?v=178",
    "sha256": "9e6960dad1b6b33e806d96a4f4ee67eb77c0d56fe0127e15e1256304a672e3d5",
    "size": 1109668
   },
   {
    "path": "models/fh_sw.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/fh_sw.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/fh_sw.glb?v=178",
    "sha256": "2420c9613c51f9b19c6e59158ae049a4992723a59f41419b4446aa1a7c46d6af",
    "size": 1115604
   },
   {
    "path": "models/fh_lt.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/fh_lt.glb?v=177",
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/fh_lt.glb?v=178",
    "sha256": "4e4d05bc24df6fbd26990fb7dbeeea0282a79188d080123cf834dad5eb6bd6f6",
    "size": 1045972
   }
