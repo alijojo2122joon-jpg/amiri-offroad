@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=186</script>
+<script>window.GAME_CODE=187</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -2177,11 +2177,11 @@ const MPT={},TMAT=new Map();
 const DIRTC=document.createElement('canvas');DIRTC.width=160;DIRTC.height=80;const dirtTex=new THREE.CanvasTexture(DIRTC);dirtTex.flipY=false;dirtTex.generateMipmaps=false;dirtTex.minFilter=THREE.LinearFilter;
 const dirtU={map:{value:dirtTex},M:{value:new THREE.Matrix4()},on:{value:0}};
 const frostU={value:0},frostLU={value:1};window.__frost=frostU;const wipeU={p1:{value:new THREE.Vector3(0,-1e4,0)},p2:{value:new THREE.Vector3(0,-1e4,0)},len:{value:0}};
-function frostify(m){if(m.userData.frost)return m;m.userData.frost=true;m.customProgramCacheKey=()=>'frost3';
+function frostify(m){if(m.userData.frost)return m;m.userData.frost=true;m.customProgramCacheKey=()=>'frost4';
   m.onBeforeCompile=sh=>{sh.uniforms.uFrost=frostU;sh.uniforms.uFL=frostLU;sh.uniforms.uWP1=wipeU.p1;sh.uniforms.uWP2=wipeU.p2;sh.uniforms.uWL=wipeU.len;sh.uniforms.uDirt=dirtU.map;sh.uniforms.uDirtM=dirtU.M;sh.uniforms.uDirtOn=dirtU.on;
-    sh.vertexShader='attribute float aEdge;varying float vEdge;varying vec3 vFp;varying vec3 vFw;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdge=aEdge;vFp=position;vFw=(modelMatrix*vec4(position,1.0)).xyz;');
-    sh.fragmentShader='uniform sampler2D uDirt;uniform mat4 uDirtM;uniform float uDirtOn;uniform float uFrost;uniform float uFL;uniform vec3 uWP1;uniform vec3 uWP2;uniform float uWL;varying float vEdge;varying vec3 vFp;varying vec3 vFw;\nfloat fh(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat fn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(fh(i),fh(i+vec3(1,0,0)),f.x),mix(fh(i+vec3(0,1,0)),fh(i+vec3(1,1,0)),f.x),f.y),mix(mix(fh(i+vec3(0,0,1)),fh(i+vec3(1,0,1)),f.x),mix(fh(i+vec3(0,1,1)),fh(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
-      +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nif(uFrost>0.001){float n=fn(vFp*9.0)*0.5+fn(vFp*23.0)*0.3+fn(vFp*61.0)*0.2;float reach=uFrost*0.42;float f=smoothstep(reach,reach-0.22,vEdge+(n-0.5)*0.3);float vein=smoothstep(0.55,0.75,fn(vFp*38.0+n*3.0));f*=0.72+0.28*vein;float wd=min(distance(vFw,uWP1),distance(vFw,uWP2));f*=smoothstep(uWL*0.95,uWL*1.06,wd);float fl=clamp(uFL,0.0,1.0);gl_FragColor=vec4(mix(gl_FragColor.rgb,vec3(0.86,0.92,0.97)*max(fl,0.16),f),max(gl_FragColor.a,f*mix(0.3,0.9,smoothstep(0.08,0.6,fl))));}\nif(uDirtOn>0.5){vec3 q=(uDirtM*vec4(vFw,1.0)).xyz;if(q.x>-0.03&&q.x<1.03&&q.y>-0.16&&q.y<1.04&&abs(q.z)<0.1){vec4 d=texture2D(uDirt,clamp(q.xy,vec2(0.004),vec2(0.996)));float fl2=max(clamp(uFL,0.0,1.0),0.13);gl_FragColor=vec4(mix(gl_FragColor.rgb,d.rgb*fl2,d.a),max(gl_FragColor.a,d.a*0.95));}}');};
+    sh.vertexShader='uniform mat4 uDirtM;attribute float aEdge;varying float vEdge;varying vec3 vFp;varying vec3 vFw;varying vec3 vDq;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdge=aEdge;vFp=position;vFw=(modelMatrix*vec4(position,1.0)).xyz;vDq=(uDirtM*(modelViewMatrix*vec4(position,1.0))).xyz;');
+    sh.fragmentShader='uniform sampler2D uDirt;uniform float uDirtOn;varying vec3 vDq;uniform float uFrost;uniform float uFL;uniform vec3 uWP1;uniform vec3 uWP2;uniform float uWL;varying float vEdge;varying vec3 vFp;varying vec3 vFw;\nfloat fh(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat fn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(fh(i),fh(i+vec3(1,0,0)),f.x),mix(fh(i+vec3(0,1,0)),fh(i+vec3(1,1,0)),f.x),f.y),mix(mix(fh(i+vec3(0,0,1)),fh(i+vec3(1,0,1)),f.x),mix(fh(i+vec3(0,1,1)),fh(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
+      +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nif(uFrost>0.001){float n=fn(vFp*9.0)*0.5+fn(vFp*23.0)*0.3+fn(vFp*61.0)*0.2;float reach=uFrost*0.42;float f=smoothstep(reach,reach-0.22,vEdge+(n-0.5)*0.3);float vein=smoothstep(0.55,0.75,fn(vFp*38.0+n*3.0));f*=0.72+0.28*vein;float wd=min(distance(vFw,uWP1),distance(vFw,uWP2));f*=smoothstep(uWL*0.95,uWL*1.06,wd);float fl=clamp(uFL,0.0,1.0);gl_FragColor=vec4(mix(gl_FragColor.rgb,vec3(0.86,0.92,0.97)*max(fl,0.16),f),max(gl_FragColor.a,f*mix(0.3,0.9,smoothstep(0.08,0.6,fl))));}\nif(uDirtOn>0.5){vec3 q=vDq;if(q.x>-0.03&&q.x<1.03&&q.y>-0.16&&q.y<1.04&&abs(q.z)<0.1){vec4 d=texture2D(uDirt,clamp(q.xy,vec2(0.004),vec2(0.996)));float fl2=max(clamp(uFL,0.0,1.0),0.13);gl_FragColor=vec4(mix(gl_FragColor.rgb,d.rgb*fl2,d.a),max(gl_FragColor.a,d.a*0.95));}}');};
   return m;}
 // how far each vertex of a pane lies from that pane's edge (0 at the edge, 1 in the middle)
 function frostPrep(root){const done=new Set();root.traverse(o=>{if(!o.isMesh||!o.material||!o.material.userData||!o.material.userData.frost)return;const g=o.geometry;if(!g||done.has(g)||g.attributes.aEdge)return;done.add(g);
@@ -4317,7 +4317,9 @@ DIRT.dust=DIRT.tint('#9c8466');DIRT.dust2=DIRT.tint('#b9a585');DIRT.mud=DIRT.tin
 const DUSTY={gravel:1,sand:1.5,rock:0.7,grass:0.35,mud:0.9,bog:1.1,snow:0.12,asphalt:0.06,wood:0.05,ice:0.05,water:0};
 window.__dirt=()=>DIRT;
 // the glass-plane mapping is taken right before drawing, from where the car is in this very frame, so the dirt sits still on the glass
-function dirtSync(){if(!dirtU.on.value||!DIRT.T||!V||!V.g)return;V.g.updateMatrixWorld(true);dirtU.M.value.copy(V.body.matrixWorld).invert().premultiply(DIRT.T);}
+// taken from the camera's own space (small numbers near the car), so phone GPUs place it exactly, with no quiver
+const DIRT_CV=new THREE.Matrix4();
+function dirtSync(){if(!dirtU.on.value||!DIRT.T||!V||!V.g)return;V.g.updateMatrixWorld(true);camera.updateMatrixWorld(true);DIRT_CV.copy(camera.matrixWorld).invert().multiply(V.body.matrixWorld);dirtU.M.value.copy(DIRT_CV).invert().premultiply(DIRT.T);}
 function windscreenDirt(dt,env,s){
   const ws=V&&V.ws;if(!ws||!ws.U||!V.body){dirtU.on.value=0;return;}
   const x=DIRT.x,W=DIRTC.width,H=DIRTC.height,R=Math.random,sp=Math.abs(S.v||0),ground=S.mode==='play'&&!S.air;let ch=false;
