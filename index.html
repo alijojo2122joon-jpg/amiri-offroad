@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=190</script>
+<script>window.GAME_CODE=191</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -3721,13 +3721,17 @@ function physics(dt){
    if(at>=0&&S.campHere!==at){S.campHere=at;S.camp=at;const C=CPS[at];if(!S.found.includes(at)){S.found.push(at);S.coins+=10000;toast(tr_('کمپ جدید: ')+C.n+tr_(' · +۱۰٬۰۰۰ سکه · بازی ذخیره شد'));}else toast(tr_('کمپ ')+C.n+tr_(' · بازی ذخیره شد'));save();}
    else if(at<0&&S.campHere>=0&&Math.abs(S.z-CPS[S.campHere].z)>90)S.campHere=-1;}
   const zk=zoneOf(S.z);if(zk!==S.zone){if(S.zone>=0||S.z>200)zoneCard(zk);S.zone=zk;}
-  const spd=Math.abs(S.v)+S.slipNow*(S.gas>0.3?7:0);let gear,ratio;
+  // spinning wheels lift the revs a little, smoothed: the raw slip jumps every frame on loose ground and made the box hunt between gears
+  S.slipS=(S.slipS||0)+(((S.gas>0.3?S.slipNow:0)||0)-(S.slipS||0))*Math.min(1,dt*1.5);S.shT=(S.shT||0)-dt;
+  const spd=Math.abs(S.v)+S.slipS*3;let gear,ratio;
   if(!S.engineOn){gear=0;ratio=0;}else if(S.v<-0.5){gear=-1;ratio=Math.abs(S.v)/8;}else if(spd<0.6){gear=0;ratio=0;}
   else{// a real automatic: the engine speed follows the road speed in each gear; it shifts up early on a light foot and
     // late on full throttle, shifts down as the car slows (or when you floor it), never hunting between two gears
     const MV=ST.maxV*mapSpeedK(),rpmIn=g=>5800*spd/(GEARS[g]*MV),gs=S.gas||0;let g=S.gear>0?S.gear:1;
-    while(g<5&&rpmIn(g)>2300+gs*3300&&rpmIn(g+1)>1150)g++;
-    while(g>1&&(rpmIn(g)<1250+gs*900||(gs>0.85&&rpmIn(g)<2600&&rpmIn(g-1)<4800)))g--;
+    // one shift at a time, and none for a moment after the last (no hunting)
+    if(S.shT<=0){if(g<5&&rpmIn(g)>2300+gs*3300&&rpmIn(g+1)>1150){g++;S.shT=0.9;}
+      else if(g>1&&(rpmIn(g)<1250+gs*900||(gs>0.85&&rpmIn(g)<2600&&rpmIn(g-1)<4800))){g--;S.shT=0.9;}}
+    if(g>1&&rpmIn(g)<700)g--;
     gear=g;ratio=rpmIn(g);}
   // standing still in gear the converter lets it rise only a little; out of gear it revs freely
   const tgt=!S.engineOn?0:gear===0?(S.sel==='D'||S.sel==='R'?820+S.gas*750:820+S.gas*3600):gear<0?1100+ratio*3000+S.gas*300:clamp(ratio,1000,6100)+S.gas*120;
