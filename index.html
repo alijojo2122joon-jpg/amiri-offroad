@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=175</script>
+<script>window.GAME_CODE=176</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -605,7 +605,7 @@ if(!set.lang){var o=document.createElement('div');o.id='langPick';
 // car models are loaded first; the game starts when they are ready (or failed)
 // embedded files (the one-file PC and iPhone builds) are decoded straight from their text, without fetch
 function dataBytes(u){const b=atob(u.slice(u.indexOf(',')+1)),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a.buffer;}
-const MODELS={};window.__M=MODELS;function loadModels(){if(!THREE.GLTFLoader)return Promise.resolve();const L=new THREE.GLTFLoader(),list=['cruiser','cruiser_lo','acc_bullbar','acc_jerry','acc_lightbar','acc_bag','cat','an_bear','an_camel','an_deer','an_goat','an_horse','an_sheep','cabin1','cabin2','cabin3'];return Promise.all(list.map(n=>new Promise(res=>{const url=(window.__glb&&window.__glb[n])||'models/'+n+'.glb';
+const MODELS={};window.__M=MODELS;function loadModels(){if(!THREE.GLTFLoader)return Promise.resolve();const L=new THREE.GLTFLoader(),list=['cruiser','lifted85','bokaroo','conquer','utility90','shvan','shvan_amb','doutrive','elalamo','kiri','fh_cop','lct3000','negotiator','phoenix','fh_sw','fh_lt','acc_bullbar','acc_jerry','acc_lightbar','acc_bag','cat','an_bear','an_camel','an_deer','an_goat','an_horse','an_sheep','cabin1','cabin2','cabin3'];return Promise.all(list.map(n=>new Promise(res=>{const url=(window.__glb&&window.__glb[n])||'models/'+n+'.glb';
   const ok=g=>{MODELS[n]=g.scene;res();},bad=e=>{console.error('model',n,e);res();};
   if(url.startsWith('data:'))try{L.parse(dataBytes(url),'',ok,bad);}catch(e){bad(e);}else L.load(url,ok,undefined,bad);})));}
 requestAnimationFrame(()=>setTimeout(()=>loadModels().then(()=>{try{main();}catch(e){document.getElementById('loadTxt').textContent=tr_('خطا در اجرا: ')+(e&&e.message);console.error(e);}}),40));
@@ -1927,8 +1927,8 @@ const VEH=[
   maxV:36,acc:10.5,grip:1.15,eng:'f6',price:0,T:{k:22,travel:0.27,hcg:0.55,camK:1.15}}
 ];
 // cars of the traffic (same series)
-const NPCV=['cruiser_lo'].map(g=>({n:g,type:'glb',tex:1,noInt:1,glb:g,paint:'#c9ccce',maxV:30,acc:9,grip:1,eng:'v8r',
-  T:{k:22,travel:0.24,hcg:0.7,camK:1.05},fixedPaint:false}));
+const NPCV=['shvan','shvan_amb','doutrive','elalamo','kiri','fh_cop','lct3000','negotiator','phoenix','fh_sw','fh_lt','bokaroo','conquer','utility90','lifted85'].map(g=>({n:g,type:'glb',tex:1,noInt:1,glb:g,paint:'#c9ccce',maxV:30,acc:9,grip:1,eng:'v8r',
+  T:{k:22,travel:0.24,hcg:0.7,camK:1.05},fixedPaint:/amb|cop/.test(g)}));
 const UPS=[{k:'e',n:tr_('موتور'),d:tr_('شتاب و سرعت بیشتر'),base:1200},{k:'s',n:tr_('تعلیق'),d:tr_('کورس بلندتر، فرود نرم‌تر'),base:1000},{k:'t',n:tr_('لاستیک'),d:tr_('چسبندگی بیشتر همه‌جا'),base:900},{k:'b',n:tr_('ترمز'),d:tr_('ترمز قوی‌تر'),base:700}];
 // country flags drawn on a canvas (simplified emblems)
 const FLAGS=[['af3',tr_('افغانستان (سیاه، سرخ، سبز)')],['al',tr_('آلبانی')],['ir',tr_('ایران')],['tj',tr_('تاجیکستان')],['pk',tr_('پاکستان')],['tr',tr_('ترکیه')],['uz',tr_('ازبکستان')],['in',tr_('هند')],['cn',tr_('چین')],['ru',tr_('روسیه')],
@@ -1989,6 +1989,14 @@ const SPEEDK=1;
 function stats(i){const t=VEH[i],u=upg(i),p=cust(i).tire;return{maxV:t.maxV*SPEEDK*(1+0.06*u.e)*(1-(1-p)*0.25),acc:t.acc*(1+0.1*u.e),grip:t.grip*(1+0.06*u.t),brake:13*(1+0.15*u.b),travel:0.05*u.s,soft:1-0.06*u.s,p};}
 const headM=new THREE.MeshBasicMaterial({color:'#e8e2cf'}),tailM=new THREE.MeshBasicMaterial({color:'#8c2620'}),amberM=new THREE.MeshBasicMaterial({color:'#e08a2a'}),roofLM=new THREE.MeshBasicMaterial({color:'#e7e1cf'});
 const TYPES={pickup:{k:22,travel:0.28,hcg:0.7,camK:1},jeep:{k:24,travel:0.3,hcg:0.65,camK:0.95},suv:{k:21,travel:0.28,hcg:0.78,camK:1.05},suvlong:{k:20,travel:0.28,hcg:0.8,camK:1.12},van:{k:21,travel:0.25,hcg:0.86,camK:1.12},truck:{k:26,travel:0.24,hcg:0.9,camK:1.3},monster:{k:13,travel:0.5,hcg:1.25,camK:1.25},tank:{k:30,travel:0.14,hcg:0.55,camK:1.3},glb:{k:30,travel:0.15,hcg:0.48,camK:0.95},sedan:{k:25,travel:0.17,hcg:0.5,camK:0.92},crawler:{k:12,travel:0.55,hcg:1.3,camK:1.22}};
+// an off-road car's paint: flat (no shine), sun-faded, with a film of dust all over and dried mud thick on the lower body and sills
+const DUSTC=new THREE.Color('#9a8467');
+function dustyPaint(col,map,y0,y1){const m=new THREE.MeshLambertMaterial({color:col.clone().lerp(new THREE.Color('#8f8a80'),0.12),map:map||null});
+  m.onBeforeCompile=sh=>{sh.uniforms.uDust={value:DUSTC};sh.uniforms.uY={value:new THREE.Vector2(y0||0,Math.max(0.5,(y1||2)-(y0||0)))};
+    sh.vertexShader='varying vec3 vPL;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvPL=position;');
+    sh.fragmentShader='uniform vec3 uDust;uniform vec2 uY;varying vec3 vPL;\nfloat dh(vec3 p){return fract(sin(dot(floor(p),vec3(12.9898,78.233,37.719)))*43758.5453);}\n'+sh.fragmentShader.replace('#include <dithering_fragment>',
+      '#include <dithering_fragment>\nfloat nn=dh(vPL*9.0)*0.5+dh(vPL*31.0)*0.3+dh(vPL*3.0)*0.2;float hy=(vPL.y-uY.x)/uY.y;float low=1.0-smoothstep(0.18,0.55,hy+nn*0.08);float dd=clamp(0.22+low*0.6+(nn-0.5)*0.2,0.0,0.85);float lit=max(max(gl_FragColor.r,gl_FragColor.g),gl_FragColor.b);gl_FragColor.rgb=mix(gl_FragColor.rgb,uDust*(0.75+0.35*nn)*clamp(lit*1.3,0.15,1.2),dd);');};
+  m.userData.dusty=true;m.customProgramCacheKey=()=>'dusty';return m;}
 function carMats(spec,cu){
   const PH=(color,o)=>new THREE.MeshPhongMaterial(Object.assign({color,specular:0x333333,shininess:30},o||{}));
   const refl=(color,r,sh,o)=>PH(color,Object.assign({envMap:carEnv,reflectivity:r,combine:THREE.MixOperation,specular:0x9a9a9a,shininess:sh},o||{}));
@@ -2179,9 +2187,9 @@ function texMat(m,name){if(TMAT.has(m.uuid))return TMAT.get(m.uuid);
   const map=m.map||null;if(map){map.encoding=FILMIC?THREE.sRGBEncoding:THREE.LinearEncoding;map.anisotropy=4;}
   const glass=m.transparent||/glass|transp/i.test(name);
   // glass is nearly clear (a 2-3% tint) so you see the road through it, with only a faint reflection
-  const o=new THREE.MeshPhongMaterial({color:glass?new THREE.Color('#dfe8ee'):m.color?m.color.clone():new THREE.Color('#fff'),map:glass?null:map,shininess:glass?120:(1-(m.roughness||0.6))*60+8,specular:glass?0x777777:0x222222,
-    transparent:glass,opacity:glass?0.05:1,depthWrite:!glass,side:THREE.DoubleSide,alphaTest:glass?0:(m.alphaTest||0)});
-  if(glass){o.envMap=carEnv;o.reflectivity=0.06;o.combine=THREE.MixOperation;frostify(o);}
+  const o=new THREE.MeshPhongMaterial({color:glass?new THREE.Color('#5d7380'):m.color?m.color.clone():new THREE.Color('#fff'),map:glass?null:map,shininess:glass?120:(1-(m.roughness||0.6))*24+4,specular:glass?0x888888:0x141414,
+    transparent:glass,opacity:glass?0.3:1,depthWrite:!glass,side:THREE.DoubleSide,alphaTest:glass?0:(m.alphaTest||0)});
+  if(glass){o.envMap=carEnv;o.reflectivity=0.28;o.combine=THREE.MixOperation;frostify(o);}
   // a cabin modelled without textures gets woven seat cloth and grained plastic instead of flat grey
   if(!glass&&!map&&/interior/i.test(name+' '+(m.name||''))){o.map=cabinTex();o.color.set('#8a7f72');o.shininess=6;o.specular.set(0x111111);}
   TMAT.set(m.uuid,o);return o;}
@@ -2247,7 +2255,8 @@ function cabinParts(body,box,glass,head){const K=CARSC,[hx,ey,hz]=head;const gb=
   body.length=0;body.push(...keep);}
 function subGeo(G,tris){const g=new THREE.BufferGeometry();for(const a of ['position','normal','uv']){const A=G.attributes[a];if(!A)continue;const n=A.itemSize,v=new Float32Array(tris.length*3*n);
     tris.forEach((t,j)=>{for(let q=0;q<3;q++)for(let c=0;c<n;c++)v[(j*3+q)*n+c]=A.array[(t*3+q)*n+c];});g.setAttribute(a,new THREE.BufferAttribute(v,n));}return g;}
-function modelPartsT(name){if(MPT[name])return MPT[name];const sc=MODELS[name];if(!sc)return null;sc.scale.setScalar(CARSC);sc.updateMatrixWorld(true);
+const MSCALE={cruiser:1.13};
+function modelPartsT(name){if(MPT[name])return MPT[name];const sc=MODELS[name];if(!sc)return null;sc.scale.setScalar(CARSC*(MSCALE[name]||1));sc.updateMatrixWorld(true);
   const items=[];sc.traverse(o=>{if(!o.isMesh)return;let nm=(o.userData.name||o.name||'')+' '+((o.parent&&(o.parent.userData.name||o.parent.name))||'');
     if(/badge|logo|emblem/i.test(nm))return;
     let g=new THREE.BufferGeometry();if(o.geometry.index)g.setIndex(o.geometry.index.clone());
@@ -2648,7 +2657,7 @@ function buildVehicle(spec,cu,st){let glbSteer=null;
   // a model's panels are single sheets: show their inner side too, so the roof and pillars are there when you sit inside
   if(type==='glb')for(const k of ['paint','roof','dark','chrome','trim','rubber'])mats[k].side=THREE.DoubleSide;
   const glassGeos=spec.tex?MP.glass:(P.b.glass||[]).slice();
-  if(spec.tex)for(const B of MP.body){let pm=mats.paint;if(!B.mat&&B.gmap){pm=mats.paint.clone();pm.map=B.gmap;pm.needsUpdate=true;}const m=new THREE.Mesh(B.geo,B.mat||pm);m.castShadow=!(B.mat&&B.mat.transparent);m.receiveShadow=!B.mat;body.add(m);}
+  if(spec.tex)for(const B of MP.body){let pm=dustyPaint(mats.paint.color,null,MP.box.min.y,MP.box.max.y);if(!B.mat&&B.gmap){pm=dustyPaint(mats.paint.color,B.gmap,MP.box.min.y,MP.box.max.y);}const m=new THREE.Mesh(B.geo,B.mat||pm);m.castShadow=!(B.mat&&B.mat.transparent);m.receiveShadow=!B.mat;body.add(m);}
   // the model's steering wheel on its own pivot: it turns about its column as you steer
   if(spec.tex&&MP.steer){const sg=new THREE.Group();sg.position.copy(MP.steer.c);(MP.steer.parts||[MP.steer]).forEach(pt=>sg.add(new THREE.Mesh(pt.geo,pt.mat)));body.add(sg);sg.userData.axis=MP.steer.axis;glbSteer=sg;}
   for(const k in P.b){const m=new THREE.Mesh(mergeGeos(P.b[k]),mats[k]);m.castShadow=!['head','tail','amber','roofL','glass','lens'].includes(k);m.receiveShadow=k==='paint'||k==='roof';body.add(m);}
@@ -2877,8 +2886,8 @@ const snowLowMat=new THREE.MeshLambertMaterial({color:'#f2f5f9',map:snowSplat,tr
 const carSnowU={top:{value:0},low:{value:0},lowY:{value:0},inv:{value:new THREE.Matrix4()},roof:{value:null},box:{value:new THREE.Vector4(1,1,0,1)},ready:{value:0},floor:{value:0},cabin:{value:0}};
 function carSnowPaint(Vc){const seen=new Map();Vc.g.traverse(o=>{if(!o.isMesh||!o.material||Array.isArray(o.material))return;const m=o.material;
   if(m===snowTopMat||m===snowLowMat||(m.userData&&m.userData.frost)||m.transparent||!(m.isMeshPhongMaterial||m.isMeshLambertMaterial||m.isMeshStandardMaterial))return;
-  let c=seen.get(m);if(!c){c=m.clone();c.userData={carSnow:true};c.customProgramCacheKey=()=>'carsnow';
-    c.onBeforeCompile=sh=>{sh.uniforms.uSTop=carSnowU.top;sh.uniforms.uSLow=carSnowU.low;sh.uniforms.uSLowY=carSnowU.lowY;sh.uniforms.uSInv=carSnowU.inv;sh.uniforms.uSRoof=carSnowU.roof;sh.uniforms.uSBox=carSnowU.box;sh.uniforms.uSReady=carSnowU.ready;sh.uniforms.uSFloor=carSnowU.floor;sh.uniforms.uSCab=carSnowU.cabin;sh.uniforms.uSLight=frostLU;
+  let c=seen.get(m);if(!c){const pre=m.userData&&m.userData.dusty?m.onBeforeCompile:null;c=m.clone();c.userData={carSnow:true,dusty:!!pre};c.customProgramCacheKey=()=>pre?'carsnowd':'carsnow';
+    c.onBeforeCompile=sh=>{if(pre)pre(sh);sh.uniforms.uSTop=carSnowU.top;sh.uniforms.uSLow=carSnowU.low;sh.uniforms.uSLowY=carSnowU.lowY;sh.uniforms.uSInv=carSnowU.inv;sh.uniforms.uSRoof=carSnowU.roof;sh.uniforms.uSBox=carSnowU.box;sh.uniforms.uSReady=carSnowU.ready;sh.uniforms.uSFloor=carSnowU.floor;sh.uniforms.uSCab=carSnowU.cabin;sh.uniforms.uSLight=frostLU;
       sh.vertexShader='varying vec3 vSWP;varying vec3 vSWN;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvSWP=(modelMatrix*vec4(transformed,1.0)).xyz;vSWN=normalize(mat3(modelMatrix)*objectNormal);');
       sh.fragmentShader='uniform float uSTop;uniform float uSLow;uniform float uSLowY;uniform mat4 uSInv;uniform sampler2D uSRoof;uniform vec4 uSBox;uniform float uSReady;uniform float uSFloor;uniform float uSCab;uniform float uSLight;varying vec3 vSWP;varying vec3 vSWN;\nfloat sh3(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat sn3(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(sh3(i),sh3(i+vec3(1,0,0)),f.x),mix(sh3(i+vec3(0,1,0)),sh3(i+vec3(1,1,0)),f.x),f.y),mix(mix(sh3(i+vec3(0,0,1)),sh3(i+vec3(1,0,1)),f.x),mix(sh3(i+vec3(0,1,1)),sh3(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
         +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nbool inside=false;vec3 slp=(uSInv*vec4(vSWP,1.0)).xyz;if(uSReady>0.5){vec3 lp=slp;vec2 uv=vec2((lp.x+uSBox.x)/(2.0*uSBox.x),(lp.z+uSBox.y)/(2.0*uSBox.y));if(uv.x>0.0&&uv.x<1.0&&uv.y>0.0&&uv.y<1.0){vec4 r=texture2D(uSRoof,uv);float hy=uSBox.z+r.r*uSBox.w;inside=abs(lp.x)<uSBox.x-0.34&&lp.y<hy-0.12&&lp.y>uSFloor;}}\nif(inside&&uSCab>0.5){float cn=sn3(slp*55.0)*0.5+sn3(slp*140.0)*0.5;float lum=dot(gl_FragColor.rgb,vec3(0.3,0.59,0.11));vec3 trim=mix(vec3(0.20,0.19,0.18),vec3(0.27,0.25,0.23),cn);vec3 cloth=mix(vec3(0.30,0.26,0.22),vec3(0.40,0.35,0.30),cn);float seat=smoothstep(0.55,0.85,normalize(vSWN).y);gl_FragColor.rgb=mix(gl_FragColor.rgb,mix(trim,cloth,seat)*(0.7+0.6*lum),smoothstep(0.25,0.05,lum));}\nif(!inside&&uSTop+uSLow>0.01){float n=sn3(slp*6.0)*0.6+sn3(slp*19.0)*0.4;float up=smoothstep(0.42,0.75,normalize(vSWN).y)*smoothstep(0.0,0.4,uSTop)*smoothstep(0.25,0.55,n+uSTop*0.3);float lo=smoothstep(uSLowY+0.75,uSLowY+0.05,vSWP.y)*smoothstep(0.0,0.5,uSLow)*smoothstep(0.3,0.6,n+uSLow*0.35);float f=clamp(max(up,lo),0.0,1.0);gl_FragColor.rgb=mix(gl_FragColor.rgb,vec3(0.93,0.95,0.985)*(0.9+0.1*n)*max(uSLight,0.06),f);}');};
@@ -5612,7 +5621,7 @@ $('musList').addEventListener('click',e=>{const p=e.target.closest('[data-p]'),d
 $('musVol').addEventListener('input',e=>{SET.mvol=parseFloat(e.target.value);MUS.el.volume=clamp(SET.mvol,0,1);saveSet();});
 musLoad();
 /* ---------- The stages at play: what you see of each challenge, losing and starting the stage again, finishing ---------- */
-const PARK_MODELS=['cruiser_lo'];
+const PARK_MODELS=['shvan','doutrive','elalamo','kiri','negotiator','phoenix','fh_sw','fh_lt','fh_cop','conquer','utility90','bokaroo','lifted85'];
 const PARK_COLS=['#c9ccce','#2f4b3a','#8a2b25','#e8e4da','#1f3a5c','#c7a25a','#5a5f63','#2b2d30','#7c8f5a','#a2453a'];
 function parkC(E,s){return E.A*Math.sin(s/E.lam*Math.PI*2+E.ph)*sstep(0,30,s)*sstep(E.L,E.L-30,s);}
 function parkCars(E){if(E.cars)return E.cars;const R=mulberry32(E.seed+3),cars=[];
@@ -5743,7 +5752,7 @@ function elemBuild(E){const g=new THREE.Group();const head=z=>Math.atan2(roadDX(
     const B=boxMaker();if(E.type!=='tunnel')for(let s=0;s<=E.L;s+=10){const z=E.z0+s;for(const sd of E.type==='ridge'?[-1,1]:[-E.side]){const x=toXZx(sd*(E.w/2-0.05),z),y=Hd(x,z);B.add(x,y+0.45,z,0.14,0.9,0.14,0,0,0,(s/10)%2?'#e8e4da':'#c0392b',1);}}g.add(B.mesh(elWoodMat));}
   scene.add(g);return g;}
 let elT=0;function elemVisStep(dt){const now=performance.now();if(now-elT>400){elT=now;let built=0;
-    for(const E of ELEMS){const d=Math.max(0,Math.abs(E.zc-S.z)-E.L/2);if(d<850&&!E.g&&built<1&&MODELS.cruiser_lo){E.g=elemBuild(E);built++;}else if(d>1300&&E.g){scene.remove(E.g);E.g.traverse(o=>{if(o.geometry&&o.isMesh&&!o.isInstancedMesh)o.geometry.dispose();});E.g=null;}}}
+    for(const E of ELEMS){const d=Math.max(0,Math.abs(E.zc-S.z)-E.L/2);if(d<850&&!E.g&&built<1&&MODELS.shvan){E.g=elemBuild(E);built++;}else if(d>1300&&E.g){scene.remove(E.g);E.g.traverse(o=>{if(o.geometry&&o.isMesh&&!o.isInstancedMesh)o.geometry.dispose();});E.g=null;}}}
   for(const E of ELEMS)if(E.g&&E.type==='volcano'){lavaTex.offset.x+=dt*0.004;lavaTex.offset.y+=dt*0.003;for(const sp of E.smoke){const u=sp.userData;u.t+=dt;const k=(u.t%20)/20;sp.position.set(u.x,u.y0+k*120,u.z);sp.material.opacity=0.32*Math.sin(k*Math.PI);sp.scale.setScalar(20+k*50);}}}
 // gates at the start of each stage: two posts and a banner with its number and name
 function gateTex(k){const c=document.createElement('canvas');c.width=1024;c.height=160;const x=c.getContext('2d');x.fillStyle='#1b2a33';x.fillRect(0,0,1024,160);x.fillStyle='#f2a93b';x.fillRect(0,0,1024,10);x.fillRect(0,150,1024,10);
