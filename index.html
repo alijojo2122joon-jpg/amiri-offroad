@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=194</script>
+<script>window.GAME_CODE=195</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -3408,18 +3408,26 @@ function applyLayout(){const L=SET.lay||{},E=ctlEls(),W=innerWidth,H=innerHeight
   [['w',E.w],['p',E.p],['c',E.c]].forEach(([k,el])=>{const o=L[k];if(!el)return;if(o&&o.x!==undefined){el.style.left=(o.x*W)+'px';el.style.top=(o.y*H)+'px';el.style.right='auto';el.style.bottom='auto';el.style.transform='translate(-50%,-50%) scale('+(o.s||1)+')';el.style.transformOrigin='center';}
     else{el.style.left=el.style.top=el.style.right=el.style.bottom='';el.style.transform=k==='c'?(o&&o.s?'translateX(-50%) scale('+o.s+')':''):o&&o.s?'scale('+o.s+')':'';el.style.transformOrigin=k==='w'?'left bottom':k==='c'?'center top':'right bottom';}});}
 // Amir's own arrangement is the starting layout for everyone (and what 'Default' goes back to)
-const DEF_LAY={"w":{"x":0.214,"y":0.6101,"s":1.3},"mv":{"miniCol":[0.0448,0.0],"gear":[0.7235,0.2006],"bB":[-0.0726,-0.2687],"bG":[-0.0634,-0.205],"musBtn":[-0.1496,-0.4803],"wipBtn":[0.1185,-0.8535],"pauseBtn":[-0.0191,-0.0027],"keyBtn":[0.1185,-0.5905],"camBtn":[-0.0156,0.0155],"lightBtn":[0.071,-0.4517],"rescueBtn":[-0.0146,0.0361],"fixBtn":[-0.0146,0.0577]}};
+const DEF_LAY={"w":{"x":0.214,"y":0.6101,"s":1.3},"mv":{"miniCol":{"c":[0.107,0.1343]},"gear":{"c":[0.7635,0.6907]},"bB":{"c":[0.7985,0.6045]},"bG":{"c":[0.8855,0.6358]},"musBtn":{"c":[0.816,0.0694]},"wipBtn":{"c":[0.8785,0.0694]},"pauseBtn":{"c":[0.9465,0.0694]},"keyBtn":{"c":[0.8785,0.2104]},"camBtn":{"c":[0.95,0.2071]},"lightBtn":{"c":[0.881,0.3493]},"rescueBtn":{"c":[0.951,0.347]},"fixBtn":{"c":[0.951,0.4881]}}};
 function layDefault(){if(!SET.lay||!Object.keys(SET.lay).length)SET.lay=JSON.parse(JSON.stringify(DEF_LAY));}
 const MV_IDS=['bB','bG','keyBtn','lightBtn','wipBtn','ropeBtn','skipBtn','miniCol','pauseBtn','camBtn','rescueBtn','fixBtn','musBtn','chatB2'];
 function mvEls(){const o={};for(const id of MV_IDS){const e=$(id);if(e)o[id]=e;}const g=document.querySelector('.gearDock .dash');if(g)o.gear=g;return o;}
-function applyMv(){const M=(SET.lay&&SET.lay.mv)||{},E=mvEls(),W=innerWidth,H=innerHeight;for(const k in E){const el=E[k],o=M[k];el.dataset.mv=k;el.style.translate=o?(o[0]*W).toFixed(1)+'px '+(o[1]*H).toFixed(1)+'px':'';}}
+// each moved control keeps its place as a fraction of the screen (its centre at, say, 88% across and 15% down), so on any
+// phone it sits at the same spot relative to that phone's screen
+function applyMv(){if(!SET.lay)return;const M=SET.lay.mv=SET.lay.mv||{},E=mvEls(),W=innerWidth,H=innerHeight;
+  for(const k in E){const el=E[k];el.dataset.mv=k;let o=M[k];el.style.translate='';if(!o)continue;
+    let r=el.getBoundingClientRect();if(!r.width)continue;
+    if(Array.isArray(o)){/* an older offset: turn it into a place on the screen */o=M[k]={c:[(r.left+r.width/2)/W+o[0],(r.top+r.height/2)/H+o[1]]};}
+    let tx=o.c[0]*W-(r.left+r.width/2),ty=o.c[1]*H-(r.top+r.height/2);
+    const L=r.left+tx,T=r.top+ty;if(L<0)tx-=L;if(L+r.width>W)tx-=L+r.width-W;if(T<0)ty-=T;if(T+r.height>H)ty-=T+r.height-H;
+    el.style.translate=tx.toFixed(1)+'px '+ty.toFixed(1)+'px';}}
+// a control that appears later (the repair button) is put in its place when it shows
+try{const mo=new MutationObserver(()=>{try{applyMv();}catch(e){}});setTimeout(()=>{for(const id of MV_IDS){const e=$(id);if(e)mo.observe(e,{attributes:true,attributeFilter:['hidden']});}},0);}catch(e){}
 let mvDrag=null;
 document.addEventListener('pointerdown',e=>{if(!document.body.classList.contains('editing'))return;const t=e.target.closest&&e.target.closest('[data-mv]');if(!t)return;e.stopPropagation();e.preventDefault();
-  SET.lay=SET.lay||{};const M=SET.lay.mv=SET.lay.mv||{},o=M[t.dataset.mv]||[0,0];mvDrag={k:t.dataset.mv,x0:e.clientX,y0:e.clientY,o0:o.slice(),el:t};try{t.setPointerCapture(e.pointerId);}catch(x){}},true);
-window.addEventListener('pointermove',e=>{if(!mvDrag)return;e.stopPropagation();const W=innerWidth,H=innerHeight,el=mvDrag.el,M=SET.lay.mv;
-  let dx=mvDrag.o0[0]+(e.clientX-mvDrag.x0)/W,dy=mvDrag.o0[1]+(e.clientY-mvDrag.y0)/H;M[mvDrag.k]=[dx,dy];applyMv();
-  // keep it on the screen
-  const r=el.getBoundingClientRect();let fx=0,fy=0;if(r.left<0)fx=-r.left;if(r.right>W)fx=W-r.right;if(r.top<0)fy=-r.top;if(r.bottom>H)fy=H-r.bottom;if(fx||fy){M[mvDrag.k]=[dx+fx/W,dy+fy/H];applyMv();}},true);
+  SET.lay=SET.lay||{};SET.lay.mv=SET.lay.mv||{};const r=t.getBoundingClientRect();mvDrag={k:t.dataset.mv,x0:e.clientX,y0:e.clientY,c0:[(r.left+r.width/2)/innerWidth,(r.top+r.height/2)/innerHeight],el:t};try{t.setPointerCapture(e.pointerId);}catch(x){}},true);
+window.addEventListener('pointermove',e=>{if(!mvDrag)return;e.stopPropagation();const W=innerWidth,H=innerHeight;
+  SET.lay.mv[mvDrag.k]={c:[clamp(mvDrag.c0[0]+(e.clientX-mvDrag.x0)/W,0,1),clamp(mvDrag.c0[1]+(e.clientY-mvDrag.y0)/H,0,1)]};applyMv();},true);
 window.addEventListener('pointerup',()=>{mvDrag=null;},true);
 // while arranging, a tap on a button only moves it
 document.addEventListener('click',e=>{if(document.body.classList.contains('editing')&&e.target.closest&&e.target.closest('[data-mv]')){e.stopPropagation();e.preventDefault();}},true);
