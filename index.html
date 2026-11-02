@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=182</script>
+<script>window.GAME_CODE=183</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -47,10 +47,12 @@
 .mstats .st{color:#3fa9f5}
 #sleepBtn,#eyes,#drowsy,#sleepCard,#awakeTag,#micBtn,#spkBtn,#chatBtn{display:none!important}
 /* a clean screen: no info panel or route bar; the map top-left, the speed and gears top-centre, the buttons top-right */
-.tl,.route{display:none!important}
+.tl,.route,#diffBtn,#hornBtn{display:none!important}
 /* the on-screen controls and readouts at 40% so the road shows through; a control lights up fully while it is touched */
-#hud .tr,#miniCol,#ctl #wheel,#ctl .rightCtl>*,#ctl .gearDock,#chatB2{opacity:.4;transition:opacity .15s}
-#ctl #wheel:active,#ctl .rightCtl>*:active,#ctl .gearDock:active,#hud .tr:active,#miniCol:active{opacity:.85}
+#hud .tr,#miniCol,#ctl #wheel,#ctl .rightCtl>*,#ctl .gearDock,#chatB2{opacity:.6;transition:opacity .15s}
+#ctl #wheel:active,#ctl .rightCtl>*:active,#ctl .gearDock:active,#hud .tr:active,#miniCol:active{opacity:.95}
+body.editing [data-mv]{outline:2px dashed #3fa9f5;outline-offset:3px;cursor:move;opacity:.95!important;touch-action:none}
+body.editing #wheel,body.editing .rightCtl{outline-color:rgba(63,169,245,.35)}
 .rightCtl .pedals .gas:active,.rightCtl .pedals .brake:active{opacity:1}
 #miniCol{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:calc(env(safe-area-inset-left,0px) + 10px)}
 .gearDock .dash{position:fixed;top:calc(env(safe-area-inset-top,0px) + 170px);left:calc(env(safe-area-inset-left,0px) + 10px);flex-direction:column;gap:4px;padding:6px 5px;width:52px;box-sizing:border-box}.gearDock .dash>div:first-child{display:grid;justify-items:center;line-height:1}.gearDock .dash b{font-size:17px}.gearDock .dash small{font-size:9px}.gearDock .dash .gear{display:none}.gearDock .gsel{flex-direction:column;gap:4px}.gearDock .gsel button{width:34px;height:30px;font-size:13px}@media (max-height:420px){.gearDock .dash{top:calc(env(safe-area-inset-top,0px) + 118px)}.gearDock .gsel button{height:26px}}
@@ -481,7 +483,7 @@ body.editing #comms{pointer-events:auto;outline:2px dashed var(--amber);outline-
 <div id="eyes"><i></i><i></i></div><div id="drowsy"></div>
 <div id="sleepCard" hidden><b id="sleepClock">۰۰:۰۰</b><span id="sleepTxt">خواب…</span></div>
 <div id="failBox" hidden><b>باختی!</b><span id="failWhy"></span><small id="failNext"></small></div>
-<div id="layBar" class="panel" hidden><span>فرمان و پدال‌ها را با انگشت بکش و جابه‌جا کن</span><label>فرمان<input type="range" id="laW" min="0.6" max="1.6" step="0.05" value="1"></label><label>پدال‌ها<input type="range" id="laP" min="0.6" max="1.5" step="0.05" value="1"></label><label hidden>مایک و پیام<input type="range" id="laC" min="0.7" max="1.8" step="0.05" value="1"></label><button class="alt" id="laReset">پیش‌فرض</button><button id="laDone">تمام</button></div>
+<div id="layBar" class="panel" hidden><span>هر دکمه، فرمان، پدال، نقشه و دنده را با انگشت بکش و جابه‌جا کن</span><label>فرمان<input type="range" id="laW" min="0.6" max="1.6" step="0.05" value="1"></label><label>پدال‌ها<input type="range" id="laP" min="0.6" max="1.5" step="0.05" value="1"></label><label hidden>مایک و پیام<input type="range" id="laC" min="0.7" max="1.8" step="0.05" value="1"></label><button class="alt" id="laReset">پیش‌فرض</button><button id="laDone">تمام</button></div>
 
 <div id="menu">
   <div class="inner">
@@ -506,6 +508,7 @@ body.editing #comms{pointer-events:auto;outline:2px dashed var(--amber);outline-
   <button class="big" id="pResume">ادامه</button>
   <button class="big alt" id="pSave">ذخیرهٔ بازی</button>
   <button class="big alt" id="pMap">نقشه</button>
+  <button class="big alt" id="pLay">جابه‌جایی دکمه‌ها</button>
   <button class="big alt" id="pStages" hidden>فهرست مرحله‌ها</button>
   <button class="big alt" id="pOnline">بازی آنلاین (تا ۶ نفر)</button>
   <button class="big alt" id="pGarage">گاراژ، ارتقا و شخصی‌سازی</button>
@@ -2162,12 +2165,14 @@ const MPT={},TMAT=new Map();
    In the cold, ice crystals grow on every window from its edges inwards (on the windscreen, the side and back windows,
    whatever shape each car's glass has), feathery and uneven, fixed to the glass itself. How far from the edge each point
    of a pane is, is worked out once from that pane's own outline. The wipers do not clear it: it is on the glass, not water. */
+const DIRTC=document.createElement('canvas');DIRTC.width=160;DIRTC.height=80;const dirtTex=new THREE.CanvasTexture(DIRTC);dirtTex.flipY=false;dirtTex.generateMipmaps=false;dirtTex.minFilter=THREE.LinearFilter;
+const dirtU={map:{value:dirtTex},M:{value:new THREE.Matrix4()},on:{value:0}};
 const frostU={value:0},frostLU={value:1};window.__frost=frostU;const wipeU={p1:{value:new THREE.Vector3(0,-1e4,0)},p2:{value:new THREE.Vector3(0,-1e4,0)},len:{value:0}};
-function frostify(m){if(m.userData.frost)return m;m.userData.frost=true;m.customProgramCacheKey=()=>'frost2';
-  m.onBeforeCompile=sh=>{sh.uniforms.uFrost=frostU;sh.uniforms.uFL=frostLU;sh.uniforms.uWP1=wipeU.p1;sh.uniforms.uWP2=wipeU.p2;sh.uniforms.uWL=wipeU.len;
+function frostify(m){if(m.userData.frost)return m;m.userData.frost=true;m.customProgramCacheKey=()=>'frost3';
+  m.onBeforeCompile=sh=>{sh.uniforms.uFrost=frostU;sh.uniforms.uFL=frostLU;sh.uniforms.uWP1=wipeU.p1;sh.uniforms.uWP2=wipeU.p2;sh.uniforms.uWL=wipeU.len;sh.uniforms.uDirt=dirtU.map;sh.uniforms.uDirtM=dirtU.M;sh.uniforms.uDirtOn=dirtU.on;
     sh.vertexShader='attribute float aEdge;varying float vEdge;varying vec3 vFp;varying vec3 vFw;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEdge=aEdge;vFp=position;vFw=(modelMatrix*vec4(position,1.0)).xyz;');
-    sh.fragmentShader='uniform float uFrost;uniform float uFL;uniform vec3 uWP1;uniform vec3 uWP2;uniform float uWL;varying float vEdge;varying vec3 vFp;varying vec3 vFw;\nfloat fh(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat fn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(fh(i),fh(i+vec3(1,0,0)),f.x),mix(fh(i+vec3(0,1,0)),fh(i+vec3(1,1,0)),f.x),f.y),mix(mix(fh(i+vec3(0,0,1)),fh(i+vec3(1,0,1)),f.x),mix(fh(i+vec3(0,1,1)),fh(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
-      +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nif(uFrost>0.001){float n=fn(vFp*9.0)*0.5+fn(vFp*23.0)*0.3+fn(vFp*61.0)*0.2;float reach=uFrost*0.42;float f=smoothstep(reach,reach-0.22,vEdge+(n-0.5)*0.3);float vein=smoothstep(0.55,0.75,fn(vFp*38.0+n*3.0));f*=0.72+0.28*vein;float wd=min(distance(vFw,uWP1),distance(vFw,uWP2));f*=smoothstep(uWL*0.95,uWL*1.06,wd);float fl=clamp(uFL,0.0,1.0);gl_FragColor=vec4(mix(gl_FragColor.rgb,vec3(0.86,0.92,0.97)*max(fl,0.16),f),max(gl_FragColor.a,f*mix(0.3,0.9,smoothstep(0.08,0.6,fl))));}');};
+    sh.fragmentShader='uniform sampler2D uDirt;uniform mat4 uDirtM;uniform float uDirtOn;uniform float uFrost;uniform float uFL;uniform vec3 uWP1;uniform vec3 uWP2;uniform float uWL;varying float vEdge;varying vec3 vFp;varying vec3 vFw;\nfloat fh(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat fn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(fh(i),fh(i+vec3(1,0,0)),f.x),mix(fh(i+vec3(0,1,0)),fh(i+vec3(1,1,0)),f.x),f.y),mix(mix(fh(i+vec3(0,0,1)),fh(i+vec3(1,0,1)),f.x),mix(fh(i+vec3(0,1,1)),fh(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'
+      +sh.fragmentShader.replace('#include <dithering_fragment>','#include <dithering_fragment>\nif(uFrost>0.001){float n=fn(vFp*9.0)*0.5+fn(vFp*23.0)*0.3+fn(vFp*61.0)*0.2;float reach=uFrost*0.42;float f=smoothstep(reach,reach-0.22,vEdge+(n-0.5)*0.3);float vein=smoothstep(0.55,0.75,fn(vFp*38.0+n*3.0));f*=0.72+0.28*vein;float wd=min(distance(vFw,uWP1),distance(vFw,uWP2));f*=smoothstep(uWL*0.95,uWL*1.06,wd);float fl=clamp(uFL,0.0,1.0);gl_FragColor=vec4(mix(gl_FragColor.rgb,vec3(0.86,0.92,0.97)*max(fl,0.16),f),max(gl_FragColor.a,f*mix(0.3,0.9,smoothstep(0.08,0.6,fl))));}\nif(uDirtOn>0.5){vec3 q=(uDirtM*vec4(vFw,1.0)).xyz;if(q.x>-0.03&&q.x<1.03&&q.y>-0.16&&q.y<1.04&&abs(q.z)<0.1){vec4 d=texture2D(uDirt,clamp(q.xy,vec2(0.004),vec2(0.996)));float fl2=max(clamp(uFL,0.0,1.0),0.13);gl_FragColor=vec4(mix(gl_FragColor.rgb,d.rgb*fl2,d.a),max(gl_FragColor.a,d.a*0.95));}}');};
   return m;}
 // how far each vertex of a pane lies from that pane's edge (0 at the edge, 1 in the middle)
 function frostPrep(root){const done=new Set();root.traverse(o=>{if(!o.isMesh||!o.material||!o.material.userData||!o.material.userData.frost)return;const g=o.geometry;if(!g||done.has(g)||g.attributes.aEdge)return;done.add(g);
@@ -2806,8 +2811,11 @@ function buildVehicle(spec,cu,st){let glbSteer=null;
   // they stay put on the glass however the camera turns
   let wip=null;
   if(ws){const uy=ws.ty-ws.y,uz=ws.tz-ws.z,ul=Math.hypot(uy,uz)||1,u=[0,uy/ul,uz/ul],zx=[0,u[2],-u[1]],M=new THREE.Matrix4().makeBasis(new THREE.Vector3(-1,0,0),new THREE.Vector3(0,u[1],u[2]),new THREE.Vector3(0,zx[1],zx[2]));
-    const L0=Math.min(ws.hw*0.9,ul*0.92),wm=new THREE.MeshLambertMaterial({color:'#15181b'});wip=[];
-    for(const bx of [ws.hw*0.55,-ws.hw*0.15]){const L=Math.max(0.2,Math.min(L0,ws.hw*0.97-bx));const pv=new THREE.Group();pv.position.set(bx,ws.y+0.01,ws.z+0.01);pv.quaternion.setFromRotationMatrix(M);pv.position.addScaledVector(new THREE.Vector3(0,zx[1],zx[2]),-0.025);
+    ws.U=u;ws.N=zx;ws.ul=ul;
+    // two blades of the same length, side by side (tandem): each rests along the bottom of the glass pointing the same way
+    const L=Math.max(0.2,Math.min(ws.hw*0.86,ul*0.9)),wm=new THREE.MeshLambertMaterial({color:'#15181b'});wip=[];
+    const bB=ws.hw*0.97-L-0.03,bA=Math.max(-ws.hw*0.62,bB-L*0.98);
+    for(const bx of [bA,bB]){const pv=new THREE.Group();pv.position.set(bx,ws.y+0.01,ws.z+0.01);pv.quaternion.setFromRotationMatrix(M);pv.position.addScaledVector(new THREE.Vector3(0,zx[1],zx[2]),-0.025);
       const rot=new THREE.Group();pv.add(rot);const arm=new THREE.Mesh(new THREE.BoxGeometry(L*0.62,0.014,0.012).translate(L*0.31,0,0),wm);rot.add(arm);
       const blade=new THREE.Mesh(new THREE.BoxGeometry(L*0.9,0.01,0.022).translate(L*0.1+L*0.45,0,-0.006),wm);rot.add(blade);
       const hub=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.03,10).rotateX(Math.PI/2),wm);pv.add(hub);pv.visible=false;body.add(pv);wip.push({pv,rot,L,bx,hw:ws.hw});}}
@@ -2937,6 +2945,8 @@ function carSnowStep(dt,snowA,rainA){if(!V||S.mode!=='play')return;
   const onSnow=S.surf==='snow'&&!S.air&&Math.abs(S.v||0)>0.5;
   CSN.top=clamp(CSN.top+(snowA>0.3?dt/110*snowA:(WX.hold||0)>0.5?-dt/50:rainA>0.3?-dt/90:0),0,1);
   CSN.low=clamp(CSN.low+(onSnow?dt*Math.min(1,Math.abs(S.v)/6)/25:-dt/(rainA>0.3?60:240))+(snowA>0.3?dt/400:0),0,1);
+  // when the snow on the ground melts, the snow on the roof, the sides and round the wheels melts with it
+  if(snowA<0.3){const g=snowU.value*1.05;CSN.top=Math.min(CSN.top,g);CSN.low=Math.min(CSN.low,g);}
   if((CSN.top>0.01||CSN.low>0.01||VEH[S.veh].cabinFix)&&(!CSN.job||CSN.job.Vc!==V))carSnowStart(V);carSnowU.cabin.value=0;carSnowWork();
   snowDepU.value=0.005+(V.snowMax||0.24)*CSN.top;if(V.snowTop)V.snowTop.visible=CSN.top>0.02;
   carSnowU.top.value=CSN.top;carSnowU.low.value=CSN.low;carSnowU.lowY.value=S.y+V.bodyBot-0.25;
@@ -3364,7 +3374,7 @@ function range(lbl,k,mn,mx,st){return '<div class="set"><span>'+lbl+'</span><inp
 function renderSettings(){$('setBody').innerHTML=seg(tr_('زبان'),'lang',[['fa',tr_('فارسی')],['en','English'],['sq','Shqip']])
   +'<label class="prof">'+tr_('اسم (در بازی آنلاین)')+'<input id="pfName" maxlength="16" autocomplete="nickname"></label>'
   +'<label class="prof">'+tr_('پلاک ماشین')+'<input id="pfPlate" maxlength="10"></label>'
-  +tr_('<button class="big alt" id="layBtn">جابه‌جایی و اندازهٔ فرمان و پدال‌ها</button>')+seg(tr_('صدا'),'sound',[[true,tr_('روشن')],[false,tr_('خاموش')]])+range(tr_('بلندی صدا'),'vol',0,1,0.05)+range(tr_('حساسیت فرمان'),'sens',0.6,1.6,0.1)
+  +'<button class="big alt" id="layBtn">'+tr_('جابه‌جایی همهٔ دکمه‌ها، فرمان و پدال‌ها')+'</button>'+seg(tr_('صدا'),'sound',[[true,tr_('روشن')],[false,tr_('خاموش')]])+range(tr_('بلندی صدا'),'vol',0,1,0.05)+range(tr_('حساسیت فرمان'),'sens',0.6,1.6,0.1)
   +seg(tr_('کیفیت گرافیک'),'quality',[['low',tr_('کم (روان‌ترین)')],['med',tr_('متوسط')],['high',tr_('زیاد')],['ultra',tr_('خیلی زیاد')]])
   +seg(tr_('واحد سرعت'),'units',[['kmh',tr_('کیلومتر')],['mph',tr_('مایل')]])
   +seg(tr_('بزرگنمایی نقشهٔ کوچک'),'miniZoom',[[160,tr_('نزدیک')],[260,tr_('متوسط')],[480,tr_('دور')]])
@@ -3385,11 +3395,24 @@ function ctlEls(){return {w:$('wheel'),p:document.querySelector('.rightCtl'),c:$
 function applyLayout(){const L=SET.lay||{},E=ctlEls(),W=innerWidth,H=innerHeight;
   [['w',E.w],['p',E.p],['c',E.c]].forEach(([k,el])=>{const o=L[k];if(!el)return;if(o&&o.x!==undefined){el.style.left=(o.x*W)+'px';el.style.top=(o.y*H)+'px';el.style.right='auto';el.style.bottom='auto';el.style.transform='translate(-50%,-50%) scale('+(o.s||1)+')';el.style.transformOrigin='center';}
     else{el.style.left=el.style.top=el.style.right=el.style.bottom='';el.style.transform=k==='c'?(o&&o.s?'translateX(-50%) scale('+o.s+')':''):o&&o.s?'scale('+o.s+')':'';el.style.transformOrigin=k==='w'?'left bottom':k==='c'?'center top':'right bottom';}});}
-let layFrom=null,layDrag=null;
-function startLayout(){layFrom=S.modal==='settings'&&S.mode==='play'?'pause':null;closeModal();S.modal='layout';$('ctl').hidden=false;document.body.classList.add('editing');$('comms').hidden=false;$('comms').hidden=false;$('layBar').hidden=false;
+const MV_IDS=['bB','bG','keyBtn','lightBtn','wipBtn','ropeBtn','skipBtn','miniCol','pauseBtn','camBtn','rescueBtn','fixBtn','musBtn','chatB2'];
+function mvEls(){const o={};for(const id of MV_IDS){const e=$(id);if(e)o[id]=e;}const g=document.querySelector('.gearDock .dash');if(g)o.gear=g;return o;}
+function applyMv(){const M=(SET.lay&&SET.lay.mv)||{},E=mvEls(),W=innerWidth,H=innerHeight;for(const k in E){const el=E[k],o=M[k];el.dataset.mv=k;el.style.translate=o?(o[0]*W).toFixed(1)+'px '+(o[1]*H).toFixed(1)+'px':'';}}
+let mvDrag=null;
+document.addEventListener('pointerdown',e=>{if(!document.body.classList.contains('editing'))return;const t=e.target.closest&&e.target.closest('[data-mv]');if(!t)return;e.stopPropagation();e.preventDefault();
+  SET.lay=SET.lay||{};const M=SET.lay.mv=SET.lay.mv||{},o=M[t.dataset.mv]||[0,0];mvDrag={k:t.dataset.mv,x0:e.clientX,y0:e.clientY,o0:o.slice(),el:t};try{t.setPointerCapture(e.pointerId);}catch(x){}},true);
+window.addEventListener('pointermove',e=>{if(!mvDrag)return;e.stopPropagation();const W=innerWidth,H=innerHeight,el=mvDrag.el,M=SET.lay.mv;
+  let dx=mvDrag.o0[0]+(e.clientX-mvDrag.x0)/W,dy=mvDrag.o0[1]+(e.clientY-mvDrag.y0)/H;M[mvDrag.k]=[dx,dy];applyMv();
+  // keep it on the screen
+  const r=el.getBoundingClientRect();let fx=0,fy=0;if(r.left<0)fx=-r.left;if(r.right>W)fx=W-r.right;if(r.top<0)fy=-r.top;if(r.bottom>H)fy=H-r.bottom;if(fx||fy){M[mvDrag.k]=[dx+fx/W,dy+fy/H];applyMv();}},true);
+window.addEventListener('pointerup',()=>{mvDrag=null;},true);
+// while arranging, a tap on a button only moves it
+document.addEventListener('click',e=>{if(document.body.classList.contains('editing')&&e.target.closest&&e.target.closest('[data-mv]')){e.stopPropagation();e.preventDefault();}},true);
+let layFrom=null,layDrag=null,layHud=false;
+function startLayout(){layFrom=S.modal==='settings'&&S.mode==='play'?'pause':null;closeModal();S.modal='layout';$('ctl').hidden=false;document.body.classList.add('editing');applyMv();layHud=$('hud').hidden;$('hud').hidden=false;$('comms').hidden=false;$('comms').hidden=false;$('layBar').hidden=false;
   const L=SET.lay||{};$('laW').value=(L.w&&L.w.s)||1;$('laP').value=(L.p&&L.p.s)||1;$('laC').value=(L.c&&L.c.s)||1;}
-function endLayout(){document.body.classList.remove('editing');$('layBar').hidden=true;S.modal=null;if(S.mode!=='play')$('ctl').hidden=true;saveSet();if(layFrom==='pause')openModal('pause');}
-function layKey(t){const E=ctlEls();return E.w.contains(t)?'w':E.p.contains(t)?'p':E.c.contains(t)?'c':null;}
+function endLayout(){document.body.classList.remove('editing');if(layHud&&S.mode!=='play')$('hud').hidden=true;$('layBar').hidden=true;S.modal=null;if(S.mode!=='play')$('ctl').hidden=true;saveSet();if(layFrom==='pause')openModal('pause');}
+function layKey(t){if(t.closest&&t.closest('[data-mv]'))return null;const E=ctlEls();return E.w.contains(t)?'w':E.p.contains(t)?'p':E.c.contains(t)?'c':null;}
 document.addEventListener('pointerdown',e=>{if(!document.body.classList.contains('editing'))return;const k=layKey(e.target);if(!k)return;e.stopPropagation();e.preventDefault();
   const el=ctlEls()[k],r=el.getBoundingClientRect();layDrag={k,dx:e.clientX-(r.left+r.width/2),dy:e.clientY-(r.top+r.height/2)};},true);
 window.addEventListener('pointermove',e=>{if(!layDrag)return;SET.lay=SET.lay||{};const o=SET.lay[layDrag.k]=SET.lay[layDrag.k]||{};o.x=clamp((e.clientX-layDrag.dx)/innerWidth,0.06,0.94);o.y=clamp((e.clientY-layDrag.dy)/innerHeight,0.12,0.92);applyLayout();},true);
@@ -3398,8 +3421,8 @@ function laSize(k,v){SET.lay=SET.lay||{};const el=ctlEls()[k],r=el.getBoundingCl
 $('laW').addEventListener('input',e=>laSize('w',+e.target.value));$('laC').addEventListener('input',e=>laSize('c',+e.target.value));
 // while arranging, the mic and message buttons only move: a tap does not switch them
 document.addEventListener('click',e=>{if(document.body.classList.contains('editing')&&$('comms').contains(e.target)){e.stopPropagation();e.preventDefault();}},true);$('laP').addEventListener('input',e=>laSize('p',+e.target.value));
-$('laReset').addEventListener('click',()=>{SET.lay={};applyLayout();$('laW').value=1;$('laP').value=1;$('laC').value=1;});$('laDone').addEventListener('click',endLayout);
-window.addEventListener('resize',applyLayout);
+$('laReset').addEventListener('click',()=>{SET.lay={};applyLayout();applyMv();$('laW').value=1;$('laP').value=1;$('laC').value=1;});$('laDone').addEventListener('click',endLayout);
+window.addEventListener('resize',()=>{applyLayout();applyMv();});
 function applySettings(){if(SET.quality!=='auto'&&Q_LV[SET.quality]!==undefined&&PERF.lvl!==Q_LV[SET.quality]){PERF.lvl=Q_LV[SET.quality];PERF.qChanged=1;}window.__wxOv=SET.fwx&&SET.fwx!=='auto'?SET.fwx:undefined;window.__todOv=SET.fhour!=='auto'&&typeof SET.fhour==='number'?SET.fhour/24:undefined;applyLayout();resize();const ms=QV([512,1024,1024,2048]);sun.castShadow=QL()>=2;if(sun.shadow.mapSize.x!==ms){sun.shadow.mapSize.set(ms,ms);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}}
   if(SET.time==='day')S.tod=0.42;else if(SET.time==='sunset')S.tod=0.715;else if(SET.time==='night')S.tod=0.02;$('spdU').textContent=SET.units==='mph'?'mph':'km/h';$('fpsTag').hidden=!SET.fps;try{vcUI();}catch(e){}if(typeof pTile!=='undefined'&&tiles.size)scanTiles(true);}
 
@@ -3423,7 +3446,7 @@ window.__appPause=()=>{save();if(S.mode==='play'&&!S.modal&&!ADS.showing&&!DIR.a
 window.__appResume=()=>{setTimeout(audioWake,200);try{if(MUS.wasPlaying)MUS.el.play().catch(()=>{});}catch(e){}};
 $('byeBack').addEventListener('click',()=>{$('bye').hidden=true;$('menu').hidden=false;audioWake();refreshMenu();});
 $('playBtn').addEventListener('click',()=>{if(!AU.ac)initAudio();enterPlay(true,'island');});$('mFree').addEventListener('click',()=>enterPlay(true,'island'));$('mDayk').addEventListener('click',()=>{const b=$('mDayk');if(b.dataset.busy)return;b.dataset.busy='1';toast(tr_('در حال ساختن دایکندی واقعی…'));dkLoad().then(()=>{delete b.dataset.busy;enterPlay(true,'dayk');}).catch(e=>{delete b.dataset.busy;toast(tr_('بارگذاری نقشه نشد'));console.error(e);});});$('mBamir').addEventListener('click',()=>{const b=$('mBamir');if(b.dataset.busy)return;b.dataset.busy='1';toast(tr_('در حال ساختن راه بامیان تا بند امیر…'));dkLoad('bamir').then(()=>{delete b.dataset.busy;enterPlay(true,'bamir');}).catch(e=>{delete b.dataset.busy;toast(tr_('بارگذاری نقشه نشد'));console.error(e);});});$('mGarage').addEventListener('click',()=>{if(!AU.ac)initAudio();openGarage();});$('mSet').addEventListener('click',openSettings);$('mHelp').addEventListener('click',()=>openModal('help'));$('mQuit').addEventListener('click',exitGame);
-$('helpClose').addEventListener('click',closeModal);$('pauseBtn').addEventListener('click',()=>openModal('pause'));$('pResume').addEventListener('click',closeModal);$('pGarage').addEventListener('click',openGarage);$('pSet').addEventListener('click',openSettings);$('pMenu').addEventListener('click',toMenu);$('pQuit').addEventListener('click',exitGame);
+$('helpClose').addEventListener('click',closeModal);$('pauseBtn').addEventListener('click',()=>openModal('pause'));$('pResume').addEventListener('click',closeModal);$('pLay').addEventListener('click',()=>{closeModal();startLayout();layFrom='pause';});$('pGarage').addEventListener('click',openGarage);$('pSet').addEventListener('click',openSettings);$('pMenu').addEventListener('click',toMenu);$('pQuit').addEventListener('click',exitGame);
 $('pRestart').addEventListener('click',()=>{const b=$('pRestart');if(!b.dataset.sure){b.dataset.sure='1';b.textContent=tr_('مطمئنی؟ دوباره بزن');setTimeout(()=>{delete b.dataset.sure;b.textContent=FREE?tr_('برگشت به اردوگاه'):tr_('شروع دوبارهٔ همین مرحله');},3000);return;}
   delete b.dataset.sure;b.textContent=FREE?tr_('برگشت به اردوگاه'):tr_('شروع دوبارهٔ همین مرحله');closeModal();S.vx=S.vz=S.vy=S.w=0;S.roll=S.pitch=0;S.engineOn=false;S.rpm=0;if(FREE)freeGo(0);else restartStage(STG.cur);});
 $('mOnline').addEventListener('click',()=>{if(!AU.ac)initAudio();openOnline();});$('pOnline').addEventListener('click',openOnline);$('pMap').addEventListener('click',openMap);$('pStages').addEventListener('click',openStages);$('pSave').addEventListener('click',()=>{save();toast(tr_('بازی در حافظهٔ گوشی ذخیره شد'));});$('mini').addEventListener('click',()=>{if(S.mode==='play'&&!S.modal)openMap();});$('mapClose').addEventListener('click',closeModal);
@@ -4222,7 +4245,7 @@ $('ropeBtn').addEventListener('click',ropeToggle);
   const end=e=>{if(!D||e.pointerId!==D.id)return;if(D.moved){const kill=ev=>{ev.stopPropagation();ev.preventDefault();window.removeEventListener('click',kill,true);};window.addEventListener('click',kill,true);setTimeout(()=>window.removeEventListener('click',kill,true),60);}D=null;};
   document.addEventListener('pointerup',end,true);document.addEventListener('pointercancel',end,true);})();
 // the wipers' switch: on (they run whenever it rains or snows) or off
-$('wipBtn').addEventListener('click',()=>{if(!WS.on&&!WS.off)WS.on=true;else if(WS.on){WS.on=false;WS.off=true;}else WS.off=false;$('wipBtn').classList.toggle('act',!WS.off);SFX.shift();toast(WS.on?tr_('برف‌پاک‌کن روشن'):WS.off?tr_('برف‌پاک‌کن خاموش'):tr_('برف‌پاک‌کن خودکار'));});
+$('wipBtn').addEventListener('click',()=>{if(!WS.on&&!WS.off){WS.on=true;try{DIRT.wash=3.2;DIRT.told=1;}catch(e){}}else if(WS.on){WS.on=false;WS.off=true;}else WS.off=false;$('wipBtn').classList.toggle('act',!WS.off);SFX.shift();toast(WS.on?tr_('برف‌پاک‌کن روشن'):WS.off?tr_('برف‌پاک‌کن خاموش'):tr_('برف‌پاک‌کن خودکار'));});
 window.addEventListener('pagehide',()=>{if(NET.on&&NET.peers.size)tx({t:'bye'});});
 window.__net={NET,ROPE,S,place:placeAt};window.__ride={on:()=>rideOn(nearPeer()),off:()=>rideOff(),R:RIDE,near:()=>!!rideNear()};window.__netGoTo=id=>netGoTo(id);window.__wheel=v=>{wAng=v/2.4*WLOCK;wHeld=true;};window.__nearObst=(x,z)=>nearObst(x,z);window.__parkC=(E,s)=>parkC(E,s);setTimeout(()=>{window.__ST={STAGES,ELEMS,STG,restartStage,parkCars,elemDeck,elemLineY,stageFrame,elemFail,elemPath};},0);window.__snd=window.__snd;window.__SNDB=()=>SND.buf;window.__WS=()=>WS;window.__physics=dt=>physics(dt);window.__K=K;window.__W={SPURS,spurZ,RIVERS,TRAILS,BRIDGES,LAKES,rainbow,Hf,Hd,toXZx,rivZ,trailOff,deckH,waterAt};window.__Hd=Hd;window.__ren=()=>renderer;window.__scene=()=>scene;window.__WXo=WX;window.__roadX=roadX;window.__roadDX=roadDX;window.__surf=surfaceAt;window.__zone=z=>ZB[zoneOf(z)].n;window.__wx=()=>WX;window.__ws=()=>V&&V.ws;window.__scan=(z0,z1)=>{const bad=[];let worst=0;for(let z=z0;z<z1;z+=1){const x=roadX(z),dx=roadDX(z),l=Math.sqrt(1+dx*dx);const g=Math.abs(Hf(roadX(z+2),z+2)-Hf(roadX(z-2),z-2))/4;const c=Math.abs(Hf(x+1.3/l,z)-Hf(x-1.3/l,z))/2.6;const m=Math.max(g,c*0.8);if(m>worst)worst=m;if(m>0.42)bad.push([Math.round(z),+g.toFixed(2),+c.toFixed(2),inGorge(z)]);}return {worst:+worst.toFixed(2),n:bad.length,bad:bad.filter((b,i)=>i===0||b[0]-bad[i-1][0]>6).slice(0,40)};};window.__applyVeh=()=>applyVehicle();window.__V=()=>V;window.__phys=(n,dt)=>{for(let i=0;i<n;i++)physics(dt);};window.__build=(o,cu)=>buildVehicle(Object.assign({},VEH[0],o),Object.assign({},cust(0),cu||{}),null);window.__specs=()=>VEH.concat(NPCV);window.__roofDbg=g=>{const MP=modelPartsT(g)||modelParts(g),pts=carPts(MP),B=MP.box,o=[];for(let z=B.min.z;z<=B.max.z;z+=0.1)o.push([+z.toFixed(1),...[-0.3,0,0.3].map(x=>+topAt(pts,x,z,0.07).toFixed(2))]);return [B.max.y,o];};window.__wsAll=()=>VEH.map((v,i)=>{const q=buildVehicle(v,cust(i),null).ws;return [v.n,q&&[q.y,q.z,q.ty,q.tz,q.hw].map(n=>+n.toFixed(2))];});window.__trRaw=()=>TR.cars;window.__trStep=(n,dt)=>{for(let i=0;i<n;i++)trafficStep(dt,true);};window.__tr=()=>TR.cars.map(q=>({s:Math.round(q.s),v:+q.v.toFixed(1),dir:q.dir,off:+q.off.toFixed(2),crash:q.crash,park:q.park}));window.__snowOff=()=>{snowU.value=0;};window.__snowOn=()=>{snowU.value=1;};window.__setSnow=v=>{snowU.value=v;WX.hold=v;};window.__snw=()=>{let n=0;for(const v of SNW.rut)if(v>0.5)n++;return [n,SNW.depth,SNW.mesh.visible,SNW.gx,SNW.gz];};window.__camOv=null;window.__aud=()=>({loops:Object.keys(SND.loops||{}),eng:SND.engType,bufs:Object.keys(SND.buf).length,state:AU.ac&&AU.ac.state});
 
@@ -4270,11 +4293,55 @@ function updateWindscreen(dt,env){
   if(wet>0.1||WS.run>0){const was=WS.t;WS.t+=dt;const P=SW+PAUSE;if(was%P>WS.t%P||was===0){if(wet>0.1){WS.run=1;if(S.mode==='play')playBuf('r_wiper',S.cam===4?0.9:0.4,0.97+Math.random()*0.06);}else WS.run=0;}
     if(!WS.run)WS.t=0;}
   if(WS.off)WS.swept=false;if(V&&V.wip&&V.wip.length&&(WS.swept||(WS.run&&WS.t>0.6))){WS.swept=true;V.wip[0].pv.getWorldPosition(wipeU.p1.value);(V.wip[1]||V.wip[0]).pv.getWorldPosition(wipeU.p2.value);wipeU.len.value=V.wip[0].L||0.5;}else wipeU.len.value=0;
-  if(!show)return;
-  // no mist or drops painted on the glass any more: only the wiper blades sweep across it
   const ph=WS.t%(SW+PAUSE),s=WS.run&&ph<SW?0.5-0.5*Math.cos(ph/SW*Math.PI*2):0;
+  windscreenDirt(dt,env,s);
+  if(!show)return;
   if(V.wip)V.wip.forEach(w=>{w.pv.visible=true;w.rot.rotation.z=wiperAng(s,w);});
-  const ww=WS.wipe,x=WS.wx;x.clearRect(0,0,ww.width,ww.height);
+}
+/* The dirt on the windscreen: a film painted in the glass's own plane (across = the car's width, up = along the glass).
+   Dust settles while you drive on dirt, gravel and sand, mud splashes on in bogs and rivers, rain leaves drops, snow sticks;
+   each wiper blade wipes exactly the arc it passes over, and the washer (turn the wipers on) wets the glass so they wipe it clean. */
+const DIRT={x:DIRTC.getContext('2d'),t:0,dirty:0,told:0,wash:0,amt:0};
+DIRT.blob=(()=>{const c=document.createElement('canvas');c.width=c.height=48;const x=c.getContext('2d'),g=x.createRadialGradient(24,24,0,24,24,24);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(0.55,'rgba(255,255,255,0.45)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,48,48);return c;})();
+DIRT.tint=(col)=>{const c=document.createElement('canvas');c.width=c.height=48;const x=c.getContext('2d');x.drawImage(DIRT.blob,0,0);x.globalCompositeOperation='source-in';x.fillStyle=col;x.fillRect(0,0,48,48);return c;};
+DIRT.dust=DIRT.tint('#9c8466');DIRT.dust2=DIRT.tint('#b9a585');DIRT.mud=DIRT.tint('#4b3825');
+const DUSTY={gravel:1,sand:1.5,rock:0.7,grass:0.35,mud:0.9,bog:1.1,snow:0.12,asphalt:0.06,wood:0.05,ice:0.05,water:0};
+window.__dirt=()=>DIRT;
+function windscreenDirt(dt,env,s){
+  const ws=V&&V.ws;if(!ws||!ws.U||!V.body){dirtU.on.value=0;return;}
+  const x=DIRT.x,W=DIRTC.width,H=DIRTC.height,R=Math.random,sp=Math.abs(S.v||0),ground=S.mode==='play'&&!S.air;let ch=false;
+  // world -> glass plane: across (0..1), up the glass (0..1), off the glass (metres)
+  const hw=ws.hw/0.94,T=new THREE.Matrix4().set(1/(2*hw),0,0,0.5, 0,ws.U[1]/ws.ul,ws.U[2]/ws.ul,-(ws.y*ws.U[1]+ws.z*ws.U[2])/ws.ul, 0,ws.N[1],ws.N[2],-(ws.y*ws.N[1]+ws.z*ws.N[2]), 0,0,0,1);
+  dirtU.M.value.copy(V.body.matrixWorld).invert().premultiply(T);dirtU.on.value=1;
+  const put=(img,px,py,r,al)=>{x.globalAlpha=al;x.drawImage(img,px-r,py-r,r*2,r*2);ch=true;};
+  // dust: settles all over, thickest low down and at the sides, faster the faster you go
+  const sf=ground?S.surf:'',rainy=Math.max(env.rainA||0,(env.snowA||0)*0.5);
+  const dust=(DUSTY[sf]||0)*clamp(sp/14,0,1.6)*(1-0.85*Math.min(1,rainy))+(env.sandA||0)*1.2;
+  DIRT.amt+=dust*dt*3.2;
+  while(DIRT.amt>1){DIRT.amt-=1;const ex=R()<0.35,px=ex?(R()<0.5?R()*W*0.18:W-R()*W*0.18):R()*W,py=H*Math.pow(R(),1.7);put(R()<0.7?DIRT.dust:DIRT.dust2,px,py,8+R()*22,0.07+R()*0.07);}
+  // mud and dirty water thrown up in bogs, mud and rivers
+  if(ground&&sp>2.5&&(sf==='mud'||sf==='bog'||sf==='water')&&R()<dt*sp*(sf==='water'?0.5:0.28)){const px=R()*W,py=H*Math.pow(R(),2.2),r=3+R()*9,al=sf==='water'?0.35:0.75;
+    put(DIRT.mud,px,py,r,al);for(let i=0,n=2+R()*5|0;i<n;i++)put(DIRT.mud,px+(R()-0.5)*r*3,py+(R()-0.5)*r*2,1+R()*3,al);
+    if(R()<0.5){x.globalAlpha=al*0.6;x.fillStyle='#4b3825';x.fillRect(px-1,py,2,r*(1+R()*2));}}
+  // rain: drops land and slowly loosen the dust; snow sticks in flakes
+  if((env.rainA||0)>0.05){for(let i=0,n=Math.floor(env.rainA*dt*60+R());i<n;i++){const px=R()*W,py=R()*H,r=0.8+R()*1.8;x.globalAlpha=0.32;x.fillStyle='#1d2730';x.beginPath();x.arc(px,py,r,0,6.3);x.fill();x.globalAlpha=0.5;x.fillStyle='#dfe9f2';x.beginPath();x.arc(px-r*0.3,py+r*0.3,r*0.45,0,6.3);x.fill();}
+    x.globalCompositeOperation='destination-out';x.globalAlpha=Math.min(1,dt*0.03*env.rainA);x.fillRect(0,0,W,H);x.globalCompositeOperation='source-over';ch=true;}
+  if((env.snowA||0)>0.05&&R()<env.snowA*dt*25){put(DIRT.dust2.__w||(DIRT.dust2.__w=DIRT.tint('#f4f8fb')),R()*W,R()*H,1.5+R()*3,0.75);}
+  // washer: a few seconds of spray after you turn the wipers on
+  if(DIRT.wash>0){DIRT.wash-=dt;for(let i=0;i<3;i++){x.globalAlpha=0.3;x.fillStyle='#cfdbe4';x.beginPath();x.arc(R()*W,H*R()*0.7,1+R()*2.5,0,6.3);x.fill();}ch=true;}
+  // the blades: wipe the wedge each one swept since the last frame (dry blades only smear part of the dust away)
+  const wet=rainy>0.08||DIRT.wash>0||(env.hailA||0)>0.1;
+  if(V.wip){if(!DIRT.prev||DIRT.prev.length!==V.wip.length)DIRT.prev=V.wip.map(w=>wiperAng(0,w));
+    const kx=W/(2*hw),ky=H/ws.ul;
+    V.wip.forEach((w,i)=>{const a=wiperAng(s,w),b=DIRT.prev[i];DIRT.prev[i]=a;if(Math.abs(a-b)<1e-4)return;
+      const t0=Math.PI-Math.max(a,b)-0.02,t1=Math.PI-Math.min(a,b)+0.02;
+      x.save();x.setTransform(kx,0,0,ky,W/2,0);x.translate(w.bx,0.01);x.globalCompositeOperation='destination-out';x.globalAlpha=wet?1:0.55;
+      x.beginPath();x.arc(0,0,w.L*1.0,t0,t1,false);x.arc(0,0,w.L*0.12,t1,t0,true);x.closePath();x.fill();x.restore();ch=true;});}
+  x.globalAlpha=1;x.globalCompositeOperation='source-over';
+  DIRT.t+=dt;if(ch&&DIRT.t>0.08){DIRT.t=0;dirtTex.needsUpdate=true;
+    // how dirty the glass is, now and then: tell the player once that the wipers clean it
+    DIRT.n=(DIRT.n||0)+1;if(DIRT.n%30===0){const d=x.getImageData(0,0,W,H).data;let a=0;for(let k=3;k<d.length;k+=64)a+=d[k];DIRT.dirty=a/(d.length/64)/255;
+      if(DIRT.dirty>0.32&&!DIRT.told&&S.cam===4&&S.mode==='play'){DIRT.told=1;toast(tr_('شیشه کثیف شده — دکمه برف‌پاک‌کن رو بزن تا شیشه‌شور بزنه'));}}}
 }
 
 /* ---------- Animals roaming the land, cabins out in the hills, and a cat asleep on the dashboard ----------
@@ -6170,7 +6237,7 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
 rebuildEnv();scanTiles(true);processTiles(1e9);updateRoad(true);applyVehicle();applySettings();refreshMenu();updateGrass(0,true);
 setInterval(()=>{if(S.mode==='play')save();},10000);
 try{setWorld(true,'island');if(FS.x!==null)placeAt(FS.x,FS.z,FS.th);else freeGo(0);}catch(e){console.error(e);}
-try{const dk=document.createElement('div');dk.className='gearDock';dk.appendChild(document.querySelector('.rightCtl .dash'));$('ctl').appendChild(dk);}catch(e){}
+try{const dk=document.createElement('div');dk.className='gearDock';dk.appendChild(document.querySelector('.rightCtl .dash'));$('ctl').appendChild(dk);}catch(e){}try{applyMv();}catch(e){}
 $('loading').hidden=true;
 // the first time a player comes in (after choosing a language): a short guide to read, closed with OK
 function showGuide(){if(document.getElementById('guide'))return;const d=document.createElement('div');d.id='guide';d.className='modal';
