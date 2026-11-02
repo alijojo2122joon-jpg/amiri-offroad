@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=193</script>
+<script>window.GAME_CODE=194</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -3407,6 +3407,9 @@ function ctlEls(){return {w:$('wheel'),p:document.querySelector('.rightCtl'),c:$
 function applyLayout(){const L=SET.lay||{},E=ctlEls(),W=innerWidth,H=innerHeight;
   [['w',E.w],['p',E.p],['c',E.c]].forEach(([k,el])=>{const o=L[k];if(!el)return;if(o&&o.x!==undefined){el.style.left=(o.x*W)+'px';el.style.top=(o.y*H)+'px';el.style.right='auto';el.style.bottom='auto';el.style.transform='translate(-50%,-50%) scale('+(o.s||1)+')';el.style.transformOrigin='center';}
     else{el.style.left=el.style.top=el.style.right=el.style.bottom='';el.style.transform=k==='c'?(o&&o.s?'translateX(-50%) scale('+o.s+')':''):o&&o.s?'scale('+o.s+')':'';el.style.transformOrigin=k==='w'?'left bottom':k==='c'?'center top':'right bottom';}});}
+// Amir's own arrangement is the starting layout for everyone (and what 'Default' goes back to)
+const DEF_LAY={"w":{"x":0.214,"y":0.6101,"s":1.3},"mv":{"miniCol":[0.0448,0.0],"gear":[0.7235,0.2006],"bB":[-0.0726,-0.2687],"bG":[-0.0634,-0.205],"musBtn":[-0.1496,-0.4803],"wipBtn":[0.1185,-0.8535],"pauseBtn":[-0.0191,-0.0027],"keyBtn":[0.1185,-0.5905],"camBtn":[-0.0156,0.0155],"lightBtn":[0.071,-0.4517],"rescueBtn":[-0.0146,0.0361],"fixBtn":[-0.0146,0.0577]}};
+function layDefault(){if(!SET.lay||!Object.keys(SET.lay).length)SET.lay=JSON.parse(JSON.stringify(DEF_LAY));}
 const MV_IDS=['bB','bG','keyBtn','lightBtn','wipBtn','ropeBtn','skipBtn','miniCol','pauseBtn','camBtn','rescueBtn','fixBtn','musBtn','chatB2'];
 function mvEls(){const o={};for(const id of MV_IDS){const e=$(id);if(e)o[id]=e;}const g=document.querySelector('.gearDock .dash');if(g)o.gear=g;return o;}
 function applyMv(){const M=(SET.lay&&SET.lay.mv)||{},E=mvEls(),W=innerWidth,H=innerHeight;for(const k in E){const el=E[k],o=M[k];el.dataset.mv=k;el.style.translate=o?(o[0]*W).toFixed(1)+'px '+(o[1]*H).toFixed(1)+'px':'';}}
@@ -3433,7 +3436,7 @@ function laSize(k,v){SET.lay=SET.lay||{};const el=ctlEls()[k],r=el.getBoundingCl
 $('laW').addEventListener('input',e=>laSize('w',+e.target.value));$('laC').addEventListener('input',e=>laSize('c',+e.target.value));
 // while arranging, the mic and message buttons only move: a tap does not switch them
 document.addEventListener('click',e=>{if(document.body.classList.contains('editing')&&$('comms').contains(e.target)){e.stopPropagation();e.preventDefault();}},true);$('laP').addEventListener('input',e=>laSize('p',+e.target.value));
-$('laReset').addEventListener('click',()=>{SET.lay={};applyLayout();applyMv();$('laW').value=1;$('laP').value=1;$('laC').value=1;});$('laDone').addEventListener('click',endLayout);
+$('laReset').addEventListener('click',()=>{SET.lay=JSON.parse(JSON.stringify(DEF_LAY));applyLayout();applyMv();$('laW').value=1.3;$('laP').value=1;$('laC').value=1;});$('laDone').addEventListener('click',endLayout);
 window.addEventListener('resize',()=>{applyLayout();applyMv();});
 function applySettings(){if(SET.quality!=='auto'&&Q_LV[SET.quality]!==undefined&&PERF.lvl!==Q_LV[SET.quality]){PERF.lvl=Q_LV[SET.quality];PERF.qChanged=1;}window.__wxOv=SET.fwx&&SET.fwx!=='auto'?SET.fwx:undefined;window.__todOv=SET.fhour!=='auto'&&typeof SET.fhour==='number'?SET.fhour/24:undefined;applyLayout();resize();const ms=QV([512,1024,1024,2048]);sun.castShadow=QL()>=2;if(sun.shadow.mapSize.x!==ms){sun.shadow.mapSize.set(ms,ms);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}}
   if(SET.time==='day')S.tod=0.42;else if(SET.time==='sunset')S.tod=0.715;else if(SET.time==='night')S.tod=0.02;$('spdU').textContent=SET.units==='mph'?'mph':'km/h';$('fpsTag').hidden=!SET.fps;try{vcUI();}catch(e){}if(typeof pTile!=='undefined'&&tiles.size)scanTiles(true);}
@@ -6271,7 +6274,7 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
 rebuildEnv();scanTiles(true);processTiles(1e9);updateRoad(true);applyVehicle();applySettings();refreshMenu();updateGrass(0,true);
 setInterval(()=>{if(S.mode==='play')save();},10000);
 try{setWorld(true,'island');if(FS.x!==null)placeAt(FS.x,FS.z,FS.th);else freeGo(0);}catch(e){console.error(e);}
-try{const dk=document.createElement('div');dk.className='gearDock';dk.appendChild(document.querySelector('.rightCtl .dash'));$('ctl').appendChild(dk);}catch(e){}try{applyMv();}catch(e){}
+try{const dk=document.createElement('div');dk.className='gearDock';dk.appendChild(document.querySelector('.rightCtl .dash'));$('ctl').appendChild(dk);}catch(e){}try{layDefault();applyLayout();applyMv();}catch(e){}
 try{window.__loadS=(performance.now()/1000).toFixed(1);}catch(e){}
 $('loading').hidden=true;
 // the first time a player comes in (after choosing a language): a short guide to read, closed with OK
