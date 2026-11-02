@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=169</script>
+<script>window.GAME_CODE=170</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -642,8 +642,8 @@ if(!SET.qv2){SET.quality='auto';SET.qv2=1;}
 const PERF={lvl:(navigator.hardwareConcurrency||4)>=8&&(navigator.deviceMemory||4)>=6?3:(navigator.hardwareConcurrency||4)>=6&&(navigator.deviceMemory||4)>=4?2:(navigator.hardwareConcurrency||4)<=4||(navigator.deviceMemory||4)<=3?0:1,acc:0,n:0,t:0,good:0,downAt:-1e9,ps:1,fn:0};
 // graphics quality: 'auto' starts from what the phone looks like and steps down if it cannot keep a smooth picture
 // (and back up when it can); low / medium / high / very high are fixed by the player in Settings
-const Q_LV={low:0,med:1,high:2,ultra:3};PERF.dev=PERF.lvl;
-if(!SET.qv3){SET.qv3=1;SET.quality='auto';}
+const Q_LV={low:0,med:1,high:2,ultra:3};PERF.dev=Math.min(2,PERF.lvl);PERF.lvl=PERF.dev;
+if(SET.qv3!==2){SET.qv3=2;SET.quality='auto';try{localStorage.removeItem('amiri-perf3');}catch(e){}}
 if(SET.quality==='auto'){try{const k=JSON.parse(localStorage.getItem('amiri-perf3')||'null');if(k&&typeof k.lvl==='number')PERF.lvl=Math.max(0,Math.min(PERF.dev,k.lvl));}catch(e){}}
 else PERF.lvl=Q_LV[SET.quality]!==undefined?Q_LV[SET.quality]:PERF.dev;
 function perfKeep(){try{localStorage.setItem('amiri-perf3',JSON.stringify({lvl:PERF.lvl}));}catch(e){}}
@@ -1054,7 +1054,7 @@ const sun=new THREE.DirectionalLight(0xffd9a6,1.05);
 sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.radius=3;
 Object.assign(sun.shadow.camera,{left:-45,right:45,top:45,bottom:-45,near:10,far:400});sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.03;
 sun.shadow.bias=-0.0006;sun.shadow.normalBias=0.04;scene.add(sun);scene.add(sun.target);
-function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setPixelRatio(Math.min((window.devicePixelRatio||1)*((window.visualViewport&&visualViewport.scale)||1),QV([1,1.1,1.4,2])));renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();try{S.vOff=-1;}catch(e){}}
+function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setPixelRatio(Math.min((window.devicePixelRatio||1)*((window.visualViewport&&visualViewport.scale)||1),QV([1,1,1.25,1.6])));renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();try{S.vOff=-1;}catch(e){}}
 window.addEventListener('resize',resize);
 const timeU={value:0},windU={value:1},snowU={value:0},wetU={value:0},snowDU={value:0},snowCU={value:new THREE.Vector3(0,0,20)};
 const matCache={};
@@ -1481,7 +1481,7 @@ function updateGrass(dt,force){
   let built=0;
   for(const k of need){if(grass.has(k))continue;if(built++>1&&!force)break;
     const [ix,iz]=k.split(',').map(Number),R=mulberry32((ix*31337)^(iz*7919)^99),zc=iz*GP+GP/2,gr=tab(tGr,zc),kz=zoneOf(zc),fl=ZB[kz].flowers,A=[],F=[],PB=[],FE=[];
-    const N=Math.round(QV([180,380,760,1150])*gr);
+    const N=Math.round(QV([120,300,600,950])*gr);
     for(let a=0;a<N*1.6&&A.length<N;a++){const x=ix*GP+R()*GP,z=iz*GP+R()*GP,ad=Math.abs(lateral(x,z));if(paveF(z)>0.01&&ad<AW+0.6&&(RUTD(ad)<0.4||asphF(z)>0.01))continue;const h=Hf(x,z);
       if(h>SNL(z)-15)continue;if(h<waterAt(x,z)+0.2)continue;if(Math.abs(Hf(x+1.5,z)-h)>1.3)continue;
       if(DKON()&&(DK.drape?dkVeg(x,z)<0.45:dkVil(x,z)<0.65))continue;const m=vnoise(x*0.03,z*0.03);if(m<0.3&&R()>0.3)continue;
@@ -3375,7 +3375,7 @@ $('laW').addEventListener('input',e=>laSize('w',+e.target.value));$('laC').addEv
 document.addEventListener('click',e=>{if(document.body.classList.contains('editing')&&$('comms').contains(e.target)){e.stopPropagation();e.preventDefault();}},true);$('laP').addEventListener('input',e=>laSize('p',+e.target.value));
 $('laReset').addEventListener('click',()=>{SET.lay={};applyLayout();$('laW').value=1;$('laP').value=1;$('laC').value=1;});$('laDone').addEventListener('click',endLayout);
 window.addEventListener('resize',applyLayout);
-function applySettings(){if(SET.quality!=='auto'&&Q_LV[SET.quality]!==undefined&&PERF.lvl!==Q_LV[SET.quality]){PERF.lvl=Q_LV[SET.quality];PERF.qChanged=1;}window.__wxOv=SET.fwx&&SET.fwx!=='auto'?SET.fwx:undefined;window.__todOv=SET.fhour!=='auto'&&typeof SET.fhour==='number'?SET.fhour/24:undefined;applyLayout();resize();const ms=QV([1024,1024,2048,2048]);sun.castShadow=QL()>0;if(sun.shadow.mapSize.x!==ms){sun.shadow.mapSize.set(ms,ms);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}}
+function applySettings(){if(SET.quality!=='auto'&&Q_LV[SET.quality]!==undefined&&PERF.lvl!==Q_LV[SET.quality]){PERF.lvl=Q_LV[SET.quality];PERF.qChanged=1;}window.__wxOv=SET.fwx&&SET.fwx!=='auto'?SET.fwx:undefined;window.__todOv=SET.fhour!=='auto'&&typeof SET.fhour==='number'?SET.fhour/24:undefined;applyLayout();resize();const ms=QV([512,1024,1024,2048]);sun.castShadow=QL()>0;if(sun.shadow.mapSize.x!==ms){sun.shadow.mapSize.set(ms,ms);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}}
   if(SET.time==='day')S.tod=0.42;else if(SET.time==='sunset')S.tod=0.715;else if(SET.time==='night')S.tod=0.02;$('spdU').textContent=SET.units==='mph'?'mph':'km/h';$('fpsTag').hidden=!SET.fps;try{vcUI();}catch(e){}if(typeof pTile!=='undefined'&&tiles.size)scanTiles(true);}
 
 /* Menus, exit and map */
@@ -5833,7 +5833,7 @@ let cabT=0;const FPSC={n:0,t:0};
 const TR={cars:[],pool:[],lastZ:-1e9,built:0,voices:null};
 
 const TR_PAINT=['#f1f1ef','#e9e9e6','#c9ccce','#9ea3a8','#2b2d30','#7a1f22','#28466b','#d8d2c4','#5b6b52','#f1efe9'];
-const LANE=1.95,TR_N=()=>NPCV.length?QV([3,6,10,14]):0;
+const LANE=1.95,TR_N=()=>NPCV.length?QV([2,4,6,9]):0;
 function trKind(){return Math.floor(Math.random()*NPCV.length);}
 function trModel(){
   const vi=trKind(),spec=Object.assign({},NPCV[vi],{lite:true,noInt:true}),cu={paint:NPCV[vi].fixedPaint?'#f1f1ef':pick(TR_PAINT),rim:null,bar:0,snork:0,rack:0,flag:0,roof:0,crate:0,tire:1};
