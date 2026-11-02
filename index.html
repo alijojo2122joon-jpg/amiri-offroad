@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=185</script>
+<script>window.GAME_CODE=186</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -310,7 +310,7 @@ body.editing #comms{pointer-events:auto;outline:2px dashed var(--amber);outline-
 #failBox{position:fixed;inset:0;display:grid;place-content:center;justify-items:center;gap:6px;background:rgba(80,10,10,.45);z-index:70;direction:rtl;pointer-events:none;color:#fff;text-shadow:0 2px 8px #000}
 #failBox[hidden]{display:none}#failBox b{font:400 64px Lalezar,var(--body);color:#ff6b5a}#failBox span{font:800 22px var(--body)}#failBox small{font:600 15px var(--body);color:#a9dbff}
 .track s.el{position:absolute;top:0;height:100%;background:rgba(214,73,63,.55);border-radius:3px;width:4px}
-#fpsTag{position:fixed;bottom:4px;left:50%;transform:translateX(-50%);font:700 11px var(--body);color:#fff;text-shadow:0 1px 2px #000;z-index:5}#fpsTag[hidden]{display:none}
+#fpsTag{position:fixed;bottom:4px;white-space:nowrap;direction:ltr;left:50%;transform:translateX(-50%);font:700 11px var(--body);color:#fff;text-shadow:0 1px 2px #000;z-index:5}#fpsTag[hidden]{display:none}
 #netTag{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);white-space:nowrap}
 #netTag i{width:8px;height:8px;border-radius:50%;background:#8fc46a;flex:none}
 #netTag.wait i{background:var(--amber)}
@@ -616,10 +616,15 @@ if(!set.lang){var o=document.createElement('div');o.id='langPick';
 // car models are loaded first; the game starts when they are ready (or failed)
 // embedded files (the one-file PC and iPhone builds) are decoded straight from their text, without fetch
 function dataBytes(u){const b=atob(u.slice(u.indexOf(',')+1)),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a.buffer;}
-const MODELS={};window.__M=MODELS;function loadModels(){if(!THREE.GLTFLoader)return Promise.resolve();const L=new THREE.GLTFLoader(),list=[(()=>{try{const q=JSON.parse(localStorage.getItem('amiri-offroad-settings')||'{}').quality;return q==='high'||q==='ultra'?'cruiser':'cruiser_mid';}catch(e){return 'cruiser_mid';}})(),'lifted85','bokaroo','conquer','utility90','shvan','shvan_amb','doutrive','elalamo','kiri','fh_cop','lct3000','negotiator','phoenix','fh_sw','fh_lt','acc_bullbar','acc_jerry','acc_lightbar','acc_bag','cat','an_bear','an_camel','an_deer','an_goat','an_horse','an_sheep','cabin1','cabin2','cabin3'];return Promise.all(list.map(n=>new Promise(res=>{const url=(window.__glb&&window.__glb[n])||'models/'+n+'.glb';
+const MODELS={};window.__M=MODELS;function loadModels(){if(!THREE.GLTFLoader)return Promise.resolve();const L=new THREE.GLTFLoader(),list=[(()=>{try{const q=JSON.parse(localStorage.getItem('amiri-offroad-settings')||'{}').quality;return q==='high'||q==='ultra'?'cruiser':'cruiser_mid';}catch(e){return 'cruiser_mid';}})(),'acc_bullbar','acc_jerry','acc_lightbar','acc_bag'];
+  // only the player's car waits for the loading screen: the traffic, the animals and the cabins arrive one by one after the game has started
+  const late=['lifted85','bokaroo','conquer','utility90','shvan','shvan_amb','doutrive','elalamo','kiri','fh_cop','lct3000','negotiator','phoenix','fh_sw','fh_lt','an_sheep','an_goat','an_deer','an_horse','an_camel','an_bear','cabin1','cabin2','cabin3'];
+  const one=n=>new Promise(res=>{const url=(window.__glb&&window.__glb[n])||'models/'+n+'.glb';
   const ok=g=>{MODELS[n]=g.scene;res();},bad=e=>{console.error('model',n,e);res();};
-  if(url.startsWith('data:'))try{L.parse(dataBytes(url),'',ok,bad);}catch(e){bad(e);}else L.load(url,ok,undefined,bad);})));}
-requestAnimationFrame(()=>setTimeout(()=>loadModels().then(()=>{try{main();}catch(e){document.getElementById('loadTxt').textContent=tr_('خطا در اجرا: ')+(e&&e.message);console.error(e);}}),40));
+  if(url.startsWith('data:'))try{L.parse(dataBytes(url),'',ok,bad);}catch(e){bad(e);}else L.load(url,ok,undefined,bad);});
+  window.__lateModels=()=>{let i=0;const next=()=>{if(i>=late.length){window.__lateDone=true;return;}one(late[i++]).then(()=>setTimeout(next,120));};next();};
+  return Promise.all(list.map(one));}
+requestAnimationFrame(()=>setTimeout(()=>loadModels().then(()=>{try{main();setTimeout(()=>{try{window.__lateModels();}catch(e){}},1500);}catch(e){document.getElementById('loadTxt').textContent=tr_('خطا در اجرا: ')+(e&&e.message);console.error(e);}}),40));
 function main(){
 'use strict';
 const $=id=>document.getElementById(id);
@@ -1466,13 +1471,17 @@ let pTile=[1e9,1e9],tileQueue=[],tileScanT=0;
 function tileWanted(ix,iz){const zc=iz*TILE+TILE/2,xc=ix*TILE+TILE/2;if(FREE)return Math.hypot(xc-FX,zc-FZ)<FR+1700;if(zc<Z0-200||zc>ROADLEN+2600)return false;return Math.abs(xc-roadX(clamp(zc,0,ROADLEN)))<8000;}
 function scanTiles(force){
   const pix=Math.floor(S.x/TILE),piz=Math.floor(S.z/TILE);
-  if(!force&&pix===pTile[0]&&piz===pTile[1])return;pTile=[pix,piz];
-  const want=new Map();
-  for(let iz=piz-12;iz<=piz+12;iz++)for(let ix=pix-12;ix<=pix+12;ix++)if(tileLod(ix,iz,pix,piz)>=0){if(!tileWanted(ix,iz))continue;want.set(ix+','+iz,tileLod(ix,iz,pix,piz));}
+  // where the car will be in about five seconds: the ground there is built (in full detail) before you reach it
+  const vx=S.vx||0,vz=S.vz||0,vl=Math.hypot(vx,vz),ah=Math.min(vl*5,TILE*1.6)/(vl||1),aix=Math.floor((S.x+vx*ah)/TILE),aiz=Math.floor((S.z+vz*ah)/TILE);
+  if(!force&&pix===pTile[0]&&piz===pTile[1]&&aix===pTile[2]&&aiz===pTile[3])return;pTile=[pix,piz,aix,aiz];
+  const want=new Map(),LV=(ix,iz)=>{const a=tileLod(ix,iz,pix,piz),b=tileLod(ix,iz,aix,aiz);return a<0?(b>=0&&b<=1?b:-1):b<0?a:Math.min(a,b);};
+  for(let iz=piz-12;iz<=piz+12;iz++)for(let ix=pix-12;ix<=pix+12;ix++){const l=LV(ix,iz);if(l>=0){if(!tileWanted(ix,iz))continue;want.set(ix+','+iz,l);}}
   for(const [k,T] of tiles){if(!want.has(k)){disposeTile(T);tiles.delete(k);}}
   blkBuild();
   tileQueue=[];
-  for(const [k,lod] of want){const T=tiles.get(k);if(!T||T.lod!==lod){const [ix,iz]=k.split(',').map(Number);tileQueue.push({ix,iz,lod,d:Math.max(Math.abs(ix-pix),Math.abs(iz-piz))});}}
+  for(const [k,lod] of want){const T=tiles.get(k);if(!T||T.lod!==lod){const [ix,iz]=k.split(',').map(Number);
+    // a tile already finer than needed close by stays as it is (no rebuilding back and forth when the car stops or turns)
+    if(T&&T.lod>=0&&T.lod<lod&&Math.max(Math.abs(ix-pix),Math.abs(iz-piz))<=2)continue;tileQueue.push({ix,iz,lod,d:Math.min(Math.max(Math.abs(ix-pix),Math.abs(iz-piz)),Math.max(Math.abs(ix-aix),Math.abs(iz-aiz))+0.5)});}}
   tileQueue.sort((a,b)=>a.d-b.d);
 }
 function processTiles(budgetMs){
@@ -4313,7 +4322,7 @@ function windscreenDirt(dt,env,s){
   const ws=V&&V.ws;if(!ws||!ws.U||!V.body){dirtU.on.value=0;return;}
   const x=DIRT.x,W=DIRTC.width,H=DIRTC.height,R=Math.random,sp=Math.abs(S.v||0),ground=S.mode==='play'&&!S.air;let ch=false;
   // world -> glass plane: across (0..1), up the glass (0..1), off the glass (metres)
-  const hw=ws.hw/0.94,T=new THREE.Matrix4().set(1/(2*hw),0,0,0.5, 0,ws.U[1]/ws.ul,ws.U[2]/ws.ul,-(ws.y*ws.U[1]+ws.z*ws.U[2])/ws.ul, 0,ws.N[1],ws.N[2],-(ws.y*ws.N[1]+ws.z*ws.N[2]), 0,0,0,1);
+  const hw=ws.hw/0.94,T=(DIRT.Tm||(DIRT.Tm=new THREE.Matrix4())).set(1/(2*hw),0,0,0.5, 0,ws.U[1]/ws.ul,ws.U[2]/ws.ul,-(ws.y*ws.U[1]+ws.z*ws.U[2])/ws.ul, 0,ws.N[1],ws.N[2],-(ws.y*ws.N[1]+ws.z*ws.N[2]), 0,0,0,1);
   DIRT.T=T;dirtU.on.value=1;
   const put=(img,px,py,r,al)=>{x.globalAlpha=al;x.drawImage(img,px-r,py-r,r*2,r*2);ch=true;};
   // dust: settles all over, thickest low down and at the sides, faster the faster you go
@@ -4356,7 +4365,7 @@ const ANI={bear:{m:'an_bear',f:1,len:2.1,sp:1.0,run:6,flee:false},camel:{m:'an_c
 const ANIZ=[['sheep','horse','goat'],['sheep','deer','horse'],['deer','bear','deer'],['camel','goat','goat'],['horse','sheep','camel'],['goat','bear','goat'],['deer','bear','sheep'],['camel','horse','sheep']];
 const ANIPROTO={};
 // the model turned to face +z, scaled to its size and stood on the ground at its middle
-function aniProto(key){if(ANIPROTO[key]!==undefined)return ANIPROTO[key];const A=ANI[key]||{m:key},sc=MODELS[A.m];if(!sc)return ANIPROTO[key]=null;
+function aniProto(key){if(ANIPROTO[key]!==undefined)return ANIPROTO[key];const A=ANI[key]||{m:key},sc=MODELS[A.m];if(!sc)return window.__lateDone?(ANIPROTO[key]=null):null;
   const inner=sc.clone(true);inner.rotation.y=(A.f||1)>0?-Math.PI/2:Math.PI/2;const wrap=new THREE.Group();wrap.add(inner);wrap.updateMatrixWorld(true);
   const b=new THREE.Box3().setFromObject(wrap),s=(A.len||1)/Math.max(0.01,b.max.z-b.min.z);inner.scale.setScalar(s);wrap.updateMatrixWorld(true);
   const b2=new THREE.Box3().setFromObject(wrap),c=b2.getCenter(new THREE.Vector3());inner.position.set(-c.x,-b2.min.y,-c.z);
@@ -4405,7 +4414,7 @@ function animalsStep(dt){
   const C=HERD.CELL,cx=Math.floor(S.x/C),cz=Math.floor(S.z/C),want=new Set();
   const ord=[];for(let j=-2;j<=2;j++)for(let i=-2;i<=2;i++)ord.push([i*i+j*j,(cx+i)+','+(cz+j)]);ord.sort((a,b)=>a[0]-b[0]);for(const o of ord)want.add(o[1]);
   for(const [k,E] of HERD.cells)if(!want.has(k)){E.an.forEach(a=>scene.remove(a.g));HERD.cells.delete(k);}
-  let made=0;for(const k of want)if(!HERD.cells.has(k)&&made<2){const [i,j]=k.split(',').map(Number);const H=herdFor(i,j);HERD.cells.set(k,{H,an:H?herdSpawn(H):[]});made++;}
+  let made=0;for(const k of want)if(!HERD.cells.has(k)&&made<2){const [i,j]=k.split(',').map(Number);const H=herdFor(i,j);if(H&&!aniProto(H.kind)&&!window.__lateDone)continue;HERD.cells.set(k,{H,an:H?herdSpawn(H):[]});made++;}
   const sp=Math.hypot(S.vx,S.vz);
   for(const [,E] of HERD.cells)for(const a of E.an){const dxp=a.x-S.x,dzp=a.z-S.z,dp=Math.hypot(dxp,dzp);
     if(dp>200){a.g.visible=false;continue;}a.g.visible=true;a.t-=dt;
@@ -4431,7 +4440,7 @@ const CABIN_MODELS=[{m:'cabin1',len:10},{m:'cabin2',len:8},{m:'cabin3',len:11}],
   CPS.forEach(C=>{if(r()<0.8){const o=C.side*(HW(C.z)+26),z=C.z+20;tryAt(toXZx(o,z),z,Math.atan(roadDX(z))+(C.side>0?-Math.PI/2:Math.PI/2));}});
   CABINS.forEach(c=>fbAdd('k',c,c.z-20,c.z+20));})();
 const CABP={},cabObst=[];
-function cabProto(k){if(CABP[k]!==undefined)return CABP[k];const D=CABIN_MODELS[k],sc=MODELS[D.m];if(!sc)return CABP[k]=null;const inner=sc.clone(true),wrap=new THREE.Group();wrap.add(inner);wrap.updateMatrixWorld(true);
+function cabProto(k){if(CABP[k]!==undefined)return CABP[k];const D=CABIN_MODELS[k],sc=MODELS[D.m];if(!sc)return window.__lateDone?(CABP[k]=null):null;const inner=sc.clone(true),wrap=new THREE.Group();wrap.add(inner);wrap.updateMatrixWorld(true);
   const b=new THREE.Box3().setFromObject(wrap),sz=b.getSize(new THREE.Vector3()),s=D.len/Math.max(sz.x,sz.z);inner.scale.setScalar(s);wrap.updateMatrixWorld(true);
   const b2=new THREE.Box3().setFromObject(wrap),c=b2.getCenter(new THREE.Vector3()),s2=b2.getSize(new THREE.Vector3());inner.position.set(-c.x,-b2.min.y,-c.z);
   wrap.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=false;o.material=lambertOf(o.material,1.8);}});wrap.userData.hx=s2.x/2;wrap.userData.hz=s2.z/2;return CABP[k]=wrap;}
@@ -5369,7 +5378,7 @@ function evSpawn(type,at){const W=evWhere();if(!W)return null;let k=at!==undefin
   let E=null;if(type==='car')E=evCar(k,W.dir);else if(type==='sheep')E=evSheep(k,W.dir);else if(type==='pat')E=evPat(W);
   if(E){E.type=type;E.t=0;E.seen=false;EVT.cur=E;}return E;}
 function evCar(k,dir){const P=evRP(k),sd=evSide(P,4),off=sd*(FW.dk?2.3:4.6),x=P.x+P.nx*off,z=P.z+P.nz*off,th=P.hd+(dir<0?Math.PI:0);
-  const L=NPCV.map((v,i)=>i).filter(i=>!/amb|cop/.test(NPCV[i].n));if(!L.length)return null;const vi=L[Math.floor(Math.random()*L.length)];
+  const L=NPCV.map((v,i)=>i).filter(i=>!/amb|cop/.test(NPCV[i].n)&&MODELS[NPCV[i].glb]);if(!L.length)return null;const vi=L[Math.floor(Math.random()*L.length)];
   const spec=Object.assign({},NPCV[vi],{lite:true,noInt:true}),cu={paint:pick(TR_PAINT),rim:null,bar:0,snork:0,rack:0,flag:0,roof:0,crate:0,tire:1};
   const Vc=buildVehicle(spec,cu,null);Vc.g.traverse(o=>{if(o.isMesh)o.castShadow=true;});scene.add(Vc.g);
   const bl=Vc.bodyPts[0][0],bw=Vc.bodyPts[0][1],hz=new THREE.MeshBasicMaterial({color:'#ffae2a'}),HZ=[];
@@ -5937,9 +5946,9 @@ const TR={cars:[],pool:[],lastZ:-1e9,built:0,voices:null};
 
 const TR_PAINT=['#f1f1ef','#e9e9e6','#c9ccce','#9ea3a8','#2b2d30','#7a1f22','#28466b','#d8d2c4','#5b6b52','#f1efe9'];
 const LANE=1.95,TR_N=()=>NPCV.length?QV([1,3,5,8]):0;
-function trKind(){return Math.floor(Math.random()*NPCV.length);}
+function trKind(){const L=[];for(let i=0;i<NPCV.length;i++)if(MODELS[NPCV[i].glb])L.push(i);return L.length?L[Math.floor(Math.random()*L.length)]:-1;}
 function trModel(){
-  const vi=trKind(),spec=Object.assign({},NPCV[vi],{lite:true,noInt:true}),cu={paint:NPCV[vi].fixedPaint?'#f1f1ef':pick(TR_PAINT),rim:null,bar:0,snork:0,rack:0,flag:0,roof:0,crate:0,tire:1};
+  const vi=trKind();if(vi<0)return null;const spec=Object.assign({},NPCV[vi],{lite:true,noInt:true}),cu={paint:NPCV[vi].fixedPaint?'#f1f1ef':pick(TR_PAINT),rim:null,bar:0,snork:0,rack:0,flag:0,roof:0,crate:0,tire:1};
   const Vc=buildVehicle(spec,cu,null);Vc.g.traverse(o=>{if(o.isMesh)o.castShadow=true;});scene.add(Vc.g);Vc.g.visible=false;return Vc;}
 // the road's heading and curvature at s
 function rHead(s){return Math.atan(roadDX(s));}
@@ -5954,7 +5963,7 @@ function trFill(force){
   if(force){TR.cars.forEach(trFree);TR.cars=[];}
   const want=TR_N();let builds=force?want:2,tries=0;
   while(TR.cars.length<want&&tries++<60){
-    let V0=TR.pool.pop();if(!V0){if(TR.built>=want+4||builds<=0)break;builds--;TR.built++;V0=trModel();}
+    let V0=TR.pool.pop();if(!V0){if(TR.built>=want+4||builds<=0)break;builds--;V0=trModel();if(!V0)break;TR.built++;}
     const nf=TR.cars.filter(o=>o.dir>0).length,dir=nf*2<TR.cars.length?1:nf*2>TR.cars.length?-1:Math.random()<0.5?1:-1,fresh=force||TR.lastZ<-1e8;
     let s=fresh?z0+(Math.random()*1100-250):z0+(dir>0?600+Math.random()*350:600+Math.random()*350);
     if(!fresh&&dir>0&&Math.random()<0.35)s=z0-260-Math.random()*60;
@@ -6184,7 +6193,10 @@ function SKY_DAYF(){const h=((S.tod%1)+1)%1;return h>0.27&&h<0.77?1:0;}
 window.__DIR={DIR,dirArm,dirStart,dirStop};
 
 function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.offset.y=(performance.now()/1000*0.007)%1;
-  const rawDt=clock.getDelta(),dt=Math.min(rawDt,0.05);dirStep(dt);timeU.value+=dt;perfStep(rawDt);if(SET.fps){FPSC.n++;FPSC.t+=rawDt;if(FPSC.t>0.5){$('fpsTag').textContent='FPS '+Math.round(FPSC.n/FPSC.t)+tr_(' · کیفیت ')+QL();FPSC.n=0;FPSC.t=0;}}
+  const rawDt=clock.getDelta(),dt=Math.min(rawDt,0.05);dirStep(dt);timeU.value+=dt;perfStep(rawDt);if(SET.fps){FPSC.n++;FPSC.t+=rawDt;FPSC.mx=Math.max(FPSC.mx||0,rawDt);if(FPSC.t>1){
+    // the stats line: average fps, the slowest frame of the last second, what is drawn, memory, and how long loading took
+    const ri=renderer.info,hp=performance.memory?Math.round(performance.memory.usedJSHeapSize/1048576)+'MB':'-';
+    $('fpsTag').textContent='FPS '+Math.round(FPSC.n/FPSC.t)+' · max '+Math.round(FPSC.mx*1000)+'ms · draw '+ri.render.calls+' · tri '+Math.round(ri.render.triangles/1000)+'k · tex '+ri.memory.textures+' · geo '+ri.memory.geometries+' · heap '+hp+' · load '+(window.__loadS||'-')+'s · q'+QL();FPSC.n=0;FPSC.t=0;FPSC.mx=0;}}
   S.portrait=portraitMQ.matches;const playing=S.mode==='play'&&!S.modal&&!S.portrait;
   if(!wHeld){const ret=S.mode==='play'?Math.min(6,Math.abs(S.v||0)*0.32):7;wAng*=Math.exp(-dt*ret);if(Math.abs(wAng)<0.01)wAng=0;}wheelImg.style.transform='rotate('+wAng+'rad)';
   if(S.mode==='play')sleepStep(dt,playing);
@@ -6244,6 +6256,7 @@ rebuildEnv();scanTiles(true);processTiles(1e9);updateRoad(true);applyVehicle();a
 setInterval(()=>{if(S.mode==='play')save();},10000);
 try{setWorld(true,'island');if(FS.x!==null)placeAt(FS.x,FS.z,FS.th);else freeGo(0);}catch(e){console.error(e);}
 try{const dk=document.createElement('div');dk.className='gearDock';dk.appendChild(document.querySelector('.rightCtl .dash'));$('ctl').appendChild(dk);}catch(e){}try{applyMv();}catch(e){}
+try{window.__loadS=(performance.now()/1000).toFixed(1);}catch(e){}
 $('loading').hidden=true;
 // the first time a player comes in (after choosing a language): a short guide to read, closed with OK
 function showGuide(){if(document.getElementById('guide'))return;const d=document.createElement('div');d.id='guide';d.className='modal';
