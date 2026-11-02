@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=192</script>
+<script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
+<script>window.GAME_CODE=193</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -3093,7 +3094,9 @@ function loopSrc(buf,out){const ac=AU.ac,s=ac.createBufferSource();s.buffer=buf;
   const L=window.__loopL&&buf.__n&&window.__loopL[buf.__n];
   // the loop carries wrapped copies at both ends, so any stretch of exactly its length loops cleanly; start 2112 samples in,
   // past any encoder delay
-  if(L){s.loopStart=2112/44100;s.loopEnd=s.loopStart+L;}else{s.loopStart=PADS;s.loopEnd=buf.duration-PADS;}
+  // the app's own sounds: the exact loop length is known (decoders may add or drop a few samples at the end, which made a tick)
+  const LO=!window.__snd&&window.__loopO&&buf.__n&&window.__loopO[buf.__n];
+  if(L){s.loopStart=2112/44100;s.loopEnd=s.loopStart+L;}else if(LO&&PADS+LO<=buf.duration){s.loopStart=PADS;s.loopEnd=PADS+LO;}else{s.loopStart=PADS;s.loopEnd=buf.duration-PADS;}
   s.connect(out);s.start(0,s.loopStart+Math.random()*(s.loopEnd-s.loopStart)*0.9);return s;}
 function buildLoops(){
   const L={};
