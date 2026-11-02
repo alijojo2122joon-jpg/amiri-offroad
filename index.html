@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=189</script>
+<script>window.GAME_CODE=190</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -3723,9 +3723,15 @@ function physics(dt){
   const zk=zoneOf(S.z);if(zk!==S.zone){if(S.zone>=0||S.z>200)zoneCard(zk);S.zone=zk;}
   const spd=Math.abs(S.v)+S.slipNow*(S.gas>0.3?7:0);let gear,ratio;
   if(!S.engineOn){gear=0;ratio=0;}else if(S.v<-0.5){gear=-1;ratio=Math.abs(S.v)/8;}else if(spd<0.6){gear=0;ratio=0;}
-  else{const MV=ST.maxV*mapSpeedK();gear=1;while(gear<5&&spd>GEARS[gear]*MV)gear++;const lo=GEARS[gear-1]*MV,hi=GEARS[gear]*MV;ratio=clamp((spd-lo)/(hi-lo),0,1);}
-  const tgt=!S.engineOn?0:gear===0?820+S.gas*3300:1100+ratio*4800+S.gas*300;
-  if(gear>S.gear&&S.gear>0){S.rpm*=0.72;SFX.shift();}
+  else{// a real automatic: the engine speed follows the road speed in each gear; it shifts up early on a light foot and
+    // late on full throttle, shifts down as the car slows (or when you floor it), never hunting between two gears
+    const MV=ST.maxV*mapSpeedK(),rpmIn=g=>5800*spd/(GEARS[g]*MV),gs=S.gas||0;let g=S.gear>0?S.gear:1;
+    while(g<5&&rpmIn(g)>2300+gs*3300&&rpmIn(g+1)>1150)g++;
+    while(g>1&&(rpmIn(g)<1250+gs*900||(gs>0.85&&rpmIn(g)<2600&&rpmIn(g-1)<4800)))g--;
+    gear=g;ratio=rpmIn(g);}
+  // standing still in gear the converter lets it rise only a little; out of gear it revs freely
+  const tgt=!S.engineOn?0:gear===0?(S.sel==='D'||S.sel==='R'?820+S.gas*750:820+S.gas*3600):gear<0?1100+ratio*3000+S.gas*300:clamp(ratio,1000,6100)+S.gas*120;
+  if(gear>S.gear&&S.gear>0){SFX.shift();}
   S.gear=gear;S.rpm+=(tgt-S.rpm)*Math.min(1,dt*(S.engineOn?(gear===0?5:7):2));
   if(S.crank>0)S.rpm=170+110*Math.pow(Math.abs(Math.sin(performance.now()/1000*7.5)),3);
 }
