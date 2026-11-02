@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
-<script>window.GAME_CODE=183</script>
+<script>window.GAME_CODE=184</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -6219,7 +6219,10 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
   if(BRK.rep&&!window.__camOv)repCam();
   if(window.__camOv){const o=window.__camOv;camera.position.set(o[0],o[1],o[2]);camera.lookAt(o[3],o[4],o[5]);}
   skyGroup.position.copy(camera.position);
-  {const gx=Math.round(S.x/2)*2,gz=Math.round(S.z/2)*2;sun.position.multiplyScalar(220).add(tmpV.set(gx,S.y,gz));sun.target.position.set(gx,S.y,gz);sun.target.updateMatrixWorld();}
+  {const gx=Math.round(S.x/2)*2,gz=Math.round(S.z/2)*2;
+  // a low sun would throw the car's and the trees' shadows tens of metres away, onto far hillsides: keep the light at least ~25 degrees up
+  {const P=sun.position.normalize(),MY=0.42;if(P.y<MY){const h=Math.hypot(P.x,P.z)||1,k=Math.sqrt(1-MY*MY)/h;P.set(P.x*k,MY,P.z*k);}}
+  sun.position.multiplyScalar(220).add(tmpV.set(gx,S.y,gz));sun.target.position.set(gx,S.y,gz);sun.target.updateMatrixWorld();}
   updateParticles(dt,env);updateWindscreen(dt,env);updateAudio(dt,env);
   if(S.mode==='play'){hudT-=dt;if(hudT<=0){hudT=0.1;
     if(V.gauge&&S.cam===4)drawGauge(V.gauge);
