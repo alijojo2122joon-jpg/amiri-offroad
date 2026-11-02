@@ -617,7 +617,7 @@ if(!set.lang){var o=document.createElement('div');o.id='langPick';
 // car models are loaded first; the game starts when they are ready (or failed)
 // embedded files (the one-file PC and iPhone builds) are decoded straight from their text, without fetch
 function dataBytes(u){const b=atob(u.slice(u.indexOf(',')+1)),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a.buffer;}
-const MODELS={};window.__M=MODELS;function loadModels(){if(!THREE.GLTFLoader)return Promise.resolve();const L=new THREE.GLTFLoader(),list=[(()=>{try{const q=JSON.parse(localStorage.getItem('amiri-offroad-settings')||'{}').quality;return q==='high'||q==='ultra'?'cruiser':'cruiser_mid';}catch(e){return 'cruiser_mid';}})(),'acc_bullbar','acc_jerry','acc_lightbar','acc_bag'];
+const MODELS={};window.__M=MODELS;function loadModels(){if(!THREE.GLTFLoader)return Promise.resolve();const L=new THREE.GLTFLoader(),list=[(()=>{try{const q=JSON.parse(localStorage.getItem('amiri-offroad-settings')||'{}').quality;return (q==='high'||q==='ultra')&&!(window.__glb&&!window.__glb.cruiser)?'cruiser':'cruiser_mid';}catch(e){return 'cruiser_mid';}})(),'acc_bullbar','acc_jerry','acc_lightbar','acc_bag'];
   // only the player's car waits for the loading screen: the traffic, the animals and the cabins arrive one by one after the game has started
   const late=['lifted85','bokaroo','conquer','utility90','shvan','shvan_amb','doutrive','elalamo','kiri','fh_cop','lct3000','negotiator','phoenix','fh_sw','fh_lt','an_sheep','an_goat','an_deer','an_horse','an_camel','an_bear','cabin1','cabin2','cabin3'];
   const one=n=>new Promise(res=>{const url=(window.__glb&&window.__glb[n])||'models/'+n+'.glb';
@@ -1944,7 +1944,7 @@ function wrap(v,c){const d=v-c;if(d<=PBOX&&d>=-PBOX)return v;const W=2*PBOX;retu
 /* ---------- Vehicles ---------- */
 const VEH=[
  // Land Cruiser 2006 by DR1KING100K on Sketchfab (CC-BY 4.0), with its full cabin; badges taken off (tools/prep_lc.py)
- {n:tr_('کروزر ۱۰۰'),d:tr_('شاسی‌بلند بزرگ و قوی با کابین کامل: داشبورد چوبی، آمپرها، صفحه‌نمایش و صندلی‌های چرمی. مدل سه‌بعدی: DR1KING100K.'),type:'glb',tex:1,noInt:1,glb:QL()<2?'cruiser_mid':'cruiser',paint:'#1d5fc4',
+ {n:tr_('کروزر ۱۰۰'),d:tr_('شاسی‌بلند بزرگ و قوی با کابین کامل: داشبورد چوبی، آمپرها، صفحه‌نمایش و صندلی‌های چرمی. مدل سه‌بعدی: DR1KING100K.'),type:'glb',tex:1,noInt:1,glb:QL()<2||!MODELS.cruiser?'cruiser_mid':'cruiser',paint:'#1d5fc4',
   maxV:47.5,acc:8.2,curve:[1.6,2.7,1.15],top:172,grip:1.15,eng:'f6',price:0,T:{k:22,travel:0.27,hcg:0.55,camK:1.15}}
 ];
 // cars of the traffic (same series)
@@ -3095,7 +3095,7 @@ function loopSrc(buf,out){const ac=AU.ac,s=ac.createBufferSource();s.buffer=buf;
   // the loop carries wrapped copies at both ends, so any stretch of exactly its length loops cleanly; start 2112 samples in,
   // past any encoder delay
   // the app's own sounds: the exact loop length is known (decoders may add or drop a few samples at the end, which made a tick)
-  const LO=!window.__snd&&window.__loopO&&buf.__n&&window.__loopO[buf.__n];
+  const LO=!window.__loopL&&window.__loopO&&buf.__n&&window.__loopO[buf.__n];
   if(L){s.loopStart=2112/44100;s.loopEnd=s.loopStart+L;}else if(LO&&PADS+LO<=buf.duration){s.loopStart=PADS;s.loopEnd=PADS+LO;}else{s.loopStart=PADS;s.loopEnd=buf.duration-PADS;}
   s.connect(out);s.start(0,s.loopStart+Math.random()*(s.loopEnd-s.loopStart)*0.9);return s;}
 function buildLoops(){
