@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=197</script>
+<script>window.GAME_CODE=198</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -4531,7 +4531,7 @@ function trailQ(x,z,md){const c=FCELL,gx=Math.floor((x-FW.x0)/c),gz=Math.floor((
   for(let j=gz-rr;j<=gz+rr;j++)for(let i=gx-rr;i<=gx+rr;i++){const L=FW.cells.get(i*8192+j);if(!L)continue;
     for(let k=0;k<L.length;k++){const s=L[k],ax=PX[s],az=PZ[s],vx=PX[s+1]-ax,vz=PZ[s+1]-az,l2=vx*vx+vz*vz||1;let t=((x-ax)*vx+(z-az)*vz)/l2;t=t<0?0:t>1?1:t;
       const dx=x-ax-vx*t,dz=z-az-vz*t,d=Math.sqrt(dx*dx+dz*dz);if(d<bd){bd=d;best=s;bt=t;}}}
-  if(best<0)return null;return {d:bd,h:FW.PH[best]+(FW.PH[best+1]-FW.PH[best])*bt,s:best+bt};}
+  if(best<0)return null;const vx=PX[best+1]-PX[best],vz=PZ[best+1]-PZ[best];return {d:bd,h:FW.PH[best]+(FW.PH[best+1]-FW.PH[best])*bt,s:best+bt,sg:(x-PX[best])*vz-(z-PZ[best])*vx>0?1:-1};}
 function freeHf(x,z){let h=freeBase(x,z);if(!FW)return h;if(FW.dk&&FW.rc){const q=dkRiv(x,z);if(q){const W=q.w;h+=(q.h+(vnoise(x*0.05,z*0.05)-0.5)*0.5-h)*sstep(W+3.5+3*vnoise(x*0.02,z*0.02),W,q.d);const cw=q.c;if(q.dc<cw+1.5)h-=0.55*sstep(cw+1.5,cw*0.4,q.dc);}
     if(FW.lg){const l=dkLake(x,z);if(l){if(l.sd<0)h=Math.min(h,l.lv-Math.min(40,0.6+(-l.sd)*0.45)+(vnoise(x*0.04,z*0.04)-0.5)*0.8);else{const t=l.lv+0.3+0.25*vnoise(x*0.09,z*0.09);if(h<t)h+=(t-h)*sstep(7.5,3.5,l.sd);else if(l.sd<6)h+=(t+0.4-h)*sstep(6,0,l.sd)*0.5;
       // where the land rises from the water (most of Haibat's shore) it does so as a sheer wall of limestone, flat on top
@@ -4545,9 +4545,19 @@ function freeHf(x,z){let h=freeBase(x,z);if(!FW)return h;if(FW.dk&&FW.rc){const 
   if(FW.cells.size){const q=trailMix(x,z);
     // the island's high ground: sharp rock teeth and gullies, kept clear of the trails (the trail runs between them)
     if(!FW.dk&&h>50){const u=x-FX,v=z-FZ,cr2=1-Math.abs(2*fbm(u*0.012+5,v*0.012-9,3)-1),hi=sstep(50,170,h)*(q?sstep(9,24,q.d):1);if(hi>0)h+=(Math.pow(cr2,5)*34-5)*hi;}
+    // on the mountain the trail runs along one side of a valley: on its lower side the ground falls away steeply below the
+    // road (the other side stays a rock wall), instead of the road sitting in a slot between two walls
+    if(!FW.dk&&FW.trDone&&h>45){const q2=trailQ(x,z,48);if(q2&&q2.d>3.1){const k=Math.floor(q2.s),P=islDropSide(),ds=P[k]||0;if(ds&&ds===q2.sg){const t=q2.h-0.4-(q2.d-3.1)*1.7,w=sstep(48,36,q2.d);if(h>t)h+=(t-h)*w;}}}
     if(q){if(FW.dk&&FW.br&&dkOnSpan(x,z)){}else if(FW.dk){const dh=Math.abs(q.h-h),rw=FW.rw||2.7;h+=(q.h-h)*sstep(rw+dh*1.3+0.8,rw,q.d);}else{/* a narrow bed (about 6 m) with steep banks: the higher the cut or the drop, the wider its bank */const dh=Math.abs(q.h-h);h+=(q.h-h)*sstep(Math.min(15,3.1+1.6+dh*0.6),3.1,q.d);}}}
   return h;}
 // the trail beds near a point, mixed by nearness: on a trail you get its own bed, and between two trails close together the ground runs smoothly from one to the other
+// which side of each trail point is the valley side (where the open ground lies lower), smoothed along the trail
+function islDropSide(){if(FW.PS&&FW.PS.length===FW.PX.length)return FW.PS;const n=FW.PX.length,raw=new Float32Array(n),PS=new Int8Array(n);
+  for(let k=0;k<n-1;k++){const vx=FW.PX[k+1]-FW.PX[k],vz=FW.PZ[k+1]-FW.PZ[k],l=Math.hypot(vx,vz);if(l<0.01||l>6)continue;const nx=vz/l,nz=-vx/l;
+    // side +1 is where (x-a)x v > 0, i.e. along (vz,-vx)
+    raw[k]=freeRaw(FW.PX[k]-nx*16,FW.PZ[k]-nz*16)-freeRaw(FW.PX[k]+nx*16,FW.PZ[k]+nz*16);}
+  for(let k=0;k<n;k++){let a=0;for(let q=Math.max(0,k-25);q<=Math.min(n-1,k+25);q++)a+=raw[q];PS[k]=a>0?1:a<0?-1:0;}
+  return FW.PS=PS;}
 function trailMix(x,z){let md=1e9;const c=FCELL,gx=Math.floor((x-FW.x0)/c),gz=Math.floor((z-FW.z0)/c),PX=FW.PX,PZ=FW.PZ,PH=FW.PH;let sw=0,sh=0,mw=0;
   for(let j=gz-1;j<=gz+1;j++)for(let i=gx-1;i<=gx+1;i++){const L=FW.cells.get(i*8192+j);if(!L)continue;
     for(let k=0;k<L.length;k++){const s=L[k],ax=PX[s],az=PZ[s],vx=PX[s+1]-ax,vz=PZ[s+1]-az,l2=vx*vx+vz*vz||1;let t=((x-ax)*vx+(z-az)*vz)/l2;t=t<0?0:t>1?1:t;
@@ -4626,7 +4636,7 @@ function freeInit(){if(FW)return;if(RMAP(FMAP)){dkInit();return;}const t0=perfor
       // a place's clearing is levelled to where its first trail arrives (a summit is cut down to it)
       if(r0===0&&!A.fin){A.h=pr[0];A.fin=true;}if(r1===m-1&&!B.fin){B.h=pr[mm-1];B.fin=true;}
       FW.trails.push({a,b,i0,i1:i0+mm-1,L:mm*2});}}
-  for(const Q of P)Q.fin=true;
+  for(const Q of P)Q.fin=true;FW.trDone=true;FW.PS=null;
   // cabins at the camp and the cabins' places, set beside the clearing away from the trails
   for(const Q of P){if(Q.k!=='camp'&&Q.k!=='cabin')continue;for(let k=0;k<12;k++){const an=k/12*6.283,x=Q.x+Math.sin(an)*17,z=Q.z+Math.cos(an)*17;const q=trailQ(x,z,14);if(q&&q.d<10)continue;
     CABINS.push({x,z,th:an+Math.PI,k:Q.k==='camp'?0:k%2?2:1});break;}}
