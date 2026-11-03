@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Amiri Offroad">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=195</script>
+<script>window.GAME_CODE=196</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -6365,17 +6365,26 @@ function buildVehicle(spec,cu,st){let glbSteer=null;
         yb=Math.max(0.5,topAt(pts,sideAt(pts,ry*0.55,zA,1,0.12)-0.1,zA+0.2,0.12)),xs=sideAt(pts,yb,zA,1,0.12)+0.03,top=ry+0.08;
       const pipe=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.065,top-yb+0.1,14),mats.dark);pipe.position.set(xs,(top+yb)/2,zA);pipe.rotation.x=-0.18;body.add(pipe);
       const head=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.14,0.26),mats.dark);head.position.set(xs,top,zA+0.12);body.add(head);}
-    // antenna base: on the top of the rear right wing (or the roof's back corner), touching the paint
-    const ax=Math.max(0.3,(rx1>0?rx1:0.6)*0.9),az=B.min.z+len*0.2;let ay=topAt(pts,ax,az,0.12);if(ay<0){ay=ry;}antMount=[ax,ay,az];}
+    // the flag whip stands at the front, on the right corner of the bumper (on the bull bar when it has one), like the
+    // long radio whips of the Land Cruisers in the field
+    {const fz=B.max.z,fh=Math.max(0.35,(MP.lamp?MP.lamp[1]:0.8)),side=sideAt(pts,fh*0.8,fz-0.25,1,0.15)||0.85;
+      const ax=Math.max(0.35,side*0.82),az=fz-(cu.bar===2?-0.04:0.1),ay=cu.bar===2?Math.max(0.12,fh*0.45)+fh*0.62:fh*0.92;antMount=[ax,ay,az,1];}}
   if(cargo&&has('crate')){const crate=new THREE.Mesh(new THREE.BoxGeometry(cargo[3],cargo[4],cargo[5]),mat('#9b7a52'));crate.position.set(cargo[0],cargo[1]+lift,cargo[2]);crate.castShadow=true;body.add(crate);}
   const antSegs=[];let par=new THREE.Group();par.position.set(ant[0],roofY+lift,ant[1]);if(antMount)par.position.set(antMount[0],antMount[1]-0.01,antMount[2]);
   // model cars carry the antenna (with its flag) only when a flag is chosen; it stands on the body's own surface
   if(!spec.lite&&(type!=='glb'||(antMount&&cu.flag)))body.add(par);
-  par.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.05,0.08,8),mats.dark));
-  const segG=new THREE.CylinderGeometry(0.012,0.016,0.36,5);segG.translate(0,0.18,0);
-  for(let i=0;i<5;i++){const sg=new THREE.Group();if(i>0)sg.position.y=0.36;par.add(sg);sg.add(new THREE.Mesh(segG,mats.dark));antSegs.push(sg);par=sg;}
-  const tip=new THREE.Mesh(new THREE.SphereGeometry(0.035,8,6),cu.flag?mats.rim:mats.dark);tip.position.y=0.37;par.add(tip);
-  let cloth=null;if(cu.flag||spec.rag){const fs=spec.rag&&!cu.flag?1.45:1,fg=new THREE.PlaneGeometry(0.56*fs,0.37*fs,12,6);fg.translate(0.28*fs,0,0);cloth=new THREE.Mesh(fg,new THREE.MeshLambertMaterial({map:cu.flag?flagTex(cu.flagC||'af3'):ragTex(),side:THREE.DoubleSide}));cloth.rotation.y=Math.PI/2;cloth.position.set(0,0.2,0);cloth.userData.base=fg.attributes.position.array.slice();par.add(cloth);}
+  const frontAnt=!!(antMount&&antMount[3]),SEGL=frontAnt?0.42:0.36;
+  if(frontAnt){// a steel bracket from the bumper, a heavy spring and a ball mount, then a long thin whip
+    const br=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.03,0.12),mats.dark);br.position.set(-0.05,-0.02,-0.02);par.add(br);
+    par.add(new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.04,0.05,10),mats.dark));
+    const spr=new THREE.Group();spr.position.y=0.03;par.add(spr);for(let k=0;k<7;k++){const t=new THREE.Mesh(new THREE.TorusGeometry(0.026,0.007,5,12),mats.rim);t.rotation.x=Math.PI/2;t.position.y=0.012+k*0.019;spr.add(t);}
+    const cap=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.026,0.04,8),mats.dark);cap.position.y=0.16;par.add(cap);const up=new THREE.Group();up.position.y=0.17;par.add(up);par=up;}
+  else par.add(new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.05,0.08,8),mats.dark));
+  const segG=new THREE.CylinderGeometry(frontAnt?0.006:0.012,frontAnt?0.011:0.016,SEGL,6);segG.translate(0,SEGL/2,0);
+  const NSEG=frontAnt?6:5;for(let i=0;i<NSEG;i++){const sg=new THREE.Group();if(i>0)sg.position.y=SEGL;par.add(sg);
+    const g2=frontAnt?new THREE.CylinderGeometry(0.0062-i*0.0006,0.0068-i*0.0006,SEGL,6).translate(0,SEGL/2,0):segG;sg.add(new THREE.Mesh(g2,mats.dark));antSegs.push(sg);par=sg;}
+  const tip=new THREE.Mesh(new THREE.SphereGeometry(frontAnt?0.022:0.035,8,6),cu.flag?mats.rim:mats.dark);tip.position.y=SEGL+0.01;par.add(tip);
+  let cloth=null;if(cu.flag||spec.rag){const fs=(spec.rag&&!cu.flag?1.45:1)*(frontAnt?1.25:1),fg=new THREE.PlaneGeometry(0.56*fs,0.37*fs,20,12);fg.translate(0.28*fs,0,0);cloth=new THREE.Mesh(fg,new THREE.MeshLambertMaterial({map:cu.flag?flagTex(cu.flagC||'af3'):ragTex(),side:THREE.DoubleSide}));cloth.rotation.y=Math.PI/2;cloth.position.set(0,frontAnt?SEGL-0.37*fs/2:0.2,0);cloth.userData.base=fg.attributes.position.array.slice();cloth.userData.W=0.56*fs;cloth.userData.H=0.37*fs;cloth.castShadow=true;par.add(cloth);}
   const tw=type==='monster'?0.75:type==='crawler'?0.74:type==='sedan'?0.36:type==='tank'?0.5:type==='truck'?0.5:0.45;
   const prof=[[wr*0.6,-tw*0.45],[wr*0.78,-tw*0.5],[wr*0.92,-tw*0.49],[wr*0.98,-tw*0.43],[wr,-tw*0.3],[wr,tw*0.3],[wr*0.98,tw*0.43],[wr*0.92,tw*0.49],[wr*0.78,tw*0.5],[wr*0.6,tw*0.45]].map(([r,y])=>new THREE.Vector2(r,y));
   const tireParts=[new THREE.LatheGeometry(prof,36).toNonIndexed().applyMatrix4(new THREE.Matrix4().makeRotationZ(Math.PI/2))];
@@ -6501,7 +6510,7 @@ const S={x:0,z:20,y:0,vx:0,vz:0,vy:0,th:0,w:0,pv:0,rv:0,pitch:0,roll:0,steer:0,d
   gas:0,brk:0,rpm:800,gear:0,floodT:0,tod:0.5,lightOverride:null,lightsOn:false,cam:0,camYaw:0,
   stageMax:typeof saved.stageMax==='number'?saved.stageMax:0,stageCur:typeof saved.stageCur==='number'?saved.stageCur:0,camp:typeof saved.camp==='number'?saved.camp:0,awake:typeof saved.awk==='number'?clamp(saved.awk,0,47):0,sel:'P',todOff:0,campHere:-1,slipNow:0,ground:4,maxCd:0,flipT:0,prevF:0,prevVy:0,odo:saved.odo||0,best:saved.best||0,found:saved.v===8&&Array.isArray(saved.found)?saved.found:[0],safe:null,safeT:0,hitCd:0,
   engineOn:true,crank:0,stallT:0,diff:false,sink:0,surf:'gravel',surfT:0,zone:-1,coinAcc:0,blink:0,
-  ant:{x:0,z:0,vx:0,vz:0},antS:[0,1,2,3,4].map(()=>({x:0,z:0,vx:0,vz:0}))};
+  ant:{x:0,z:0,vx:0,vz:0},antS:[0,1,2,3,4,5].map(()=>({x:0,z:0,vx:0,vz:0}))};
 if(saved.v===8&&saved.lay!==3){const old=o=>saved.lay===2?(o<=0?o:o<24000?o*3.75:o-24000+90000):o,cv=o=>typeof o==='number'?NZ(old(o)):o;S.camp=0;S.found=[0];saved.z=cv(saved.z);if(typeof saved.best==='number')S.best=Math.min(cv(saved.best),ROADLEN);}
 if(saved.v===8&&typeof saved.z==='number'&&saved.z>0&&saved.z<ROADLEN){S.z=saved.z;}
 S.x=roadX(S.z);S.th=Math.atan(roadDX(S.z));
@@ -7411,9 +7420,19 @@ function renderVehicle(dt){
   const dtt=Math.max(dt,0.001),aF=clamp(((S.fwd||0)-S.prevF)/dtt,-40,40),aV=clamp((S.vy-S.prevVy)/dtt,-60,60);S.prevF=S.fwd||0;S.prevVy=S.vy;
   const aL=clamp((S.fwd||0)*S.w,-30,30),A=S.ant;
   A.vx+=(-26*A.x-1.6*A.vx-aF*0.045+S.pv*0.5+aV*0.006)*dt;A.vz+=(-26*A.z-1.6*A.vz+aL*0.05-S.rv*0.5+aV*0.004)*dt;
-  if(V.cloth){const pa=V.cloth.geometry.attributes.position,b=V.cloth.userData.base,tt=performance.now()/1000,sp=Math.min(1,Math.abs(S.v||0)/12)+0.25;for(let i=0;i<pa.count;i++){const px=b[i*3],py=b[i*3+1];pa.array[i*3+2]=Math.sin(px*11-tt*(5+sp*6)+py*2)*0.05*px/0.56*(0.5+sp)+Math.sin(px*5-tt*3)*0.02*px;pa.array[i*3+1]=py-px*px*0.12*(1-sp*0.6);}pa.needsUpdate=true;V.cloth.geometry.computeVertexNormals();}
-  A.x=clamp(A.x+A.vx*dt,-1.2,1.2);A.z=clamp(A.z+A.vz*dt,-1.2,1.2);let px=A.x,pz=A.z;
-  S.antS.forEach((s,i)=>{const k=70-i*8;s.vx+=(k*(px-s.x)-2.2*s.vx)*dt;s.vz+=(k*(pz-s.z)-2.2*s.vz)*dt;s.x+=s.vx*dt;s.z+=s.vz*dt;px=s.x;pz=s.z;if(V.ant[i]){V.ant[i].rotation.x=s.x*0.32;V.ant[i].rotation.z=s.z*0.32;}});
+  if(V.cloth){const C=V.cloth,pa=C.geometry.attributes.position,b=C.userData.base,FW=C.userData.W||0.56,tt=performance.now()/1000;
+    // how hard the air pulls it: the car's speed plus the weather's wind; standing still in calm air it hangs down
+    const air=Math.min(1.4,Math.abs(S.v||0)/11+(WX.type==='sand'?0.8:WX.type==='rain'||WX.type==='snow'?0.35:0.12)*(0.6+0.4*Math.sin(tt*0.7)));
+    const hang=clamp(1-air*1.2,0,1),fl=0.5+air;C.userData.ph=(C.userData.ph||0)+dt*(3+air*9);const ph=C.userData.ph;
+    for(let i=0;i<pa.count;i++){const px=b[i*3],py=b[i*3+1],u=px/FW;
+      // ripples travel from the pole to the free edge, bigger towards the end
+      const wv=Math.sin(u*9-ph+py*3)*0.045*u*fl+Math.sin(u*4.3-ph*0.63+1.1)*0.03*u*fl+Math.sin(py*7+ph*1.3)*0.008*u;
+      // hanging: the free edge swings down along the whip
+      const a=hang*1.25*u,ca=Math.cos(a),sa=Math.sin(a);
+      pa.array[i*3]=px*ca*(1-0.08*u*fl*Math.abs(Math.sin(ph*0.5)));pa.array[i*3+1]=py-px*sa;pa.array[i*3+2]=wv*(1-hang*0.6);}
+    pa.needsUpdate=true;C.geometry.computeVertexNormals();}
+  A.x=clamp(A.x+A.vx*dt,-1.2,1.2);A.z=clamp(A.z+A.vz*dt,-1.2,1.2);let px=A.x,pz=A.z;const dragB=Math.min(0.09,Math.pow(Math.max(0,S.fwd||0)/30,2)*0.09)*(V.cloth?1.3:1);
+  S.antS.forEach((s,i)=>{const k=70-i*8;s.vx+=(k*(px-s.x)-2.2*s.vx)*dt;s.vz+=(k*(pz-s.z)-2.2*s.vz)*dt;s.x+=s.vx*dt;s.z+=s.vz*dt;px=s.x;pz=s.z;if(V.ant[i]){V.ant[i].rotation.x=s.x*0.32-dragB*(0.4+i*0.18);V.ant[i].rotation.z=s.z*0.32;}});
 }
 
 /* ---------- Weather & time ---------- */
@@ -7919,7 +7938,7 @@ $('ropeBtn').addEventListener('click',ropeToggle);
 // the wipers' switch: on (they run whenever it rains or snows) or off
 $('wipBtn').addEventListener('click',()=>{if(!WS.on&&!WS.off){WS.on=true;try{DIRT.wash=3.2;DIRT.told=1;}catch(e){}}else if(WS.on){WS.on=false;WS.off=true;}else WS.off=false;$('wipBtn').classList.toggle('act',!WS.off);SFX.shift();toast(WS.on?tr_('برف‌پاک‌کن روشن'):WS.off?tr_('برف‌پاک‌کن خاموش'):tr_('برف‌پاک‌کن خودکار'));});
 window.addEventListener('pagehide',()=>{if(NET.on&&NET.peers.size)tx({t:'bye'});});
-window.__net={NET,ROPE,S,place:placeAt};window.__ride={on:()=>rideOn(nearPeer()),off:()=>rideOff(),R:RIDE,near:()=>!!rideNear()};window.__netGoTo=id=>netGoTo(id);window.__wheel=v=>{wAng=v/2.4*WLOCK;wHeld=true;};window.__nearObst=(x,z)=>nearObst(x,z);window.__parkC=(E,s)=>parkC(E,s);setTimeout(()=>{window.__ST={STAGES,ELEMS,STG,restartStage,parkCars,elemDeck,elemLineY,stageFrame,elemFail,elemPath};},0);window.__snd=window.__snd;window.__SNDB=()=>SND.buf;window.__loops=()=>{const o={};const L=SND.loops||{};for(const k in L)o[k]=+(L[k].g.gain.value||0).toFixed(3);if(SND.eng)o.ENGINE=+SND.eng.out.gain.value.toFixed(3);return o;};window.__WS=()=>WS;window.__physics=dt=>physics(dt);window.__K=K;window.__W={SPURS,spurZ,RIVERS,TRAILS,BRIDGES,LAKES,rainbow,Hf,Hd,toXZx,rivZ,trailOff,deckH,waterAt};window.__Hd=Hd;window.__ren=()=>renderer;window.__scene=()=>scene;window.__WXo=WX;window.__roadX=roadX;window.__roadDX=roadDX;window.__surf=surfaceAt;window.__zone=z=>ZB[zoneOf(z)].n;window.__wx=()=>WX;window.__ws=()=>V&&V.ws;window.__scan=(z0,z1)=>{const bad=[];let worst=0;for(let z=z0;z<z1;z+=1){const x=roadX(z),dx=roadDX(z),l=Math.sqrt(1+dx*dx);const g=Math.abs(Hf(roadX(z+2),z+2)-Hf(roadX(z-2),z-2))/4;const c=Math.abs(Hf(x+1.3/l,z)-Hf(x-1.3/l,z))/2.6;const m=Math.max(g,c*0.8);if(m>worst)worst=m;if(m>0.42)bad.push([Math.round(z),+g.toFixed(2),+c.toFixed(2),inGorge(z)]);}return {worst:+worst.toFixed(2),n:bad.length,bad:bad.filter((b,i)=>i===0||b[0]-bad[i-1][0]>6).slice(0,40)};};window.__applyVeh=()=>applyVehicle();window.__V=()=>V;window.__phys=(n,dt)=>{for(let i=0;i<n;i++)physics(dt);};window.__build=(o,cu)=>buildVehicle(Object.assign({},VEH[0],o),Object.assign({},cust(0),cu||{}),null);window.__specs=()=>VEH.concat(NPCV);window.__roofDbg=g=>{const MP=modelPartsT(g)||modelParts(g),pts=carPts(MP),B=MP.box,o=[];for(let z=B.min.z;z<=B.max.z;z+=0.1)o.push([+z.toFixed(1),...[-0.3,0,0.3].map(x=>+topAt(pts,x,z,0.07).toFixed(2))]);return [B.max.y,o];};window.__wsAll=()=>VEH.map((v,i)=>{const q=buildVehicle(v,cust(i),null).ws;return [v.n,q&&[q.y,q.z,q.ty,q.tz,q.hw].map(n=>+n.toFixed(2))];});window.__trRaw=()=>TR.cars;window.__trStep=(n,dt)=>{for(let i=0;i<n;i++)trafficStep(dt,true);};window.__tr=()=>TR.cars.map(q=>({s:Math.round(q.s),v:+q.v.toFixed(1),dir:q.dir,off:+q.off.toFixed(2),crash:q.crash,park:q.park}));window.__snowOff=()=>{snowU.value=0;};window.__snowOn=()=>{snowU.value=1;};window.__setSnow=v=>{snowU.value=v;WX.hold=v;};window.__snw=()=>{let n=0;for(const v of SNW.rut)if(v>0.5)n++;return [n,SNW.depth,SNW.mesh.visible,SNW.gx,SNW.gz];};window.__camOv=null;window.__aud=()=>({loops:Object.keys(SND.loops||{}),eng:SND.engType,bufs:Object.keys(SND.buf).length,state:AU.ac&&AU.ac.state});
+window.__net={NET,ROPE,S,place:placeAt};window.__ride={on:()=>rideOn(nearPeer()),off:()=>rideOff(),R:RIDE,near:()=>!!rideNear()};window.__netGoTo=id=>netGoTo(id);window.__wheel=v=>{wAng=v/2.4*WLOCK;wHeld=true;};window.__nearObst=(x,z)=>nearObst(x,z);window.__parkC=(E,s)=>parkC(E,s);setTimeout(()=>{window.__ST={STAGES,ELEMS,STG,restartStage,parkCars,elemDeck,elemLineY,stageFrame,elemFail,elemPath};},0);window.__snd=window.__snd;window.__SNDB=()=>SND.buf;window.__cu=i=>cust(i===undefined?S.veh:i);window.__show=()=>showVehicle(S.veh);window.__loops=()=>{const o={};const L=SND.loops||{};for(const k in L)o[k]=+(L[k].g.gain.value||0).toFixed(3);if(SND.eng)o.ENGINE=+SND.eng.out.gain.value.toFixed(3);return o;};window.__WS=()=>WS;window.__physics=dt=>physics(dt);window.__K=K;window.__W={SPURS,spurZ,RIVERS,TRAILS,BRIDGES,LAKES,rainbow,Hf,Hd,toXZx,rivZ,trailOff,deckH,waterAt};window.__Hd=Hd;window.__ren=()=>renderer;window.__scene=()=>scene;window.__WXo=WX;window.__roadX=roadX;window.__roadDX=roadDX;window.__surf=surfaceAt;window.__zone=z=>ZB[zoneOf(z)].n;window.__wx=()=>WX;window.__ws=()=>V&&V.ws;window.__scan=(z0,z1)=>{const bad=[];let worst=0;for(let z=z0;z<z1;z+=1){const x=roadX(z),dx=roadDX(z),l=Math.sqrt(1+dx*dx);const g=Math.abs(Hf(roadX(z+2),z+2)-Hf(roadX(z-2),z-2))/4;const c=Math.abs(Hf(x+1.3/l,z)-Hf(x-1.3/l,z))/2.6;const m=Math.max(g,c*0.8);if(m>worst)worst=m;if(m>0.42)bad.push([Math.round(z),+g.toFixed(2),+c.toFixed(2),inGorge(z)]);}return {worst:+worst.toFixed(2),n:bad.length,bad:bad.filter((b,i)=>i===0||b[0]-bad[i-1][0]>6).slice(0,40)};};window.__applyVeh=()=>applyVehicle();window.__V=()=>V;window.__phys=(n,dt)=>{for(let i=0;i<n;i++)physics(dt);};window.__build=(o,cu)=>buildVehicle(Object.assign({},VEH[0],o),Object.assign({},cust(0),cu||{}),null);window.__specs=()=>VEH.concat(NPCV);window.__roofDbg=g=>{const MP=modelPartsT(g)||modelParts(g),pts=carPts(MP),B=MP.box,o=[];for(let z=B.min.z;z<=B.max.z;z+=0.1)o.push([+z.toFixed(1),...[-0.3,0,0.3].map(x=>+topAt(pts,x,z,0.07).toFixed(2))]);return [B.max.y,o];};window.__wsAll=()=>VEH.map((v,i)=>{const q=buildVehicle(v,cust(i),null).ws;return [v.n,q&&[q.y,q.z,q.ty,q.tz,q.hw].map(n=>+n.toFixed(2))];});window.__trRaw=()=>TR.cars;window.__trStep=(n,dt)=>{for(let i=0;i<n;i++)trafficStep(dt,true);};window.__tr=()=>TR.cars.map(q=>({s:Math.round(q.s),v:+q.v.toFixed(1),dir:q.dir,off:+q.off.toFixed(2),crash:q.crash,park:q.park}));window.__snowOff=()=>{snowU.value=0;};window.__snowOn=()=>{snowU.value=1;};window.__setSnow=v=>{snowU.value=v;WX.hold=v;};window.__snw=()=>{let n=0;for(const v of SNW.rut)if(v>0.5)n++;return [n,SNW.depth,SNW.mesh.visible,SNW.gx,SNW.gz];};window.__camOv=null;window.__aud=()=>({loops:Object.keys(SND.loops||{}),eng:SND.engType,bufs:Object.keys(SND.buf).length,state:AU.ac&&AU.ac.state});
 
 /* Windscreen in the driver's view: it mists up in rain and snow, drops land on it, and the wipers sweep it clear */
 const WS={fog:$('wsFog'),wipe:$('wsWipe'),t:0,run:0,shown:false,pa:[0,0],pt:[],pm:[]};
