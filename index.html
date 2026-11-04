@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=213</script>
+<script>window.GAME_CODE=214</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -4827,7 +4827,7 @@ function dkInit(){const t0=performance.now();
   if(FMAP==='bamir'&&FW.trails[1])for(let k=FW.trails[1].i0;k<=FW.trails[1].i1;k++){const w=freeWater(FW.PX[k],FW.PZ[k]);if(!FW.span[k]&&w>FW.PH[k]-0.6)FW.PH[k]=w+0.6;}
   // and climbs at most about 1 in 4 (steep, but a Cruiser makes it)
   for(const H of FW.houses){let s=0;for(const [u,w] of [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5],[0,0]])s+=freeHf(H.x+u*H.w*H.ca-w*H.d*H.sa,H.z+u*H.w*H.sa+w*H.d*H.ca);H.ph=s/5;}FW.pads=true;
-  freeBuildScene();for(const B of FW.br)FW.group.add(B.mesh);dkRiverMeshes();if(FMAP==='dayk')dkSchoolWall();else FW.walls=[];dkLakeMeshes();dkFalls();dkAsphalt();dkBoats();dkSkyline();dkBuddhaCliff();if(FMAP==='bamir')bmStageBuild();if(DK.drape)dkFarMesh();FW.ms=Math.round(performance.now()-t0);}
+  freeBuildScene();for(const B of FW.br)FW.group.add(B.mesh);dkRiverMeshes();if(FMAP==='dayk')dkSchoolWall();else FW.walls=[];dkLakeMeshes();dkFalls();dkAsphalt();dkBoats();dkSkyline();dkBuddhaCliff();if(FMAP==='bamir')bmStageBuild();if(DK.drape)dkFarMesh();fwMerge();FW.ms=Math.round(performance.now()-t0);}
 // the nearest river: distance to the bed's middle, to the water channel (which wanders inside the bed), and the bed height there
 function dkChan(Rv,ri,s){let o=(Rv.w-Rv.c-2)*0.55*Math.sin(s/90+ri)*Math.min(1,s/60);if(Rv.pins)for(const P of Rv.pins){const w=sstep(160,30,Math.abs(s-P.s));o+=(P.o-o)*w;}return o;}
 function dkRiv(x,z){const L=FW.rc.get(Math.floor(x/32)*65536+Math.floor(z/32));if(!L)return null;let best=null,bd=1e9;
@@ -5039,7 +5039,7 @@ function swanBoat(col){const g=new THREE.Group(),white=new THREE.MeshLambertMate
   g.traverse(o=>{if(o.isMesh)o.castShadow=true;});return g;}
 function dkBoats(){FW.boats=[];if(!DK.boats||!FW.lg)return;let n=0;for(const [bx,bz] of DK.boats){const l0=dkLake(bx,bz);if(!l0)continue;const lk=DK.lakes[l0.i];
     for(let a=0;a<40&&n<6;a++){const ang=a*2.4,r=18+a*2.2,x=bx+Math.cos(ang)*r,z=bz+Math.sin(ang)*r,l=dkLake(x,z);if(!l||l.sd>-8||l.i!==l0.i)continue;if(FW.boats.some(b=>Math.hypot(b.x-x,b.z-z)<7))continue;
-      const g=swanBoat(['#f2c230','#d8322f','#e86aa6','#2bb5b0','#f3f1ea','#4bb04b'][n%6]);g.position.set(x,lk.lv+0.12,z);g.rotation.y=Math.random()*6.28;FW.group.add(g);FW.boats.push({g,x,z,lv:lk.lv,ph:Math.random()*6});n++;}}}
+      const g=swanBoat(['#f2c230','#d8322f','#e86aa6','#2bb5b0','#f3f1ea','#4bb04b'][n%6]);g.position.set(x,lk.lv+0.12,z);g.rotation.y=Math.random()*6.28;g.userData.noMerge=1;FW.group.add(g);FW.boats.push({g,x,z,lv:lk.lv,ph:Math.random()*6});n++;}}}
 // ---- Bamiyan's Buddha cliff: the sheer sandstone-conglomerate wall north of the bazaar, full of monks' caves, with the two empty
 // niches (OpenStreetMap: the western one 55 m Salsal, the eastern 38 m Shah Mama, 785 m apart). The 30 m elevation softens it, so the
 // wall itself is built here, standing in front of the hillside along the line of the two niches.
@@ -5166,7 +5166,12 @@ function dkChunk(ci,cj){if(!FW.hByC){FW.hByC=new Map();for(const H of FW.houses)
     im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;im.position.set(ox,0,oz);im.castShadow=true;im.receiveShadow=true;im.frustumCulled=false;scene.add(im);return im;};
   return {meshes:[mk(W,M.wall),mk(W2,M.wall2),mk(W3,M.wall3),mk(W4,M.wall4),mk(Rf,M.roof),mk(SW,M.school),mk(SR,M.metal,dkGable),mk(BW,M.blue),mk(BR,M.roof),mk(YW,dkYurtM.w,dkYurtG.w),mk(YR,dkYurtM.r,dkYurtG.r),mk(SW2,M.wall),mk(DM,M.roof,dkDome)].filter(Boolean),cx:ox+200,cz:oz+200};}
 function dkClearHouses(){if(!FW||!FW.chunks)return;for(const [,C] of FW.chunks)C.meshes.forEach(m=>{scene.remove(m);m.dispose&&m.dispose();});FW.chunks.clear();dkObst.length=0;}
-function dkFrame(dt){FW.hT-=dt;FW.oT-=dt;FW.sT-=dt;if(FW.sky){const k=0.05;FW.sky.scale.setScalar(k);FW.sky.position.copy(camera.position).multiplyScalar(1-k);skyCamU.value.copy(camera.position);}if(FW.boats)for(const b of FW.boats){b.ph+=dt;b.g.position.y=b.lv+0.12+Math.sin(b.ph*1.3)*0.04;b.g.rotation.z=Math.sin(b.ph*0.9)*0.025;b.g.rotation.y+=dt*0.01;}
+// small things far away are not drawn at all: every few frames each piece of the map's group is shown only while it
+// is within reach (nearer on low quality); big ground-sized meshes and moving things are left alone
+function fwCull(dt){const now=performance.now();if(now<(FW.cT||0)||!FW.group)return;FW.cT=now+350;const lim=QV([240,330,440,600]),cx=camera.position.x,cz=camera.position.z,b=new THREE.Box3(),sp=new THREE.Sphere();
+  const W=FW.cullW||(FW.cullW=new WeakMap());for(const o of FW.group.children){if(o.userData.noCull||o.isInstancedMesh)continue;let u=W.get(o);if(!u){u={};W.set(o,u);}if(u.cr===undefined){try{b.setFromObject(o);}catch(e){b.makeEmpty();}if(b.isEmpty()){u.cr=-1;continue;}b.getBoundingSphere(sp);u.cr=sp.radius;u.cx=sp.center.x;u.cz=sp.center.z;if(sp.radius>140)u.cr=-1;}
+    if(u.cr<0)continue;const v=Math.hypot(u.cx-cx,u.cz-cz)-u.cr<lim;if(o.visible!==v)o.visible=v;}}
+function dkFrame(dt){fwCull(dt);FW.hT-=dt;FW.oT-=dt;FW.sT-=dt;if(FW.sky){const k=0.05;FW.sky.scale.setScalar(k);FW.sky.position.copy(camera.position).multiplyScalar(1-k);skyCamU.value.copy(camera.position);}if(FW.boats)for(const b of FW.boats){b.ph+=dt;b.g.position.y=b.lv+0.12+Math.sin(b.ph*1.3)*0.04;b.g.rotation.z=Math.sin(b.ph*0.9)*0.025;b.g.rotation.y+=dt*0.01;}
   if(FW.hT<=0){FW.hT=0.4;const ci=Math.floor(S.x/400),cj=Math.floor(S.z/400);let built=0;
     const want=[];for(let j=-4;j<=4;j++)for(let i=-4;i<=4;i++){const k=(ci+i)+','+(cj+j);if(FW.chunks.has(k))continue;const d=Math.hypot((ci+i+0.5)*400-S.x,(cj+j+0.5)*400-S.z);if(d<=1600)want.push([d,ci+i,cj+j,k]);}
     want.sort((a,b)=>a[0]-b[0]);for(const [d,a,b,k] of want){if(built>=2)break;FW.chunks.set(k,dkChunk(a,b));built++;}
@@ -5641,6 +5646,24 @@ function bmGate(px,pz,hd,text,span){const g=new THREE.Group(),gy=freeHf(px,pz)-0
   const pl=new THREE.Mesh(new THREE.PlaneGeometry(W*0.92,H),boardMat(text,'green'));pl.position.y=3.6;pl.position.z=0.09;g.add(pl);
   const pl2=pl.clone();pl2.rotation.y=Math.PI;pl2.position.z=-0.09;g.add(pl2);
   g.traverse(o=>{if(o.isMesh)o.castShadow=true;});FW.group.add(g);return g;}
+// lighter to draw: every small static thing of a real map (boards, posts, gates, cairns, the camp, bridges...) is
+// gathered, per 200 m square of ground and per look, into one mesh, so hundreds of little draws become a few dozen
+function fwMerge(){const G0=FW.group;if(!G0)return;G0.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(G0.matrixWorld).invert(),B=new Map(),kill=[];
+  const hid=o=>{for(let q=o;q&&q!==G0;q=q.parent){if(q.userData.noMerge||!q.visible)return true;}return false;};
+  const mkey=m=>(m.type==='MeshLambertMaterial'||m.type==='MeshBasicMaterial')?[m.type,m.color.getHexString(),m.map?m.map.uuid:'',m.side,m.flatShading?1:0,m.vertexColors?1:0,m.emissive?m.emissive.getHexString():''].join(':'):m.uuid;
+  G0.traverse(o=>{if(!o.isMesh||o.isInstancedMesh||o.isSkinnedMesh||o.userData.merged||hid(o))return;const m=o.material,g=o.geometry;if(Array.isArray(m)||m.transparent||o.renderOrder||!o.frustumCulled||!g||!g.attributes.position||g.attributes.position.count>12000||m.type==='ShaderMaterial')return;
+    const mt=new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld),e=new THREE.Vector3().setFromMatrixPosition(mt),k=Math.floor(e.x/200)+','+Math.floor(e.z/200)+'|'+mkey(m)+'|'+(o.castShadow?1:0)+(o.receiveShadow?1:0);
+    if(!B.has(k))B.set(k,[]);B.get(k).push([o,mt]);});
+  let made=0,gone=0;for(const [k,L] of B){if(L.length<2)continue;const m=L[0][0].material,uv=!!m.map,vc=!!m.vertexColors,P=[],N=[],U=[],C=[];
+    for(const [o,mt] of L){const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();if(!g.attributes.normal)g.computeVertexNormals();g.applyMatrix4(mt);const flip=mt.determinant()<0,pa=g.attributes.position.array,na=g.attributes.normal.array,n=pa.length/3,ua=g.attributes.uv&&g.attributes.uv.array,ca=g.attributes.color&&g.attributes.color.array;
+      for(let t=0;t<n;t+=3)for(const j of (flip?[0,2,1]:[0,1,2])){const v=t+j;P.push(pa[v*3],pa[v*3+1],pa[v*3+2]);N.push(na[v*3],na[v*3+1],na[v*3+2]);if(uv)U.push(ua?ua[v*2]:0,ua?ua[v*2+1]:0);if(vc){if(ca)C.push(ca[v*3],ca[v*3+1],ca[v*3+2]);else C.push(1,1,1);}}
+      g.dispose();kill.push(o);}
+    const gm=new THREE.BufferGeometry();gm.setAttribute('position',new THREE.Float32BufferAttribute(P,3));gm.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));if(uv)gm.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));if(vc)gm.setAttribute('color',new THREE.Float32BufferAttribute(C,3));gm.computeBoundingSphere();
+    const mm=new THREE.Mesh(gm,m);mm.castShadow=L[0][0].castShadow;mm.receiveShadow=L[0][0].receiveShadow;mm.matrixAutoUpdate=false;mm.userData.merged=1;G0.add(mm);made++;gone+=L.length;}
+  for(const o of kill)if(o.parent)o.parent.remove(o);
+  // groups left with nothing in them go too
+  const empty=[];G0.traverse(o=>{if(o!==G0&&o.isGroup&&!o.userData.noMerge){let any=false;o.traverse(q=>{if(q!==o&&!q.isGroup)any=true;});if(!any)empty.push(o);}});for(const o of empty)if(o.parent)o.parent.remove(o);
+  FW.merged=[made,gone];}
 function bmStageBuild(){bmObst.length=0;if(!FW.trails[1])return;const T0=FW.trails[0],T1=FW.trails[1],hd=k=>Math.atan2(FW.PX[k+3]-FW.PX[k-3],FW.PZ[k+3]-FW.PZ[k-3]);
   const span=2*FW.rw+1.8;
   // the park's own sign on the road in, about 2 km before Band-e Haibat
@@ -5666,7 +5689,7 @@ function bmStageBuild(){bmObst.length=0;if(!FW.trails[1])return;const T0=FW.trai
     const px=FW.PX[k]-ux/ul*ds*(FW.rw+4.5),pz=FW.PZ[k]-uz/ul*ds*(FW.rw+4.5),gy=freeHf(px,pz),g=new THREE.Group();g.position.set(px,gy,pz);
     const lm=new THREE.MeshLambertMaterial({color:'#d6cab0',flatShading:true});[[1.15,0.55,0],[0.85,1.35,0.4],[0.55,1.95,0.9]].forEach(([sc,y,r])=>{const m=new THREE.Mesh(G.rockL,lm);m.scale.set(sc,sc*0.7,sc);m.position.y=y;m.rotation.y=r;m.castShadow=true;g.add(m);});
     const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.06,6,8),new THREE.MeshLambertMaterial({color:'#8c8c8c'}));pole.position.y=3.6;g.add(pole);
-    const fl=new THREE.Mesh(new THREE.PlaneGeometry(1.8,1.2,8,4).translate(0.9,0,0),new THREE.MeshLambertMaterial({map:flagTex('af3'),side:THREE.DoubleSide}));fl.position.y=6.0;fl.rotation.y=Math.atan2(ux,uz);g.add(fl);FW.lookFlag=fl;fl.userData.base=fl.geometry.attributes.position.array.slice();
+    const fl=new THREE.Mesh(new THREE.PlaneGeometry(1.8,1.2,8,4).translate(0.9,0,0),new THREE.MeshLambertMaterial({map:flagTex('af3'),side:THREE.DoubleSide}));fl.position.y=6.0;fl.rotation.y=Math.atan2(ux,uz);g.add(fl);FW.lookFlag=fl;fl.userData.noMerge=1;fl.userData.base=fl.geometry.attributes.position.array.slice();
     const bd=new THREE.Mesh(new THREE.PlaneGeometry(1.9,0.5),boardMat(tr_('نقطهٔ دید · بند هیبت'),'green'));bd.position.set(0,1.0,1.4);bd.rotation.y=Math.atan2(-ux*ds,-uz*ds);g.add(bd);
     FW.group.add(g);bmObst.push({x:px,z:pz,r:1.4});FW.look=k;}
   const nrmAt=k=>{const ux=FW.PZ[k+2]-FW.PZ[k-2],uz=-(FW.PX[k+2]-FW.PX[k-2]),ul=Math.hypot(ux,uz)||1;return [ux/ul,uz/ul];};
@@ -5694,7 +5717,7 @@ function bmStageBuild(){bmObst.length=0;if(!FW.trails[1])return;const T0=FW.trai
       for(let i=0;i<9;i++){const j=k-6+Math.floor(R()*30),[vx,vz]=nrmAt(j),inRoad=i<2,o=inRoad?FW.rw-0.5-R()*0.4:FW.rw+0.4+R()*2.2,sc=inRoad?0.28+R()*0.12:0.35+R()*0.6,px=FW.PX[j]+vx*sd*o,pz=FW.PZ[j]+vz*sd*o;
         stones.push([px,freeHf(px,pz)+sc*0.25,pz,sc,R()*6,0.7]);if(sc>0.3)bmObst.push({x:px,z:pz,r:sc*0.85});}
       const kk=k+12,[vx,vz]=nrmAt(kk),from=[FW.PX[kk]+vx*sd*24,FW.PZ[kk]+vz*sd*24],to=[FW.PX[kk]+vx*sd*(FW.rw-1.2),FW.PZ[kk]+vz*sd*(FW.rw-1.2)],m=new THREE.Mesh(G.rockL,rm);
-      m.scale.set(0.95,0.75,0.95);m.castShadow=true;m.visible=false;FW.group.add(m);FW.rockF.push({k:kk,m,from,to,side:[vx*sd,vz*sd],st:0,t:0});}}
+      m.scale.set(0.95,0.75,0.95);m.castShadow=true;m.visible=false;m.userData.noCull=1;FW.group.add(m);FW.rockF.push({k:kk,m,from,to,side:[vx*sd,vz*sd],st:0,t:0});}}
   // cairns: little stacks of stones on the uphill side of the trail, the way shepherds mark a mountain path
   {const P=islDropSide(),R=mulberry32(919);for(let k=T1.i0+70;k<T1.i1-70;k+=110+Math.floor(R()*60)){if(FW.span&&FW.span[k])continue;const ds=P[k]||0,[ux,uz]=nrmAt(k),sd=ds?-ds:(R()<0.5?1:-1),o=(FW.rwAt?FW.rwAt(k):FW.rw)+2.0+R(),px=FW.PX[k]+ux*sd*o,pz=FW.PZ[k]+uz*sd*o;
       let y=freeHf(px,pz)-0.05;const n=3+Math.floor(R()*3);for(let i=0;i<n;i++){const sc=0.42-i*0.07+R()*0.04;y+=sc*0.55;stones.push([px+(R()-0.5)*0.08,y,pz+(R()-0.5)*0.08,sc,R()*6,0.55]);y+=sc*0.3;}bmObst.push({x:px,z:pz,r:0.45});}}
@@ -5742,9 +5765,9 @@ function bmStageBuild(){bmObst.length=0;if(!FW.trails[1])return;const T0=FW.trai
         for(const sx of [-1,1]){const er=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.1,0.08),drk);er.position.set(sx*0.1,1.1,0.62);dg.add(er);}
         const legs=[];for(const [x,z] of [[-0.12,0.35],[0.12,0.35],[-0.12,-0.35],[0.12,-0.35]]){const lp=new THREE.Group();lp.position.set(x,0.5,z);const lm=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.5,0.1).translate(0,-0.25,0),fur);lp.add(lm);dg.add(lp);legs.push(lp);}
         const tl=new THREE.Group();tl.position.set(0,0.75,-0.47);const tm=new THREE.Mesh(new THREE.BoxGeometry(0.07,0.07,0.4).translate(0,0,-0.2),fur);tl.add(tm);dg.add(tl);
-        dg.traverse(o=>{if(o.isMesh)o.castShadow=true;});FW.group.add(dg);const [hx,hz]=toW(1.8,2.6);FW.dog={g:dg,legs,tail:tl,x:hx,z:hz,hx,hz,h:g.rotation.y,bk:0,mv:0};}
+        dg.traverse(o=>{if(o.isMesh)o.castShadow=true;});dg.userData.noMerge=1;dg.userData.noCull=1;FW.group.add(dg);const [hx,hz]=toW(1.8,2.6);FW.dog={g:dg,legs,tail:tl,x:hx,z:hz,hx,hz,h:g.rotation.y,bk:0,mv:0};}
       // smoke from the fire: soft grey puffs rising and spreading
-      {const [fx,fz]=toW(3.4,3.6),sm=[],mt=new THREE.MeshBasicMaterial({color:'#cfc8bf',transparent:true,opacity:0.35,depthWrite:false});for(let i=0;i<7;i++){const m=new THREE.Mesh(new THREE.IcosahedronGeometry(0.35,1),mt.clone());FW.group.add(m);sm.push({m,t:i/7});}FW.smoke={x:fx,z:fz,y:gy,sm};}
+      {const [fx,fz]=toW(3.4,3.6),sm=[],mt=new THREE.MeshBasicMaterial({color:'#cfc8bf',transparent:true,opacity:0.35,depthWrite:false});for(let i=0;i<7;i++){const m=new THREE.Mesh(new THREE.IcosahedronGeometry(0.35,1),mt.clone());m.userData.noCull=1;FW.group.add(m);sm.push({m,t:i/7});}FW.smoke={x:fx,z:fz,y:gy,sm};}
       // the tent's guy ropes, pegged out on both sides
       {const rp=new THREE.LineBasicMaterial({color:'#8a7a63'}),P=[];for(const x of [-3.6,-1.2,1.2,3.6])for(const z of [-1,1]){P.push(new THREE.Vector3(x*0.85,1.7,z*1.3),new THREE.Vector3(x,0.02,z*3.4));}const ln=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(P),rp);g.add(ln);}
       sheep.forEach((s3,i)=>{if(s3.col)FW.flock.body.setColorAt(i,new THREE.Color('#6a5444'));else FW.flock.body.setColorAt(i,new THREE.Color('#ffffff'));});
@@ -5802,7 +5825,7 @@ function bmParked(){FW.parked=true;const T=FW.trails[0],R=mulberry32(91),L=NPCV.
     if(R()<0.25)continue;const vi=L[Math.floor(R()*L.length)],spec=Object.assign({},NPCV[vi],{lite:true,noInt:true}),cu={paint:pick(TR_PAINT),rim:null,bar:0,snork:0,rack:0,flag:0,roof:0,crate:0,tire:1};
     const Vc=buildVehicle(spec,cu,null),x=FW.PX[k]+nx*side*7.5,z=FW.PZ[k]+nz*side*7.5,th=Math.atan2(tx,tz)+(R()<0.5?Math.PI:0);
     Vc.g.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(Vc.g);Vc.g.position.set(x,meshH(x,z)-bb.min.y,z);Vc.g.rotation.y=th;Vc.g.traverse(o=>{if(o.isMesh)o.castShadow=true;});FW.group.add(Vc.g);
-    const hl=Math.max(0.6,(bb.max.z-bb.min.z)/2-0.9);for(const u of [-hl,0,hl])bmObst.push({x:x+Math.sin(th)*u,z:z+Math.cos(th)*u,r:1.0});n++;}FW.parkN=n;}
+    const hl=Math.max(0.6,(bb.max.z-bb.min.z)/2-0.9);for(const u of [-hl,0,hl])bmObst.push({x:x+Math.sin(th)*u,z:z+Math.cos(th)*u,r:1.0});n++;}FW.parkN=n;fwMerge();}
 // several small geometries as one (for instanced animals): positions and normals, non-indexed
 function mgeo(list){const P=[],Nn=[];for(const b0 of list){const b=b0.index?b0.toNonIndexed():b0;P.push(...b.attributes.position.array);Nn.push(...b.attributes.normal.array);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(Nn,3));return g;}
 // animal voices made on the spot: a sheep's wavering bleat and a big dog's bark, quieter with distance
