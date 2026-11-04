@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=217</script>
+<script>window.GAME_CODE=218</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -3956,7 +3956,7 @@ function updateEnv(dt){
   fires.forEach(f=>{const fl=0.85+0.15*Math.sin(tn*11+f.ph)*Math.sin(tn*7.3);if(f.flame)f.flame.scale.set(fl,0.9+0.25*Math.sin(tn*9+f.ph),fl);f.fglow.material.opacity=(f.lamp?night*0.9:0.35+night*0.6)*fl;});
   if(V){const LIT=S.lightsOn&&!(FREE&&!BRK.lights);
     // high beam by itself: on at night once you are going faster than a crawl, dipped again when you slow down
-    S.hiB=LIT&&dayF<0.35&&Math.abs(S.v||0)>(S.hiB?9:12);const hb=S.hiB?1:0;V.spot.angle+=((hb?0.42:0.56)-V.spot.angle)*Math.min(1,dt*3);
+    S.hiB=LIT&&(window.__hiBOv||dayF<0.35&&Math.abs(S.v||0)>(S.hiB?9:12));const hb=S.hiB?1:0;V.spot.angle+=((hb?0.42:0.56)-V.spot.angle)*Math.min(1,dt*3);
     V.spot.intensity=LIT?(V.rack?3.6:3.0)*(FREE?1+0.7*(1-dayF):1)*(1+0.35*hb):0;V.spot.distance=(FREE?(V.rack?150:115):(V.rack?95:70))*(1+0.6*hb);if(V.beamMat)V.beamMat.uniforms.uI.value=LIT?(0.05+0.14*(1-dayF))*(1+2.2*Math.min(1,wa+vis)):0;
     // indicators while turning hard at low speed, hazards when stalled or stuck, reverse lights in reverse
     S.blink+=dt;const blinkOn=(S.blink%0.8)<0.4,haz=S.mode==='play'&&S.engineOn&&S.sink>0.24,turn=0;
@@ -3970,7 +3970,7 @@ function updateEnv(dt){
       for(const m of L.tail)m.emissive.setRGB(1,0.42,0.36).multiplyScalar(br?1.2:LIT?0.5:0);
       for(const m of L.ind)m.emissive.setRGB(1,0.55,0.1).multiplyScalar(hz?0.9:0);
       for(const m of L.dash)m.emissive.setRGB(0.75,0.88,1).multiplyScalar(S.lightsOn&&on?1.1:on?0.12:0);
-      for(const m of L.screen)m.emissive.setRGB(0.02,0.05,0.11).multiplyScalar(on?(S.lightsOn?1:0.6):0);
+      for(const m of L.screen)m.emissive.setRGB(0.003,0.008,0.02).multiplyScalar(on?1:0);
       for(const m of L.chrome)m.reflectivity=0.12+0.43*dayF;}
     if(V.flood)V.flood.intensity=LIT?(1.1+0.6*night):0;
     for(const k in plateMats){const m=plateMats[k];if(m.emissive)m.emissive.setScalar(S.lightsOn?0.32*night:0);}
