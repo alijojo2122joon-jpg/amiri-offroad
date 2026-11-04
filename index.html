@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=200</script>
+<script>window.GAME_CODE=201</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -4550,6 +4550,7 @@ function freeHf(x,z){let h=freeBase(x,z);if(!FW)return h;if(FW.dk&&FW.rc){const 
     if(!FW.dk&&h>50){const u=x-FX,v=z-FZ,cr2=1-Math.abs(2*fbm(u*0.012+5,v*0.012-9,3)-1),hi=sstep(50,170,h)*(q?sstep(9,24,q.d):1);if(hi>0)h+=(Math.pow(cr2,5)*34-5)*hi;}
     // on the mountain the trail runs along one side of a valley: on its lower side the ground falls away steeply below the
     // road (the other side stays a rock wall), instead of the road sitting in a slot between two walls
+    if(FW.dk&&FMAP==='bamir'&&FW.trails[1]){const q2=trailQ(x,z,48);if(q2&&q2.d>3.0&&q2.s>=FW.trails[1].i0){const k=Math.floor(q2.s),P=islDropSide(),ds=P[k]||0;if(ds&&ds===q2.sg){const t=q2.h-0.5-(q2.d-3.0)*1.6,w=sstep(48,34,q2.d);if(h>t)h+=(t-h)*w;}}}
     if(!FW.dk&&FW.trDone&&h>45){const q2=trailQ(x,z,48);if(q2&&q2.d>3.1){const k=Math.floor(q2.s),P=islDropSide(),ds=P[k]||0;if(ds&&ds===q2.sg){const t=q2.h-0.4-(q2.d-3.1)*1.7,w=sstep(48,36,q2.d);if(h>t)h+=(t-h)*w;}}}
     if(q){if(FW.dk&&FW.br&&dkOnSpan(x,z)){}else if(FW.dk){const dh=Math.abs(q.h-h),rw=FW.rw||2.7;h+=(q.h-h)*sstep(rw+dh*1.3+0.8,rw,q.d);}else{/* a narrow bed (about 6 m) with steep banks: the higher the cut or the drop, the wider its bank */const dh=Math.abs(q.h-h);h+=(q.h-h)*sstep(Math.min(15,3.1+1.6+dh*0.6),3.1,q.d);}}}
   return h;}
@@ -4784,10 +4785,14 @@ function dkInit(){const t0=performance.now();
   const TRS=DK.trs||[[0,DK.PX.length-1]],tid=new Uint8Array(DK.PX.length);TRS.forEach(([a,b],t)=>{for(let k=a;k<=b;k++)tid[k]=t;});
   {const n=DK.PX.length,raw=new Float32Array(n);for(let k=0;k<n;k++)raw[k]=dkH(DK.PX[k],DK.PZ[k]);const sm=new Float32Array(n);for(let k=0;k<n;k++){let a=0,c=0;for(let q=Math.max(0,k-6);q<=Math.min(n-1,k+6);q++){if(tid[q]!==tid[k])continue;a+=raw[q];c++;}sm[k]=a/c;}
     for(let it=0;it<6;it++){for(let k=1;k<n;k++)if(tid[k]===tid[k-1])sm[k]=clamp(sm[k],sm[k-1]-0.72,sm[k-1]+0.72);for(let k=n-2;k>=0;k--)if(tid[k]===tid[k+1])sm[k]=clamp(sm[k],sm[k+1]-0.72,sm[k+1]+0.72);}DK.PH=Array.from(sm);}
-  FW={dk:true,map:FMAP,tid,pv:DK.pv?Uint8Array.from(DK.pv):null,lg:!!(DK.lg&&DK.lg.sd),rw:FMAP==='bamir'?3.9:2.7,lakes:[],pois:[],trails:[],PX:DK.PX.slice(),PZ:DK.PZ.slice(),PH:DK.PH.slice(),cells:new Map(),x0:DK.x0-400,z0:DK.z0-400,found:new Set(),extra:[],houses:[],hc:new Map(),chunks:new Map(),hT:0,oT:0,sT:0};
+  FW={dk:true,map:FMAP,tid,pv:DK.pv?Uint8Array.from(DK.pv):null,lg:!!(DK.lg&&DK.lg.sd),rw:FMAP==='bamir'?3.0:2.7,lakes:[],pois:[],trails:[],PX:DK.PX.slice(),PZ:DK.PZ.slice(),PH:DK.PH.slice(),cells:new Map(),x0:DK.x0-400,z0:DK.z0-400,found:new Set(),extra:[],houses:[],hc:new Map(),chunks:new Map(),hT:0,oT:0,sT:0};
   const m=FW.PX.length;
   for(let k=0;k<m-1;k++){if(tid[k]!==tid[k+1])continue;for(const [x,z] of [[FW.PX[k],FW.PZ[k]],[FW.PX[k+1],FW.PZ[k+1]]]){const ck=Math.floor((x-FW.x0)/FCELL)*8192+Math.floor((z-FW.z0)/FCELL);let L=FW.cells.get(ck);if(!L){L=[];FW.cells.set(ck,L);}if(L[L.length-1]!==k)L.push(k);}}
-  TRS.forEach(([a,b])=>FW.trails.push({a:0,b:DK.poi.length-1,i0:a,i1:b,L:(b-a+1)*2}));
+  TRS.forEach(([a,b])=>FW.trails.push({a:0,b:DK.poi.length-1,i0:a,i1:b,L:(b-a+1)*2}));FW.trDone=true;FW.PS=null;
+  // the rim trail never dips into a lake: where it passes over water its bed is raised clear of it (a stone causeway)
+  if(FMAP==='bamir'&&FW.trails[1])for(let k=FW.trails[1].i0;k<=FW.trails[1].i1;k++){const w=freeWater(FW.PX[k],FW.PZ[k]);if(w>FW.PH[k]-0.6)FW.PH[k]=w+0.6;}
+  // and climbs at most about 1 in 4 (steep, but a Cruiser makes it)
+  if(FMAP==='bamir'&&FW.trails[1]){const T=FW.trails[1];for(let it=0;it<6;it++){for(let k=T.i0+1;k<=T.i1;k++){const L=Math.hypot(FW.PX[k]-FW.PX[k-1],FW.PZ[k]-FW.PZ[k-1])*0.27+0.02;FW.PH[k]=clamp(FW.PH[k],FW.PH[k-1]-L,FW.PH[k-1]+L);}for(let k=T.i1-1;k>=T.i0;k--){const L=Math.hypot(FW.PX[k]-FW.PX[k+1],FW.PZ[k]-FW.PZ[k+1])*0.27+0.02;FW.PH[k]=clamp(FW.PH[k],FW.PH[k+1]-L,FW.PH[k+1]+L);}}}
   // the coarse height grid behind the map picture
   const G=FG,gx0=FX-FR-200,gz0=FZ-FR-200,n=Math.ceil((2*FR+400)/G)+1,H=new Float32Array(n*n);
   for(let j=0;j<n;j++)for(let i=0;i<n;i++)H[j*n+i]=dkH(gx0+i*G,gz0+j*G);Object.assign(FW,{gx0,gz0,gn:n,H,WT:new Uint8Array(n*n)});
@@ -5622,6 +5627,12 @@ function freeRoadChunk(ix,iz){const x0=ix*TILE,z0=iz*TILE,x1=x0+TILE,z1=z0+TILE,
     if(!FW.dk&&R()<0.04*rough){const o=(R()<0.5?-1:1)*(2.2+R()*0.8),b={t:'rock',x:cx+nx*o,z:cz+nz*o,r:0.2+R()*0.25*rough,h:0.05+R()*0.12*rough};bumps.push(b);stones.push(b);}
     if(false){const a=(R()-0.5)*1.1,len=4+R()*4,dx=nx*Math.cos(a)-nz*Math.sin(a),dz=nz*Math.cos(a)+nx*Math.sin(a),r=0.16+R()*0.14,xx=cx+nx*(R()*2-1)*0.8,zz=cz+nz*(R()*2-1)*0.8;
       const b={t:'log',ax:xx-dx*len/2,az:zz-dz*len/2,bx:xx+dx*len/2,bz:zz+dz*len/2,r};bumps.push(b);logs.push(b);}
+    if(FW.dk&&FMAP==='bamir'&&FW.trails.length>1){const ring=T===FW.trails[1],rw=FW.rw,camp=FW.pois.find(Q=>/camp/.test(Q.k||'')&&Math.hypot(Q.x-cx,Q.z-cz)<45);
+      const put=(o,sc)=>{const px=cx+nx*o,pz=cz+nz*o;rocks.push([px,meshH(px,pz)+sc*0.12,pz,sc]);obst.push({x:px,z:pz,r:sc*1.25});};
+      if(!camp){const u=R();
+        if(u<(ring?0.05:0.014)){const sd=R()<0.5?1:-1,o=rw-0.3+R()*1.3,sc=Math.min(0.7+R()*1.3,(o+rw-3.0)/1.25);if(sc>0.45)put(sd*o,sc);}
+        else if(ring&&u<0.064){const g=3.1+R()*0.5,c=(R()-0.5)*(2*rw-g-1.2),scL=0.8+R()*0.7,scR=0.8+R()*0.7;put(c-g/2-scL*1.25,scL);put(c+g/2+scR*1.25,scR);}
+        else if(ring&&u<0.072){const sd=R()<0.5?1:-1,sc=0.6+R()*0.4;put(sd*(sc*1.25+0.05),sc);}}}
     if(!FW.dk&&R()<0.012*rough){const sd=R()<0.5?1:-1,o=sd*(4.4+R()*3),px=cx+nx*o,pz=cz+nz*o,sc=1+R()*1.8*rough;if(freeLat(px,pz)>3.6+sc){rocks.push([px,meshH(px,pz)+sc*0.15,pz,sc]);obst.push({x:px,z:pz,r:sc*1.25});}}}}
   for(const o of FW.extra)if(o.x>=x0&&o.x<x1&&o.z>=z0&&o.z<z1)obst.push(o);
   const SF={P:[],U:[],I:[]},SB={P:[],U:[],I:[]},sposts=[],boards=[],hdAt=k=>{const a=Math.max(0,k-2),b=k+2;return Math.atan2(FW.PX[b]-FW.PX[a],FW.PZ[b]-FW.PZ[a]);};
