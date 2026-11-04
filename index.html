@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=215</script>
+<script>window.GAME_CODE=216</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -3773,7 +3773,7 @@ function physics(dt){
   const dive=(S.brk||0)>0.3||(S.gas||0)>0.5?1.6:0;V.wheels.forEach(w=>{w.cdT-=dt;if(w.cdT<=0){if(w.bottom&&w.cdMax>2+dive){SFX.clunk(w.cdMax);w.cdT=0.2;}else if(w.cdMax>2.4+dive){SFX.bump(w.cdMax);w.cdT=0.12;}}});
   const depth=waterAt(S.x,S.z)-Math.max(Hf(S.x,S.z),S.y-0.3);if(depth>0.3&&wasDepth<=0.3&&Math.abs(S.v)>4)SFX.splash(Math.abs(S.v)*0.3);
   if(wasAir&&!S.air&&S.maxCd>4)SFX.hit(S.maxCd*0.4);
-  if((S.wallHit||0)>2.5&&S.hitCd<=0){SFX.hit(S.wallHit*0.5);S.hitCd=0.35;brkHit(S.wallHit);}S.wallHit=0;brkStep(dt);exhSmoke(dt);
+  if((S.wallHit||0)>2.5&&S.hitCd<=0){SFX.hit(S.wallHit*0.5);S.hitCd=0.35;brkHit(S.wallHit);}S.wallHit=0;brkStep(dt);exhSmoke(dt);tyreDirt(dt);
   S.hitCd-=dt;const cu=cust(S.veh),bp=V.bodyPts[0],cw=Math.abs(bp[1])+0.08,hl=Math.max(cw,Math.abs(bp[0])-cw*0.85),fwx=Math.sin(S.th),fwz=Math.cos(S.th);
   nearObst(S.x,S.z).forEach(arr=>arr.forEach(o=>{if(Math.abs(S.x-o.x)>o.r+hl+cw+1||Math.abs(S.z-o.z)>o.r+hl+cw+1)return;
     // the nearest of four circles laid along the car: nose, two in the middle, tail
@@ -5314,6 +5314,12 @@ function brkUI(){const on=brkOn();$('tempRow').hidden=!on;if(!on)return;$('tempF
 let steamP=null;
 // exhaust: a faint grey breath at idle, a thicker darker puff when you floor it, white vapour in the cold; it leaves
 // the tail pipe going back and up, and stays where the air takes it
+// the tyres pick up what they roll on: pale dust off gravel and sand, dark mud out of the bogs; water and rain wash it
+// off, a long run on asphalt wears it away
+const TYD={d:0,m:0,c:new THREE.Color(),cd:new THREE.Color('#c8b08c'),cm:new THREE.Color('#8a6a48')};function tyreDirt(dt){if(!TYREM)return;const sf=S.surf||'',sp=Math.min(1.5,Math.abs(S.v||0)/10),wet=sf==='water'||(typeof WX!=='undefined'&&WX.rainA>0.3);
+  if(/mud|bog/.test(sf))TYD.m=Math.min(1,TYD.m+dt*0.25*sp+dt*0.02);else if(/gravel|sand|rock|grass/.test(sf))TYD.d=Math.min(1,TYD.d+dt*0.04*sp);
+  const off=wet?0.15:sf==='asphalt'?0.012*sp:0.002;TYD.d=Math.max(0,TYD.d-dt*off);TYD.m=Math.max(0,TYD.m-dt*off*0.7);
+  TYD.c.setRGB(1,1,1).lerp(TYD.cd,TYD.d*0.55).lerp(TYD.cm,TYD.m*0.7);if(!TYREM.color.equals(TYD.c))TYREM.color.copy(TYD.c);}
 let exhP=null;window.__exh=()=>exhP;function exhSmoke(dt){if(!V||!V.exh||!V.g.visible)return;
   if(!exhP){exhP=[];for(let i=0;i<18;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:mistTex,color:0x9a9a9a,transparent:true,depthWrite:false,opacity:0}));s.visible=false;scene.add(s);exhP.push({s,life:0,vx:0,vy:0,vz:0,k:0});}}
   const on=S.engineOn&&S.mode==='play',g=S.gas||0,cold=(typeof WX!=='undefined'&&WX.temp!==undefined&&WX.temp<6)?1:0;
