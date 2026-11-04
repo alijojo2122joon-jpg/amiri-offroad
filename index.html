@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=214</script>
+<script>window.GAME_CODE=215</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -2211,6 +2211,34 @@ function frostPrep(root){const done=new Set();root.traverse(o=>{if(!o.isMesh||!o
       const ext=[0,1,2].map(a=>mxx[a]-mn[a]),ax=[0,1,2].sort((p,q)=>ext[q]-ext[p]).slice(0,2);
       for(const w of ws){let m=1e9;for(const a of ax)m=Math.min(m,(wp[w*3+a]-mn[a])/(ext[a]/2||1),(mxx[a]-wp[w*3+a])/(ext[a]/2||1));out[w]=clamp(m,0,1);}}}
   const A=new Float32Array(n);for(let i=0;i<n;i++)A[i]=out[wid[i]];g.setAttribute('aEdge',new THREE.BufferAttribute(A,1));});}
+// off-road tyres: the tread (upper half of the picture) is chunky staggered lugs with deep voids, the sidewall (lower
+// half) has shoulder blocks at its edge, a few moulded rings and a rim guard; the same picture gives the bumps
+let TYREM=null;function tyreMat(){if(TYREM)return TYREM;const N=512,c=document.createElement('canvas');c.width=c.height=N;const x=c.getContext('2d'),R=mulberry32(77),H=N/2;
+  // tread: deep dark voids between big staggered lugs, each lug with two sipes
+  x.fillStyle='#0b0b0b';x.fillRect(0,0,N,H);
+  const lug=(x0,y0,w,h,sk)=>{x.fillStyle='#4a4a4a';x.beginPath();x.moveTo(x0+sk,y0);x.lineTo(x0+w+sk,y0);x.lineTo(x0+w,y0+h);x.lineTo(x0,y0+h);x.closePath();x.fill();
+    x.fillStyle='#565656';x.fillRect(x0+Math.max(sk,0)+3,y0+3,w-Math.abs(sk)-6,4);
+    x.strokeStyle='#1d1d1d';x.lineWidth=4;for(const f of [0.33,0.68]){x.beginPath();x.moveTo(x0+w*f+sk*0.8,y0+4);x.lineTo(x0+w*f+2,y0+h-4);x.stroke();}};
+  for(let i=0;i<4;i++){const u=i*N/4;lug(u+8,6,N/4-34,H*0.34,12);lug(u+N/8+8,H*0.33,N/4-38,H*0.33,-12);lug(u+8,H*0.64,N/4-34,H*0.34,12);}
+  // sidewall: rubber, a rim guard by the rim, moulded rings, and shoulder blocks along the outer edge
+  x.fillStyle='#363636';x.fillRect(0,H,N,H);
+  x.fillStyle='#454545';x.fillRect(0,H,N,H*0.07);x.fillStyle='#1c1c1c';x.fillRect(0,H+H*0.07,N,3);
+  x.fillStyle='#424242';for(const v of [0.3,0.34,0.38,0.62,0.66])x.fillRect(0,H+v*H,N,3);
+  for(let i=0;i<20;i++){const u=i*N/20;x.fillStyle='#474747';x.fillRect(u+3,N-H*0.24,N/20-9,H*0.24);x.fillStyle='#121212';x.fillRect(u+N/20-6,N-H*0.24,6,H*0.24);}
+  for(let k=0;k<4000;k++){const v=R()*22;x.fillStyle='rgba('+(R()<0.5?'0,0,0':'120,120,120')+','+(v/255)+')';x.fillRect(R()*N,R()*N,2,2);}
+  // a little dust caught in the voids and on the shoulders
+  for(let k=0;k<900;k++){x.fillStyle='rgba(150,120,85,'+(0.06+R()*0.12)+')';const yy=R()<0.6?R()*H:N-R()*H*0.3;x.fillRect(R()*N,yy,2+R()*3,2);}
+  const t=new THREE.CanvasTexture(c);t.wrapS=THREE.RepeatWrapping;t.anisotropy=4;if(FILMIC)t.encoding=THREE.sRGBEncoding;
+  const b=new THREE.CanvasTexture(c);b.wrapS=THREE.RepeatWrapping;
+  return TYREM=new THREE.MeshPhongMaterial({color:'#ffffff',map:t,bumpMap:b,bumpScale:0.09,shininess:5,specular:0x0c0c0c,side:THREE.DoubleSide});}
+// tyre picture coordinates from the tyre's own shape: round the wheel (12 lug sets), across the tread or out the sidewall
+function tyreUV(g){const p=g.attributes.position,n=g.attributes.normal,cnt=p.count,uv=new Float32Array(cnt*2),REP=12;let hw=0,r0=1e9,r1=0;
+  for(let i=0;i<cnt;i++){hw=Math.max(hw,Math.abs(p.getX(i)));const r=Math.hypot(p.getY(i),p.getZ(i));r0=Math.min(r0,r);r1=Math.max(r1,r);}
+  for(let i=0;i<cnt;i++){const y=p.getY(i),z=p.getZ(i),r=Math.hypot(y,z),u=(Math.atan2(z,y)/(Math.PI*2)+0.5)*REP;let v;
+    if(n&&Math.abs(n.getX(i))<0.55)v=0.5*Math.min(1,Math.max(0,(p.getX(i)+hw)/(2*hw||1)));else v=0.5+0.5*Math.min(1,Math.max(0,(r-r0)/((r1-r0)||1)));
+    uv[i*2]=u;uv[i*2+1]=1-v;}
+  for(let i=0;i+2<cnt;i+=3){const a=uv[i*2],b=uv[i*2+2],c=uv[i*2+4],mx=Math.max(a,b,c);if(mx-Math.min(a,b,c)>REP/2)for(const j of [0,1,2])if(uv[(i+j)*2]<REP/2)uv[(i+j)*2]+=REP;}
+  g.setAttribute('uv',new THREE.BufferAttribute(uv,2));}
 function texMat(m,name){if(TMAT.has(m.uuid))return TMAT.get(m.uuid);
   const map=m.map||null;if(map){map.encoding=FILMIC?THREE.sRGBEncoding:THREE.LinearEncoding;map.anisotropy=4;}
   const glass=m.transparent||/glass|transp/i.test(name);
@@ -2306,7 +2334,10 @@ function modelPartsT(name){if(MPT[name])return MPT[name];const sc=MODELS[name];i
   const near=(it)=>{const [x,z]=corner(it);for(const k in W){const g=W[k];if(Math.sign(g.x)===Math.sign(x)&&Math.abs(g.z-z)<0.45)return k;}const k=key(it)+Object.keys(W).length;W[k]={w:[],c:[],x,z};return k;};
   wl.forEach(it=>{W[near(it)].w.push(it);});cal.forEach(it=>{const [x,z]=corner(it);for(const k in W){if(Math.sign(W[k].x)===Math.sign(x)&&Math.abs(W[k].z-z)<0.45){W[k].c.push(it);break;}}});
   const wheels=Object.keys(W).map(k=>{const b=new THREE.Box3();W[k].w.forEach(it=>b.union(it.g.boundingBox));const o=b.getCenter(new THREE.Vector3()),wr=(b.max.y-b.min.y)/2;
-    const parts=[];W[k].w.forEach(it=>{it.g.translate(-o.x,-o.y,-o.z);parts.push(['tex',it.g,texMat(it.m,it.nm)]);});W[k].c.forEach(it=>{it.g.translate(-o.x,-o.y,-o.z);parts.push(['caliper',it.g,texMat(it.m,it.nm)]);});
+    const parts=[];W[k].w.forEach(it=>{it.g.translate(-o.x,-o.y,-o.z);parts.push(['tex',it.g,texMat(it.m,it.nm)]);});
+    // the tyre (the widest round part with no texture of its own) gets a real off-road tread and moulded sidewall
+    {let best=null,br=0;W[k].w.forEach((it,i)=>{if(it.m.map)return;const p=it.g.attributes.position;let r=0;for(let q=0;q<p.count;q++)r=Math.max(r,Math.hypot(p.getY(q),p.getZ(q)));if(r>br){br=r;best=i;}});
+      if(best!==null&&br>0.2){tyreUV(parts[best][1]);parts[best][2]=tyreMat();}}W[k].c.forEach(it=>{it.g.translate(-o.x,-o.y,-o.z);parts.push(['caliper',it.g,texMat(it.m,it.nm)]);});
     return {x:o.x,y:o.y,z:o.z,wr,parts};});
   // body: merged per material; plain paint (no texture) is marked so the garage colour goes on it
   const PAINTRE=MPAINT[name]||/body(mat)?|paint/i;
@@ -2317,8 +2348,15 @@ function modelPartsT(name){if(MPT[name])return MPT[name];const sc=MODELS[name];i
     if(ax.lengthSq()<1e-12)ax.copy(ref);ax.normalize();const byM=new Map();stIt.forEach(it=>{const k=it.m.uuid;if(!byM.has(k))byM.set(k,{mat:texMat(it.m,it.nm),geos:[]});byM.get(k).geos.push(it.g.clone().translate(-sc0.x,-sc0.y,-sc0.z));});
     // each of the wheel's materials keeps its own texture (leather rim, wood, the hub)
     const parts=[...byM.values()].map(P=>({geo:mergeUV(P.geos),mat:P.mat}));steer={geo:parts[0].geo,mat:parts[0].mat,parts,c:sc0,axis:ax};}
-  const groups=new Map();bodyIt.forEach(it=>{if(steer&&/steering/i.test(it.nm))return;const paint=PAINTRE.test(it.m.name||'')&&(!it.m.map||!!MPAINT[name]);const k=paint?'paint'+(it.m.map?it.m.uuid:''):it.m.uuid;if(!groups.has(k))groups.set(k,{mat:paint?null:texMat(it.m,it.nm),gmap:paint&&it.m.map?greyMap(it.m.map):null,geos:[]});groups.get(k).geos.push(it.g);});
-  const body=[...groups.values()].map(G=>({mat:G.mat,gmap:G.gmap,geo:mergeUV(G.geos)}));
+  const groups=new Map();bodyIt.forEach(it=>{if(steer&&/steering/i.test(it.nm))return;const paint=PAINTRE.test(it.m.name||'')&&(!it.m.map||!!MPAINT[name]);const k=paint?'paint'+(it.m.map?it.m.uuid:''):it.m.uuid;if(!groups.has(k))groups.set(k,{mat:paint?null:texMat(it.m,it.nm),gmap:paint&&it.m.map?greyMap(it.m.map):null,geos:[],inside:/LCX100|Screen_off|leather|seat|dashboard|interior/i.test(it.m.name||'')});groups.get(k).geos.push(it.g);});
+  const body=[...groups.values()].map(G=>({mat:G.mat,gmap:G.gmap,geo:mergeUV(G.geos),inside:G.inside}));
+  // the Land Cruiser's one light-grey material covers both the chrome (grille, bars) and the underneath (chassis, steps,
+  // mud flaps): low down it becomes dark underbody, higher up real chrome that mirrors the sky
+  if(/^cruiser/.test(name))body.slice().forEach(B=>{if(!B.mat||B.mat.map||!B.mat.color||!['e7e7e7','e0e1e3'].includes(B.mat.color.getHexString()))return;const g=B.geo,p=g.attributes.position,lo=[],hi=[];
+    for(let i=0;i+2<p.count;i+=3){const y=(p.getY(i)+p.getY(i+1)+p.getY(i+2))/3;(y<0.68?lo:hi).push(i);}
+    const pick=L=>{const ng=new THREE.BufferGeometry();for(const a in g.attributes){const A=g.attributes[a],n=A.itemSize,v=new Float32Array(L.length*3*n);L.forEach((i,k)=>{for(let j=0;j<3;j++)for(let q=0;q<n;q++)v[(k*3+j)*n+q]=A.array[(i+j)*n+q];});ng.setAttribute(a,new THREE.BufferAttribute(v,n));}return ng;};
+    B.geo=pick(hi);const ch=B.mat.clone();ch.color.set('#d4d6d8');ch.envMap=carEnv;ch.reflectivity=0.55;ch.combine=THREE.MixOperation;ch.shininess=90;ch.specular.set(0x666666);B.mat=ch;
+    if(lo.length)body.push({mat:new THREE.MeshPhongMaterial({color:'#2b2b2c',shininess:6,specular:0x111111,side:THREE.DoubleSide}),gmap:null,geo:pick(lo)});});
   const box=new THREE.Box3();bodyIt.forEach(it=>box.union(it.g.boundingBox));
   const bb=re=>{const b=new THREE.Box3();let n=0;bodyIt.forEach(it=>{if(re.test(it.nm)){b.union(it.g.boundingBox);n++;}});return n?b:null;};
   const sw=bb(/steering/i),hb=bb(/headlight|head_light/i),tb=bb(/taillight|brakelight|tail_light/i);
@@ -2685,9 +2723,9 @@ function buildVehicle(spec,cu,st){let glbSteer=null;
   // a model's panels are single sheets: show their inner side too, so the roof and pillars are there when you sit inside
   if(type==='glb')for(const k of ['paint','roof','dark','chrome','trim','rubber'])mats[k].side=THREE.DoubleSide;
   const glassGeos=spec.tex?MP.glass:(P.b.glass||[]).slice();
-  if(spec.tex)for(const B of MP.body){let pm=dustyPaint(mats.paint.color,null,MP.box.min.y,MP.box.max.y);if(!B.mat&&B.gmap){pm=dustyPaint(mats.paint.color,B.gmap,MP.box.min.y,MP.box.max.y);}const m=new THREE.Mesh(B.geo,B.mat||pm);m.castShadow=!(B.mat&&B.mat.transparent);m.receiveShadow=!B.mat;body.add(m);}
+  if(spec.tex)for(const B of MP.body){let pm=dustyPaint(mats.paint.color,null,MP.box.min.y,MP.box.max.y);if(!B.mat&&B.gmap){pm=dustyPaint(mats.paint.color,B.gmap,MP.box.min.y,MP.box.max.y);}const m=new THREE.Mesh(B.geo,B.mat||pm);m.castShadow=!(B.mat&&B.mat.transparent)&&!B.inside;m.receiveShadow=!B.mat;body.add(m);}
   // the model's steering wheel on its own pivot: it turns about its column as you steer
-  if(spec.tex&&MP.steer){const sg=new THREE.Group();sg.position.copy(MP.steer.c);(MP.steer.parts||[MP.steer]).forEach(pt=>sg.add(new THREE.Mesh(pt.geo,pt.mat)));body.add(sg);sg.userData.axis=MP.steer.axis;glbSteer=sg;}
+  if(spec.tex&&MP.steer){const sg=new THREE.Group();sg.position.copy(MP.steer.c);(MP.steer.parts||[MP.steer]).forEach(pt=>{const sm=new THREE.Mesh(pt.geo,pt.mat);sm.castShadow=false;sg.add(sm);});body.add(sg);sg.userData.axis=MP.steer.axis;glbSteer=sg;}
   for(const k in P.b){const m=new THREE.Mesh(mergeGeos(P.b[k]),mats[k]);m.castShadow=!['head','tail','amber','roofL','glass','lens'].includes(k);m.receiveShadow=k==='paint'||k==='roof';body.add(m);}
   let antMount=null;
   if(type==='glb'&&MP&&!spec.lite){const pts=carPts(MP),B=MP.box,len=B.max.z-B.min.z;
@@ -2849,6 +2887,8 @@ function buildVehicle(spec,cu,st){let glbSteer=null;
     const PB={1:null,'-1':null};for(const o of meshes){const mt=o.material;if(!(mt===mats.plate||(mt&&mt.name&&/licen|numberplate/i.test(mt.name))))continue;const pa=o.geometry.attributes.position,v=new THREE.Vector3();
       for(let i=0;i<pa.count;i++){v.fromBufferAttribute(pa,i).applyMatrix4(o.matrix);const k=v.z>0?1:-1;const b=PB[k]||(PB[k]=new THREE.Box3());b.expandByPoint(v);}}
     if(MP&&MP.plates)for(const pb of MP.plates){const k=(pb.min.z+pb.max.z)>0?1:-1;const b=PB[k]||(PB[k]=new THREE.Box3());b.union(pb);}
+    // the Land Cruiser's tailgate has the plate recess up between the lamps: the back plate goes there
+    if(type==='glb'&&/^cruiser/.test(spec.glb||'')&&!PB['-1'])PB['-1']=new THREE.Box3(new THREE.Vector3(-0.27,1.235+lift,-3.11),new THREE.Vector3(0.27,1.365+lift,-3.1));
     let done=0;for(const sd of [1,-1]){const b=PB[sd];if(!b||b.isEmpty())continue;const c=b.getCenter(new THREE.Vector3()),sz=b.getSize(new THREE.Vector3()),w=clamp(sz.x,0.3,0.6),hh=clamp(Math.min(sz.y,w*0.3),0.08,0.16);
       const m=new THREE.Mesh(new THREE.PlaneGeometry(w,hh),pm);m.position.set(c.x,c.y,sd>0?b.max.z+0.012:b.min.z-0.012);if(sd<0)m.rotation.y=Math.PI;body.add(m);done|=sd>0?1:2;}
     for(const sd of [1,-1]){if(done&(sd>0?1:2))continue;// find the car's own skin at the front and the back, at plate height, and sit the plate just on it
@@ -2860,7 +2900,7 @@ function buildVehicle(spec,cu,st){let glbSteer=null;
   let gauge=null;if(spec.cabinFix&&MP&&MP.int){const K=CARSC,[hx,ey,hz]=MP.int.head,cv=document.createElement('canvas');cv.width=320;cv.height=128;
     const tex=new THREE.CanvasTexture(cv);if(FILMIC)tex.encoding=THREE.sRGBEncoding;const m=new THREE.Mesh(new THREE.PlaneGeometry(0.36*K,0.144*K),new THREE.MeshBasicMaterial({map:tex,toneMapped:false}));
     let gy=ey-0.17*K;if(MP.glass&&MP.glass.length){let lo=1e9;MP.glass.forEach(g=>{g.computeBoundingBox();lo=Math.min(lo,g.boundingBox.min.y);});gy=Math.min(gy,lo-0.07*K);}m.position.set(hx,gy+lift,hz+0.6*K);m.rotation.set(-0.5,Math.PI,0);body.add(m);gauge={cv,ctx:cv.getContext('2d'),tex,last:''};}
-  return {frontZ:typeof front==='number'?front:2,glbSteer,gauge,beamMat,dashP:[INT.dash[1]+lift,INT.dash[2],INT.dash[3]],wip,hull,ws,trk,susp,cloth,fpp:[INT.head[0],INT.head[1]+lift,INT.head[2]],swheel:swIn,bodyPts,bodyBot,g,body,wheels,ant:antSegs,hood:[hood[0],hood[1]+lift,hood[2]],camK:T.camK,phys,mats,spot,glows,rack:has('rack'),eng:spec.eng,type,wb:maxU*2};
+  return {exh:[-0.52,0.4+lift,(tailPos&&tailPos[0]?tailPos[0][2]:-2)+0.04],frontZ:typeof front==='number'?front:2,glbSteer,gauge,beamMat,dashP:[INT.dash[1]+lift,INT.dash[2],INT.dash[3]],wip,hull,ws,trk,susp,cloth,fpp:[INT.head[0],INT.head[1]+lift,INT.head[2]],swheel:swIn,bodyPts,bodyBot,g,body,wheels,ant:antSegs,hood:[hood[0],hood[1]+lift,hood[2]],camK:T.camK,phys,mats,spot,glows,rack:has('rack'),eng:spec.eng,type,wb:maxU*2};
 }
 
 /* ---------- State ---------- */
@@ -2888,8 +2928,8 @@ function save(){const js=JSON.stringify({stars:STARS,v:8,lay:3,vset:3,vcar:1,t:D
 function cleanPlate(v){return typeof v==='string'?v.replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,10):'';}
 const plateMats={};
 function plateMat(t){t=cleanPlate(t);if(plateMats[t])return plateMats[t];const c=document.createElement('canvas');c.width=256;c.height=64;const x=c.getContext('2d');
-  x.fillStyle='#f4f4ef';x.fillRect(0,0,256,64);x.fillStyle='#1d3f8f';x.fillRect(0,0,30,64);x.strokeStyle='#222';x.lineWidth=4;x.strokeRect(2,2,252,60);
-  x.fillStyle='#111';x.font='800 40px Vazirmatn, Tahoma, sans-serif';x.textAlign='center';x.textBaseline='middle';x.direction=/[\u0600-\u06FF]/.test(t)?'rtl':'ltr';x.fillText(t,143,35,214);
+  x.fillStyle='#f4f4ef';x.fillRect(0,0,256,64);x.fillStyle='#151515';x.fillRect(0,0,34,64);x.fillStyle='#f4f4ef';x.font='700 11px Arial, sans-serif';x.textAlign='center';x.fillText('AFG',17,52);x.fillStyle='#000';x.fillRect(5,12,24,6);x.fillStyle='#c8102e';x.fillRect(5,18,24,6);x.fillStyle='#007a36';x.fillRect(5,24,24,6);x.strokeStyle='#222';x.lineWidth=4;x.strokeRect(2,2,252,60);
+  x.fillStyle='#111';x.font='800 40px Vazirmatn, Tahoma, sans-serif';x.textAlign='center';x.textBaseline='middle';x.direction=/[\u0600-\u06FF]/.test(t)?'rtl':'ltr';x.fillText(t,145,35,206);
   const tx=new THREE.CanvasTexture(c);if(FILMIC)tx.encoding=THREE.sRGBEncoding;tx.anisotropy=4;return plateMats[t]=new THREE.MeshLambertMaterial({map:tx,side:THREE.FrontSide});}
 function myCu(i){return Object.assign({},cust(i),{plate:cleanPlate(SET.plate||'')});}
 function showVehicle(i){
@@ -3733,7 +3773,7 @@ function physics(dt){
   const dive=(S.brk||0)>0.3||(S.gas||0)>0.5?1.6:0;V.wheels.forEach(w=>{w.cdT-=dt;if(w.cdT<=0){if(w.bottom&&w.cdMax>2+dive){SFX.clunk(w.cdMax);w.cdT=0.2;}else if(w.cdMax>2.4+dive){SFX.bump(w.cdMax);w.cdT=0.12;}}});
   const depth=waterAt(S.x,S.z)-Math.max(Hf(S.x,S.z),S.y-0.3);if(depth>0.3&&wasDepth<=0.3&&Math.abs(S.v)>4)SFX.splash(Math.abs(S.v)*0.3);
   if(wasAir&&!S.air&&S.maxCd>4)SFX.hit(S.maxCd*0.4);
-  if((S.wallHit||0)>2.5&&S.hitCd<=0){SFX.hit(S.wallHit*0.5);S.hitCd=0.35;brkHit(S.wallHit);}S.wallHit=0;brkStep(dt);
+  if((S.wallHit||0)>2.5&&S.hitCd<=0){SFX.hit(S.wallHit*0.5);S.hitCd=0.35;brkHit(S.wallHit);}S.wallHit=0;brkStep(dt);exhSmoke(dt);
   S.hitCd-=dt;const cu=cust(S.veh),bp=V.bodyPts[0],cw=Math.abs(bp[1])+0.08,hl=Math.max(cw,Math.abs(bp[0])-cw*0.85),fwx=Math.sin(S.th),fwz=Math.cos(S.th);
   nearObst(S.x,S.z).forEach(arr=>arr.forEach(o=>{if(Math.abs(S.x-o.x)>o.r+hl+cw+1||Math.abs(S.z-o.z)>o.r+hl+cw+1)return;
     // the nearest of four circles laid along the car: nose, two in the middle, tail
@@ -5272,6 +5312,16 @@ function brkUI(){const on=brkOn();$('tempRow').hidden=!on;if(!on)return;$('tempF
   $('tempRow').classList.toggle('hot',BRK.heat>0.86);const f=BRK.flat>=0||BRK.heat>0.8||!BRK.lights,shop=BRK.spare<2&&Math.abs(S.v||0)<1&&villageNear();$('fixBtn').hidden=!(f||shop);$('fixBtn').classList.toggle('alert',f);}
 // steam out of the bonnet
 let steamP=null;
+// exhaust: a faint grey breath at idle, a thicker darker puff when you floor it, white vapour in the cold; it leaves
+// the tail pipe going back and up, and stays where the air takes it
+let exhP=null;window.__exh=()=>exhP;function exhSmoke(dt){if(!V||!V.exh||!V.g.visible)return;
+  if(!exhP){exhP=[];for(let i=0;i<18;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:mistTex,color:0x9a9a9a,transparent:true,depthWrite:false,opacity:0}));s.visible=false;scene.add(s);exhP.push({s,life:0,vx:0,vy:0,vz:0,k:0});}}
+  const on=S.engineOn&&S.mode==='play',g=S.gas||0,cold=(typeof WX!=='undefined'&&WX.temp!==undefined&&WX.temp<6)?1:0;
+  if(on&&Math.random()<dt*(2.2+g*13)){const p=exhP.find(q=>q.life<=0);if(p){const v=V.body.localToWorld(new THREE.Vector3(V.exh[0],V.exh[1],V.exh[2])),fx=Math.sin(S.th),fz=Math.cos(S.th);p.s.position.copy(v);p.life=1;p.s.visible=true;
+      p.k=g>0.75?1:0;p.vx=(S.vx||0)*0.35-fx*(1+g*1.5)+(Math.random()-0.5)*0.3;p.vz=(S.vz||0)*0.35-fz*(1+g*1.5)+(Math.random()-0.5)*0.3;p.vy=0.2+Math.random()*0.25;
+      p.s.material.color.setScalar(cold?0.95:p.k?0.3:0.62);p.op=cold?0.4:p.k?0.5:0.24;}}
+  for(const p of exhP){if(p.life<=0)continue;p.life-=dt*(p.k?0.75:1.1);p.vx*=1-dt*1.5;p.vz*=1-dt*1.5;p.s.position.x+=p.vx*dt;p.s.position.y+=(p.vy+0.25*(1-p.life))*dt;p.s.position.z+=p.vz*dt;
+    const sc=0.25+(1-p.life)*(p.k?2.2:1.4);p.s.scale.set(sc,sc,1);p.s.material.opacity=Math.max(0,p.life)*p.op;if(p.life<=0)p.s.visible=false;}}
 function brkSteam(dt,amt){if(!steamP){steamP=[];for(let i=0;i<14;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:mistTex,color:0xf4f4f4,transparent:true,depthWrite:false,opacity:0}));s.visible=false;scene.add(s);steamP.push({s,life:0});}}
   if(amt>0&&V&&Math.random()<dt*14*amt){const p=steamP.find(q=>q.life<=0);if(p){const hz=(V.frontZ||1.9)-0.5,v=V.body.localToWorld(new THREE.Vector3((Math.random()-0.5)*0.6,1.4,hz));p.s.position.copy(v);p.life=1;p.s.visible=true;p.vx=(Math.random()-0.5)*0.4;p.vz=(Math.random()-0.5)*0.4;}}
   for(const p of steamP){if(p.life<=0)continue;p.life-=dt*0.7;p.s.position.y+=dt*(1.4+0.6*(1-p.life));p.s.position.x+=p.vx*dt;p.s.position.z+=p.vz*dt;const sc=0.6+(1-p.life)*2.2;p.s.scale.set(sc,sc,1);p.s.material.opacity=Math.max(0,p.life)*0.55;if(p.life<=0)p.s.visible=false;}}

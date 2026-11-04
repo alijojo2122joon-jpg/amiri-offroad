@@ -1,13 +1,13 @@
 {
- "code": 214,
+ "code": 215,
  "minApk": 174,
  "apkUrl": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/AmiriOffroad.apk?v=174",
  "files": [
   {
    "path": "index.html",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html?v=214",
-   "sha256": "62a98083629add94dcf5c3c06530e4e57f17bc520b4f26b417a102c7e8baa450",
-   "size": 4924549
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html?v=215",
+   "sha256": "1d12e8961be3983df978808ae1d7408e126d9bd4c3d686ebb2bdb94fb7e7f3bf",
+   "size": 4931513
   },
   {
    "path": "models/mech.glb",
@@ -65,15 +65,15 @@
   },
   {
    "path": "models/cruiser.glb",
-   "sha256": "af846531e00f2450a7de307c391edc4d2a65c31e9d940dd0a364fd45e82a08f2",
-   "size": 7862460,
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/cruiser.glb?v=182"
+   "sha256": "f20af153ce338b4102afde76934c48b694b26b11969fe2b52abf94070b5d3df4",
+   "size": 7933240,
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/cruiser.glb?v=215"
   },
   {
    "path": "models/cruiser_lo.glb",
-   "sha256": "e1376dffddaa2d36dbbe693d447e884af2ad6bc396e830afc88a5fadd4c8faab",
-   "size": 1336944,
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/cruiser_lo.glb?v=182"
+   "sha256": "901310ed9fdb6b48e03c8fcae204dc2097144ef45e00fee87192130223e3d14e",
+   "size": 1338836,
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/cruiser_lo.glb?v=215"
   },
   {
    "path": "video/upd.mp4",
@@ -173,9 +173,9 @@
   },
   {
    "path": "models/cruiser_mid.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/cruiser_mid.glb?v=182",
-   "sha256": "25e5c095f23d6e33de9a590681ad33010d01b04a7e84c9ff018e488041067ceb",
-   "size": 4459980
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/cruiser_mid.glb?v=215",
+   "sha256": "4bc503ab43f317922f277cf751f9d1001b923ab335e451595e1b307b20cbd0be",
+   "size": 4482448
   },
   {
    "path": "snd/blackbird1.ogg",
