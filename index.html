@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=209</script>
+<script>window.GAME_CODE=210</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -3244,6 +3244,8 @@ function updateAudio(dt,env){
   let waterN=0;LAKES.forEach(Lk=>{if(Math.abs(Lk.z-S.z)<400)waterN=Math.max(waterN,clamp(1-(Math.hypot(S.x-Lk.x,S.z-Lk.z)-Lk.b)/120,0,1));});waterN=Math.max(waterN,clamp(1-riverDist(S.x,S.z)/70,0,1));
   for(const Fd of fb(S.z).f)waterN=Math.max(waterN,clamp(1-Math.abs(S.z-Fd.z)/60,0,1));
   waterN=Math.max(waterN,clamp((S.z-(ROADLEN-1500))/1200,0,1),wade);
+  // the real lakes lap at their shores, and the falls between them roar as you come near
+  if(FREE&&FW&&FW.lg){const l=dkLake(S.x,S.z);if(l)waterN=Math.max(waterN,clamp(1-l.sd/60,0,1)*0.6);if(DK.falls)for(const f of DK.falls){const d=Math.hypot(S.x-f[0],S.z-f[1]);if(d<160)waterN=Math.max(waterN,clamp(1-d/160,0,1));}}
   setT(L.stream.g.gain,waterN*0.28*(inCar?0.5:1),0.5);
   // animals live at fixed places along the route; passing one, you hear it for a few seconds, then it is quiet again
   AU.spotBird=AU.spotNight=0;let gul=0,frg=0,flk=0;const calm=1-Math.min(1,wA*1.6);
@@ -4536,7 +4538,7 @@ function freeRaw(x,z){if(RMAP(FMAP))return dkH(x,z);const u=x-FX,v=z-FZ,r=Math.s
   return -26+(h+26)*land;}
 function freeLakeAt(L,x,z){const dx=x-L.x,dz=z-L.z;if(dx*dx+dz*dz>L.a*L.a*2.1)return 9;const c=Math.cos(L.ang),s=Math.sin(L.ang),p=(dx*c-dz*s)/L.a,q=(dx*s+dz*c)/L.b;return Math.sqrt(p*p+q*q);}
 function freeBase(x,z){let h=freeRaw(x,z);if(FW)for(const L of FW.lakes){if(L.level===undefined)continue;const r=freeLakeAt(L,x,z);if(r<1.4){const bowl=L.level-L.dep*(1-r*r),w=sstep(1.4,0.9,r);h=h*(1-w)+Math.min(h,bowl)*w;if(r>1.0)h=Math.max(h,L.level+0.45*sstep(1.4,1.08,r));}}return h;}
-function freeWater(x,z){if(RMAP(FMAP)){if(FW&&FW.lg){const l=dkLake(x,z);if(l&&l.sd<0)return l.lv;}if(FW&&FW.rc){const q=dkRiv(x,z);if(q&&q.dc<q.c+0.6)return q.h-0.12;}return -1e6;}if(FW)for(const L of FW.lakes)if(L.level!==undefined&&freeLakeAt(L,x,z)<1.05)return L.level;return 0;}
+function freeWater(x,z){if(FW&&FW.fords)for(const f of FW.fords){const dx=x-f.x,dz=z-f.z;if(Math.abs(dx*f.nx+dz*f.nz)<f.L&&Math.abs(dx*f.tx+dz*f.tz)<f.W)return f.lv;}if(RMAP(FMAP)){if(FW&&FW.lg){const l=dkLake(x,z);if(l&&l.sd<0)return l.lv;}if(FW&&FW.rc){const q=dkRiv(x,z);if(q&&q.dc<q.c+0.6)return q.h-0.12;}return -1e6;}if(FW)for(const L of FW.lakes)if(L.level!==undefined&&freeLakeAt(L,x,z)<1.05)return L.level;return 0;}
 // the nearest point of a trail: its distance and the height of the trail bed there
 function trailQ(x,z,md){const c=FCELL,gx=Math.floor((x-FW.x0)/c),gz=Math.floor((z-FW.z0)/c),rr=Math.ceil(md/c);let best=-1,bd=md,bt=0;const PX=FW.PX,PZ=FW.PZ;
   for(let j=gz-rr;j<=gz+rr;j++)for(let i=gx-rr;i<=gx+rr;i++){const L=FW.cells.get(i*8192+j);if(!L)continue;
@@ -4561,6 +4563,9 @@ function freeHf(x,z){let h=freeBase(x,z);if(!FW)return h;if(FW.dk&&FW.rc){const 
     if(FW.dk&&FMAP==='bamir'&&FW.trails[1]){const q2=trailQ(x,z,48);if(q2&&q2.d>3.0&&q2.s>=FW.trails[1].i0){const k=Math.floor(q2.s),P=islDropSide(),ds=P[k]||0;if(ds&&ds===q2.sg){const t=q2.h-0.5-(q2.d-3.0)*1.6,w=sstep(48,34,q2.d);if(h>t)h+=(t-h)*w;}}}
     if(!FW.dk&&FW.trDone&&h>45){const q2=trailQ(x,z,48);if(q2&&q2.d>3.1){const k=Math.floor(q2.s),P=islDropSide(),ds=P[k]||0;if(ds&&ds===q2.sg){const t=q2.h-0.4-(q2.d-3.1)*1.7,w=sstep(48,36,q2.d);if(h>t)h+=(t-h)*w;}}}
     if(q){if(FW.dk&&FW.br&&dkOnSpan(x,z)){}else if(FW.dk){const dh=Math.abs(q.h-h),rw=FW.rw||2.7;h+=(q.h-h)*sstep(rw+dh*1.3+0.8,rw,q.d);}else{/* a narrow bed (about 6 m) with steep banks: the higher the cut or the drop, the wider its bank */const dh=Math.abs(q.h-h);h+=(q.h-h)*sstep(Math.min(15,3.1+1.6+dh*0.6),3.1,q.d);}}}
+  // the fords: a shallow stream bed cut across the road, the water about knee deep in the middle
+  if(FW.fords)for(const f of FW.fords){const dx=x-f.x,dz=z-f.z;if(dx*dx+dz*dz>(f.L+3)*(f.L+3))continue;const u=dx*f.nx+dz*f.nz,w=dx*f.tx+dz*f.tz;if(Math.abs(u)>f.L+2||Math.abs(w)>f.W+2.5)continue;
+    const k=sstep(f.L+2,f.L-3,Math.abs(u))*sstep(f.W+2.5,f.W-0.5,Math.abs(w)),bed=f.lv-0.5*(1-Math.min(1,(w/f.W)*(w/f.W)));if(h>bed)h+=(bed-h)*k;}
   return h;}
 // the trail beds near a point, mixed by nearness: on a trail you get its own bed, and between two trails close together the ground runs smoothly from one to the other
 // which side of each trail point is the valley side (where the open ground lies lower), smoothed along the trail
@@ -5665,9 +5670,33 @@ function bmStageBuild(){bmObst.length=0;if(!FW.trails[1])return;const T0=FW.trai
     const pick=(T,step,first)=>{for(let k=T.i0+first;k<T.i1-60;k+=step){let lo=k;for(let q=k-20;q<=k+20;q++)if(FW.PH[q]<FW.PH[lo])lo=q;if(FW.span&&FW.span[lo])continue;
         const ux=FW.PX[lo+2]-FW.PX[lo-2],uz=FW.PZ[lo+2]-FW.PZ[lo-2],ul=Math.hypot(ux,uz)||1,o=(Rm()-0.5)*1.2;patch(FW.PX[lo]+uz/ul*o,FW.PZ[lo]-ux/ul*o,3.2+Rm()*2.6);}};
     pick(T1,170,120);pick(T0,700,500);}
+  // three streams to ford on the road in: at its lowest dips, a strip of water across the road
+  {FW.fords=[];const T=T0,cand=[];for(let k=T.i0+300;k<T.i1-300;k+=10){let lo=true;for(let q=k-60;q<=k+60;q+=5)if(FW.PH[q]<FW.PH[k]-0.01){lo=false;break;}if(lo)cand.push(k);}
+    const pickF=[];for(const k of cand){if(pickF.every(j=>Math.abs(j-k)>900))pickF.push(k);if(pickF.length>=3)break;}
+    for(const k of pickF){const tx=FW.PX[k+3]-FW.PX[k-3],tz=FW.PZ[k+3]-FW.PZ[k-3],tl=Math.hypot(tx,tz)||1;FW.fords.push({x:FW.PX[k],z:FW.PZ[k],lv:FW.PH[k]+0.05,L:16,W:3.2,tx:tx/tl,tz:tz/tl,nx:tz/tl,nz:-tx/tl});}
+    if(FW.fords.length){
+      // the water: clear over a pebbly bed near the banks, deeper green-grey in the middle, little ripples, soft edges
+      const mk=(draw)=>{const c=document.createElement('canvas');c.width=128;c.height=512;draw(c.getContext('2d'));const t=new THREE.CanvasTexture(c);if(FILMIC)t.encoding=THREE.sRGBEncoding;return t;};
+      const wt=mk(x=>{for(let yy=0;yy<512;yy++){const e=Math.min(1,Math.min(yy,511-yy)/90);const r=Math.sin(yy*0.21)*0.5+0.5;for(let xx=0;xx<128;xx++){const a=Math.min(1,Math.min(xx,127-xx)/34)*e;x.fillStyle='rgba('+(70+r*18|0)+','+(108+r*14|0)+','+(108+r*10|0)+','+(a*0.72).toFixed(3)+')';x.fillRect(xx,yy,1,1);}}
+        x.strokeStyle='rgba(220,235,235,0.18)';x.lineWidth=2;for(let k=0;k<40;k++){const yy=Math.random()*512,xx=20+Math.random()*88;x.beginPath();x.moveTo(xx,yy);x.quadraticCurveTo(xx+10,yy+4,xx+22,yy);x.stroke();}});
+      const bt=mk(x=>{for(let yy=0;yy<512;yy+=2){const e=Math.min(1,Math.min(yy,511-yy)/110);for(let xx=0;xx<128;xx+=2){const a=Math.min(1,Math.min(xx,127-xx)/40)*e,n=Math.random();x.fillStyle='rgba('+(62+n*26|0)+','+(52+n*20|0)+','+(40+n*16|0)+','+(a*0.8).toFixed(3)+')';x.fillRect(xx,yy,2,2);}}});
+      const wm=new THREE.MeshPhongMaterial({map:wt,transparent:true,depthWrite:false,shininess:120,specular:0x8899aa}),bm=new THREE.MeshLambertMaterial({map:bt,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
+      for(const f of FW.fords){const g=new THREE.PlaneGeometry(f.W*2.2,f.L*2.1,1,8).rotateX(-Math.PI/2),m=new THREE.Mesh(g,wm);m.position.set(f.x,f.lv,f.z);m.rotation.y=Math.atan2(f.nx,f.nz);m.renderOrder=2;FW.group.add(m);
+        f.bank=bm;}
+      const prev=FW.mudDraw;FW.mudDraw=()=>{if(prev)prev();for(const f of FW.fords){const g=new THREE.PlaneGeometry((f.W+3)*2,(f.L+3)*2,10,30).rotateX(-Math.PI/2),P=g.attributes.position,a=Math.atan2(f.nx,f.nz),ca=Math.cos(a),sa=Math.sin(a);
+        for(let i=0;i<P.count;i++){const lx=P.getX(i),lz=P.getZ(i),vx=f.x+lx*ca+lz*sa,vz=f.z-lx*sa+lz*ca;P.setXYZ(i,vx,meshH(vx,vz)+0.04,vz);}g.computeVertexNormals();const m=new THREE.Mesh(g,f.bank);m.renderOrder=1;FW.group.add(m);}};}}
   let best=0;try{best=+(localStorage.getItem('amiri-bm-best')||0);}catch(e){}
   FW.stg={on:false,t:0,mx:0,len:T1.i1-T1.i0,best,cp:0,off:0};}
-function bmStageStep(dt){if(FW.mudDraw&&FREE){const f=FW.mudDraw;FW.mudDraw=null;f();}const G=FW.stg,T1=FW.trails[1];const q=trailQ(S.x,S.z,14);const on=q&&q.s>=T1.i0&&q.s<=T1.i1,idx=on?q.s-T1.i0:-1;
+// cars parked by the road where it reaches Band-e Haibat (visitors' cars), once their models have arrived
+function bmParked(){FW.parked=true;const T=FW.trails[0],R=mulberry32(91),L=NPCV.map((v,i)=>i).filter(i=>!/amb|cop/.test(NPCV[i].n)&&MODELS[NPCV[i].glb]);if(!L.length)return;
+  const sl=(x,z)=>Math.abs(meshH(x+2,z)-meshH(x-2,z))+Math.abs(meshH(x,z+2)-meshH(x,z-2));let n=0;
+  for(let k=T.i1-30;k>T.i1-160&&n<7;k-=4){const tx=FW.PX[k+2]-FW.PX[k-2],tz=FW.PZ[k+2]-FW.PZ[k-2],tl=Math.hypot(tx,tz)||1,nx=tz/tl,nz=-tx/tl;
+    let side=0;for(const sd of [1,-1]){const x=FW.PX[k]+nx*sd*7.5,z=FW.PZ[k]+nz*sd*7.5;if(sl(x,z)<0.9&&freeWater(x,z)<meshH(x,z)-0.5&&!(typeof dkHouseAt==='function'&&dkHouseAt(x,z,3))){side=sd;break;}}if(!side)continue;
+    if(R()<0.25)continue;const vi=L[Math.floor(R()*L.length)],spec=Object.assign({},NPCV[vi],{lite:true,noInt:true}),cu={paint:pick(TR_PAINT),rim:null,bar:0,snork:0,rack:0,flag:0,roof:0,crate:0,tire:1};
+    const Vc=buildVehicle(spec,cu,null),x=FW.PX[k]+nx*side*7.5,z=FW.PZ[k]+nz*side*7.5,th=Math.atan2(tx,tz)+(R()<0.5?Math.PI:0);
+    Vc.g.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(Vc.g);Vc.g.position.set(x,meshH(x,z)-bb.min.y,z);Vc.g.rotation.y=th;Vc.g.traverse(o=>{if(o.isMesh)o.castShadow=true;});FW.group.add(Vc.g);
+    const hl=Math.max(0.6,(bb.max.z-bb.min.z)/2-0.9);for(const u of [-hl,0,hl])bmObst.push({x:x+Math.sin(th)*u,z:z+Math.cos(th)*u,r:1.0});n++;}FW.parkN=n;}
+function bmStageStep(dt){if(FW.mudDraw&&FREE){const f=FW.mudDraw;FW.mudDraw=null;f();}if(!FW.parked&&FREE&&window.__lateDone)bmParked();const G=FW.stg,T1=FW.trails[1];const q=trailQ(S.x,S.z,14);const on=q&&q.s>=T1.i0&&q.s<=T1.i1,idx=on?q.s-T1.i0:-1;
   const fmt=t=>{const m=Math.floor(t/60),s2=Math.floor(t%60);return fa(m)+':'+(s2<10?'۰':'')+fa(s2);};
   if(!G.on){if(on&&idx>14&&idx<30&&Math.abs(S.v)>1.5){G.on=true;G.t=0;G.mx=idx;G.cp=0;G.off=0;toast(tr_('مرحله شروع شد! دور بند هیبت را تا آخر برو و از همین دروازه برگرد'));}return;}
   G.t+=dt;if(on){G.off=0;if(idx>G.mx&&idx<G.mx+80)G.mx=idx;}else{G.off+=dt;if(G.off>25){G.on=false;toast(tr_('از راه بیرون رفتی؛ مرحله لغو شد. برای شروع دوباره از دروازه رد شو'));return;}}
@@ -5697,11 +5726,11 @@ function freeRoadChunk(ix,iz){const x0=ix*TILE,z0=iz*TILE,x1=x0+TILE,z1=z0+TILE,
       const put=(o,sc)=>{const px=cx+nx*o,pz=cz+nz*o;rocks.push([px,meshH(px,pz)+sc*0.12,pz,sc]);obst.push({x:px,z:pz,r:sc*1.25});};
       // one feature at most every 20 m along the trail, so two of them can never close the road between them
       if(!camp&&k%10===0){const u=R()*0.2;
-        if(u<(ring?0.05:0.014)){const sd=R()<0.5?1:-1,o=rw-0.3+R()*1.3,sc=Math.min(0.7+R()*1.3,(o+rw-3.0)/1.25);if(sc>0.45)put(sd*o,sc);}
-        else if(ring&&u<0.064){const g=3.1+R()*0.5,c=(R()-0.5)*(2*rw-g-1.2),scL=0.8+R()*0.7,scR=0.8+R()*0.7;put(c-g/2-scL*1.25,scL);put(c+g/2+scR*1.25,scR);}
+        if(u<(ring?0.05:0.03)){const sd=R()<0.5?1:-1,o=rw-0.3+R()*1.3,sc=Math.min(0.7+R()*1.3,(o+rw-3.0)/1.25);if(sc>0.45)put(sd*o,sc);}
+        else if(u<(ring?0.064:0.037)){const g=3.1+R()*0.5,c=(R()-0.5)*(2*rw-g-1.2),scL=0.8+R()*0.7,scR=0.8+R()*0.7;put(c-g/2-scL*1.25,scL);put(c+g/2+scR*1.25,scR);}
         else if(ring&&u<0.072){const sd=R()<0.5?1:-1,sc=0.6+R()*0.4;put(sd*(sc*1.25+0.05),sc);}}
       // rubble: loose stones lying on the bed that jolt the car (you drive over them), thicker on the rim trail
-      if(!camp&&R()<(ring?0.07:0.025)){const n=3+Math.floor(R()*7),c0=(R()-0.5)*1.6*rw;for(let q=0;q<n;q++){const o=clamp(c0+(R()-0.5)*2.4,-rw,rw),al=(R()-0.5)*2.5,b={t:'rock',x:cx+nx*o+tx/tl*al,z:cz+nz*o+tz/tl*al,r:0.18+R()*0.3,h:0.06+R()*0.16};bumps.push(b);stones.push(b);}}}
+      if(!camp&&R()<(ring?0.07:0.04)){const n=3+Math.floor(R()*7),c0=(R()-0.5)*1.6*rw;for(let q=0;q<n;q++){const o=clamp(c0+(R()-0.5)*2.4,-rw,rw),al=(R()-0.5)*2.5,b={t:'rock',x:cx+nx*o+tx/tl*al,z:cz+nz*o+tz/tl*al,r:0.18+R()*0.3,h:0.06+R()*0.16};bumps.push(b);stones.push(b);}}}
     if(!FW.dk&&R()<0.012*rough){const sd=R()<0.5?1:-1,o=sd*(4.4+R()*3),px=cx+nx*o,pz=cz+nz*o,sc=1+R()*1.8*rough;if(freeLat(px,pz)>3.6+sc){rocks.push([px,meshH(px,pz)+sc*0.15,pz,sc]);obst.push({x:px,z:pz,r:sc*1.25});}}}}
   for(const o of FW.extra)if(o.x>=x0&&o.x<x1&&o.z>=z0&&o.z<z1)obst.push(o);
   const SF={P:[],U:[],I:[]},SB={P:[],U:[],I:[]},sposts=[],boards=[],hdAt=k=>{const a=Math.max(0,k-2),b=k+2;return Math.atan2(FW.PX[b]-FW.PX[a],FW.PZ[b]-FW.PZ[a]);};
