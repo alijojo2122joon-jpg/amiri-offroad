@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=210</script>
+<script>window.GAME_CODE=211</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -4560,9 +4560,9 @@ function freeHf(x,z){let h=freeBase(x,z);if(!FW)return h;if(FW.dk&&FW.rc){const 
     if(!FW.dk&&h>50){const u=x-FX,v=z-FZ,cr2=1-Math.abs(2*fbm(u*0.012+5,v*0.012-9,3)-1),hi=sstep(50,170,h)*(q?sstep(9,24,q.d):1);if(hi>0)h+=(Math.pow(cr2,5)*34-5)*hi;}
     // on the mountain the trail runs along one side of a valley: on its lower side the ground falls away steeply below the
     // road (the other side stays a rock wall), instead of the road sitting in a slot between two walls
-    if(FW.dk&&FMAP==='bamir'&&FW.trails[1]){const q2=trailQ(x,z,48);if(q2&&q2.d>3.0&&q2.s>=FW.trails[1].i0){const k=Math.floor(q2.s),P=islDropSide(),ds=P[k]||0;if(ds&&ds===q2.sg){const t=q2.h-0.5-(q2.d-3.0)*1.6,w=sstep(48,34,q2.d);if(h>t)h+=(t-h)*w;}}}
+    let rwL=FW.rw;if(FW.dk&&FMAP==='bamir'&&FW.trails[1]){const q2=trailQ(x,z,48);if(q2&&q2.s>=FW.trails[1].i0){rwL=FW.rwAt?FW.rwAt(q2.s):FW.rw;if(q2.d>rwL){const k=Math.floor(q2.s),P=islDropSide(),ds=P[k]||0;if(ds&&ds===q2.sg){const t=q2.h-0.5-(q2.d-rwL)*1.6,w=sstep(48,34,q2.d);if(h>t)h+=(t-h)*w;}}}}
     if(!FW.dk&&FW.trDone&&h>45){const q2=trailQ(x,z,48);if(q2&&q2.d>3.1){const k=Math.floor(q2.s),P=islDropSide(),ds=P[k]||0;if(ds&&ds===q2.sg){const t=q2.h-0.4-(q2.d-3.1)*1.7,w=sstep(48,36,q2.d);if(h>t)h+=(t-h)*w;}}}
-    if(q){if(FW.dk&&FW.br&&dkOnSpan(x,z)){}else if(FW.dk){const dh=Math.abs(q.h-h),rw=FW.rw||2.7;h+=(q.h-h)*sstep(rw+dh*1.3+0.8,rw,q.d);}else{/* a narrow bed (about 6 m) with steep banks: the higher the cut or the drop, the wider its bank */const dh=Math.abs(q.h-h);h+=(q.h-h)*sstep(Math.min(15,3.1+1.6+dh*0.6),3.1,q.d);}}}
+    if(q){if(FW.dk&&FW.br&&dkOnSpan(x,z)){}else if(FW.dk){const dh=Math.abs(q.h-h),rw=rwL||2.7;h+=(q.h-h)*sstep(rw+dh*1.3+0.8,rw,q.d);}else{/* a narrow bed (about 6 m) with steep banks: the higher the cut or the drop, the wider its bank */const dh=Math.abs(q.h-h);h+=(q.h-h)*sstep(Math.min(15,3.1+1.6+dh*0.6),3.1,q.d);}}}
   // the fords: a shallow stream bed cut across the road, the water about knee deep in the middle
   if(FW.fords)for(const f of FW.fords){const dx=x-f.x,dz=z-f.z;if(dx*dx+dz*dz>(f.L+3)*(f.L+3))continue;const u=dx*f.nx+dz*f.nz,w=dx*f.tx+dz*f.tz;if(Math.abs(u)>f.L+2||Math.abs(w)>f.W+2.5)continue;
     const k=sstep(f.L+2,f.L-3,Math.abs(u))*sstep(f.W+2.5,f.W-0.5,Math.abs(w)),bed=f.lv-0.5*(1-Math.min(1,(w/f.W)*(w/f.W)));if(h>bed)h+=(bed-h)*k;}
@@ -5201,11 +5201,11 @@ function dkRoadBed(){const n=FW.PX.length,cs=FW.cells;FW.cells=new Map();const r
   for(const Q of FW.pois){const q=trailQ(Q.x,Q.z,30);if(q)Q.h=q.h+0.15;}
   // the bridges' cells for quick lookup, and their meshes: a concrete deck, square posts with two rails each side, piers down to the riverbed
   FW.brc=new Map();FW.br.forEach((B,bi)=>{for(let k=B.a;k<B.b;k++){const i=Math.floor(FW.PX[k]/32),j=Math.floor(FW.PZ[k]/32);for(let di=-1;di<=1;di++)for(let dj=-1;dj<=1;dj++){const key=(i+di)*65536+j+dj;let L=FW.brc.get(key);if(!L)FW.brc.set(key,L=[]);if(L[L.length-1]!==k)L.push(k);}}});
-  const mat=new THREE.MeshLambertMaterial({color:0xd8d3c8}),steel=new THREE.MeshLambertMaterial({color:0xcdc7bb}),q=new THREE.Quaternion(),e=new THREE.Euler(0,0,0,'YXZ'),mt=new THREE.Matrix4(),v=new THREE.Vector3(),sc=new THREE.Vector3();
+  const wood=FMAP==='bamir',mat=new THREE.MeshLambertMaterial({color:wood?0x8a6a48:0xd8d3c8}),steel=new THREE.MeshLambertMaterial({color:wood?0x5a4632:0xcdc7bb}),q=new THREE.Quaternion(),e=new THREE.Euler(0,0,0,'YXZ'),mt=new THREE.Matrix4(),v=new THREE.Vector3(),sc=new THREE.Vector3();
   for(const B of FW.br){const A=[],T=[],ox=FW.PX[B.a],oz=FW.PZ[B.a];B.posts=[];let len=0;
     const box=(x,y,z,w,h,d,yaw,pitch,arr)=>{e.set(pitch||0,yaw,0,'YXZ');q.setFromEuler(e);mt.compose(v.set(x-ox,y,z-oz),q,sc.set(w,h,d));(arr||A).push(mt.clone());};
     for(let k=B.a;k<B.b;k+=2){const k2=Math.min(B.b,k+2),x0=FW.PX[k],z0=FW.PZ[k],x1=FW.PX[k2],z1=FW.PZ[k2],h0=FW.PH[k],h1=FW.PH[k2],dx=x1-x0,dz=z1-z0,L=Math.hypot(dx,dz)||0.1,yaw=Math.atan2(dx,dz),pitch=-Math.atan2(h1-h0,L),nx=dz/L,nz=-dx/L;len+=L;
-      const cx=(x0+x1)/2,cz=(z0+z1)/2,ch=(h0+h1)/2;box(cx,ch-0.28,cz,5.4,0.5,L+0.15,yaw,pitch);
+      const cx=(x0+x1)/2,cz=(z0+z1)/2,ch=(h0+h1)/2;if(wood){/* planks across, with gaps, on two log stringers */for(let q=0;q<4;q++){const f=(q+0.5)/4;box(x0+dx*f,h0+(h1-h0)*f-0.12,z0+dz*f,5.0,0.12,L/4-0.12,yaw,pitch);}for(const sd of [-1,1])box(cx+nx*sd*1.6,ch-0.4,cz+nz*sd*1.6,0.4,0.4,L+0.15,yaw,pitch,T);}else box(cx,ch-0.28,cz,5.4,0.5,L+0.15,yaw,pitch);
       for(const sd of [-1,1]){const rx=cx+nx*sd*2.6,rz=cz+nz*sd*2.6;box(rx,ch+0.12,rz,0.4,0.3,L+0.1,yaw,pitch,T);box(rx,ch+1.0,rz,0.24,0.2,L+0.1,yaw,pitch,T);box(rx,ch+0.58,rz,0.16,0.14,L+0.1,yaw,pitch,T);
         const px=x0+nx*sd*2.6,pz=z0+nz*sd*2.6;box(px,h0+0.55,pz,0.3,1.1,0.3,yaw,0,T);box((px+rx)/2+(rx-px)*0,h0+0.55,(pz+rz)/2,0.3,1.1,0.3,yaw,0,T);B.posts.push({x:px,z:pz,r:0.2});}
       if(((k-B.a)/2)%4===2){const top=ch-0.5,bot=Math.min(B.rh-0.6,top-1);box(cx,(top+bot)/2,cz,4.4,top-bot,1.1,yaw,0);}}
@@ -5642,6 +5642,29 @@ function bmStageBuild(){bmObst.length=0;if(!FW.trails[1])return;const T0=FW.trai
   // the park's own sign on the road in, about 2 km before Band-e Haibat
   {const k=Math.max(T0.i0+10,T0.i1-1000);bmGate(FW.PX[k],FW.PZ[k],hd(k),tr_('پارک ملی بند امیر · خوش آمدید'),span);}
   {const k=T1.i0+14;bmGate(FW.PX[k],FW.PZ[k],hd(k),tr_('شروع و پایان · راه کوهستانی دور بند هیبت'),span);}
+  // ledges: where the rim trail runs above its biggest drops it narrows to a shelf about 4.4 m wide (the Cruiser is 2 m)
+  {FW.rwAt=null;const P=islDropSide(),L=[];for(let k=T1.i0+80;k<T1.i1-120&&L.length<6;k+=10){const ds=P[k]||0;if(!ds)continue;if(L.length&&k-L[L.length-1].b<220)continue;
+      const ux=FW.PZ[k+2]-FW.PZ[k-2],uz=-(FW.PX[k+2]-FW.PX[k-2]),ul=Math.hypot(ux,uz)||1;let ok=true;for(let q=0;q<=40;q+=10){const kk=k+q;if((P[kk]||0)!==ds||(FW.span&&FW.span[kk])){ok=false;break;}let d=0;for(const r of [12,20])d=Math.max(d,FW.PH[kk]-freeHf(FW.PX[kk]+ux/ul*ds*r,FW.PZ[kk]+uz/ul*ds*r));if(d<8){ok=false;break;}}if(ok)L.push({a:k,b:k+40});}
+    FW.ledges=L;FW.rwAt=s2=>{for(const Q of L)if(s2>Q.a-15&&s2<Q.b+15)return FW.rw-0.8*Math.min(1,(s2-(Q.a-15))/15,(Q.b+15-s2)/15);return FW.rw;};
+    const wood2=new THREE.MeshLambertMaterial({color:'#6b4a2e'});for(const Q of L){const k=Q.a-22,ds=P[Q.a]||1,nx=(FW.PZ[k+2]-FW.PZ[k-2]),nz=-(FW.PX[k+2]-FW.PX[k-2]),nl=Math.hypot(nx,nz)||1,px=FW.PX[k]-nx/nl*ds*(FW.rw+0.9),pz=FW.PZ[k]-nz/nl*ds*(FW.rw+0.9),g=new THREE.Group();g.position.set(px,freeHf(px,pz),pz);g.rotation.y=hd(k)+Math.PI;
+      const pl=new THREE.Mesh(new THREE.PlaneGeometry(1.9,0.55),boardMat(tr_('راه باریک · لبهٔ پرتگاه'),'red'));pl.position.y=1.55;g.add(pl);for(const sd of [-1,1]){const po=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.06,1.85,6),wood2);po.position.set(sd*0.8,0.92,-0.04);g.add(po);}FW.group.add(g);bmObst.push({x:px,z:pz,r:0.3});}}
+  // natural limestone arches over the rim trail, where the ground either side is level with the road
+  {const arches=[],rw=FW.rw;for(let k=T1.i0+150;k<T1.i1-150&&arches.length<3;k+=12){if(arches.length&&k-arches[arches.length-1]<500)continue;if(FW.span&&FW.span[k])continue;if(FW.rwAt&&FW.rwAt(k)<rw-0.05)continue;
+      const ux=FW.PZ[k+2]-FW.PZ[k-2],uz=-(FW.PX[k+2]-FW.PX[k-2]),ul=Math.hypot(ux,uz)||1;let ok=true;for(const sd of [-1,1])for(const r of [rw+1.2,rw+2.2]){if(Math.abs(freeHf(FW.PX[k]+ux/ul*sd*r,FW.PZ[k]+uz/ul*sd*r)-FW.PH[k])>2.2)ok=false;}
+      if(ok)arches.push(k);}
+    if(arches.length){const g0=new THREE.TorusGeometry(rw+1.7,1.25,7,18,Math.PI),P=g0.attributes.position,R3=mulberry32(13);for(let i=0;i<P.count;i++){const f=0.85+R3()*0.3;P.setXYZ(i,P.getX(i)*(0.97+R3()*0.06),P.getY(i)*(0.97+R3()*0.06),P.getZ(i)*f);}g0.computeVertexNormals();
+      const am=new THREE.MeshLambertMaterial({color:'#cdbf9f',flatShading:true});
+      for(const k of arches){const m=new THREE.Mesh(g0,am),ux=FW.PZ[k+2]-FW.PZ[k-2],uz=-(FW.PX[k+2]-FW.PX[k-2]),ul=Math.hypot(ux,uz)||1;m.position.set(FW.PX[k],FW.PH[k]-0.6,FW.PZ[k]);m.rotation.y=hd(k);m.castShadow=m.receiveShadow=true;FW.group.add(m);
+        for(const sd of [-1,1])for(const r of [rw+1.2,rw+2.2])bmObst.push({x:FW.PX[k]+ux/ul*sd*r,z:FW.PZ[k]+uz/ul*sd*r,r:0.9});}}
+    FW.arches=arches;}
+  // the lookout: at the rim trail's highest point, a cairn of stones with Afghanistan's flag over Band-e Haibat
+  {let k=T1.i0+100;for(let q=T1.i0+100;q<T1.i1-100;q++)if(FW.PH[q]>FW.PH[k])k=q;const P=islDropSide(),ds=P[k]||1,ux=FW.PZ[k+2]-FW.PZ[k-2],uz=-(FW.PX[k+2]-FW.PX[k-2]),ul=Math.hypot(ux,uz)||1;
+    const px=FW.PX[k]-ux/ul*ds*(FW.rw+4.5),pz=FW.PZ[k]-uz/ul*ds*(FW.rw+4.5),gy=freeHf(px,pz),g=new THREE.Group();g.position.set(px,gy,pz);
+    const lm=new THREE.MeshLambertMaterial({color:'#d6cab0',flatShading:true});[[1.15,0.55,0],[0.85,1.35,0.4],[0.55,1.95,0.9]].forEach(([sc,y,r])=>{const m=new THREE.Mesh(G.rockL,lm);m.scale.set(sc,sc*0.7,sc);m.position.y=y;m.rotation.y=r;m.castShadow=true;g.add(m);});
+    const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.06,6,8),new THREE.MeshLambertMaterial({color:'#8c8c8c'}));pole.position.y=3.6;g.add(pole);
+    const fl=new THREE.Mesh(new THREE.PlaneGeometry(1.8,1.2,8,4).translate(0.9,0,0),new THREE.MeshLambertMaterial({map:flagTex('af3'),side:THREE.DoubleSide}));fl.position.y=6.0;fl.rotation.y=Math.atan2(ux,uz);g.add(fl);FW.lookFlag=fl;fl.userData.base=fl.geometry.attributes.position.array.slice();
+    const bd=new THREE.Mesh(new THREE.PlaneGeometry(1.9,0.5),boardMat(tr_('نقطهٔ دید · بند هیبت'),'green'));bd.position.set(0,1.0,1.4);bd.rotation.y=Math.atan2(-ux*ds,-uz*ds);g.add(bd);
+    FW.group.add(g);bmObst.push({x:px,z:pz,r:1.4});FW.look=k;}
   // red warning boards at the worst drops of the rim trail, on the safe side of the road, facing the driver
   {const P=islDropSide(),wood=new THREE.MeshLambertMaterial({color:'#6b4a2e'});let last=-1e9;
     for(let k=T1.i0+40;k<T1.i1-40;k+=6){const ds=P[k]||0;if(!ds||k-last<160)continue;const nx=(FW.PZ[k+2]-FW.PZ[k-2]),nz=-(FW.PX[k+2]-FW.PX[k-2]),nl=Math.hypot(nx,nz)||1,ux=nx/nl,uz=nz/nl;
@@ -5696,7 +5719,7 @@ function bmParked(){FW.parked=true;const T=FW.trails[0],R=mulberry32(91),L=NPCV.
     const Vc=buildVehicle(spec,cu,null),x=FW.PX[k]+nx*side*7.5,z=FW.PZ[k]+nz*side*7.5,th=Math.atan2(tx,tz)+(R()<0.5?Math.PI:0);
     Vc.g.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(Vc.g);Vc.g.position.set(x,meshH(x,z)-bb.min.y,z);Vc.g.rotation.y=th;Vc.g.traverse(o=>{if(o.isMesh)o.castShadow=true;});FW.group.add(Vc.g);
     const hl=Math.max(0.6,(bb.max.z-bb.min.z)/2-0.9);for(const u of [-hl,0,hl])bmObst.push({x:x+Math.sin(th)*u,z:z+Math.cos(th)*u,r:1.0});n++;}FW.parkN=n;}
-function bmStageStep(dt){if(FW.mudDraw&&FREE){const f=FW.mudDraw;FW.mudDraw=null;f();}if(!FW.parked&&FREE&&window.__lateDone)bmParked();const G=FW.stg,T1=FW.trails[1];const q=trailQ(S.x,S.z,14);const on=q&&q.s>=T1.i0&&q.s<=T1.i1,idx=on?q.s-T1.i0:-1;
+function bmStageStep(dt){if(FW.mudDraw&&FREE){const f=FW.mudDraw;FW.mudDraw=null;f();}if(FW.lookFlag&&Math.hypot(S.x-FW.PX[FW.look],S.z-FW.PZ[FW.look])<300){const C=FW.lookFlag,pa=C.geometry.attributes.position,b=C.userData.base,tt=performance.now()/1000;for(let i=0;i<pa.count;i++){const px=b[i*3],py=b[i*3+1];pa.array[i*3+2]=Math.sin(px*4-tt*6+py*2)*0.12*px/1.8;}pa.needsUpdate=true;C.geometry.computeVertexNormals();}if(!FW.parked&&FREE&&window.__lateDone)bmParked();const G=FW.stg,T1=FW.trails[1];const q=trailQ(S.x,S.z,14);const on=q&&q.s>=T1.i0&&q.s<=T1.i1,idx=on?q.s-T1.i0:-1;
   const fmt=t=>{const m=Math.floor(t/60),s2=Math.floor(t%60);return fa(m)+':'+(s2<10?'۰':'')+fa(s2);};
   if(!G.on){if(on&&idx>14&&idx<30&&Math.abs(S.v)>1.5){G.on=true;G.t=0;G.mx=idx;G.cp=0;G.off=0;toast(tr_('مرحله شروع شد! دور بند هیبت را تا آخر برو و از همین دروازه برگرد'));}return;}
   G.t+=dt;if(on){G.off=0;if(idx>G.mx&&idx<G.mx+80)G.mx=idx;}else{G.off+=dt;if(G.off>25){G.on=false;toast(tr_('از راه بیرون رفتی؛ مرحله لغو شد. برای شروع دوباره از دروازه رد شو'));return;}}
@@ -5710,7 +5733,7 @@ function addBoard(grp,obst,px,pz,hd,text,style,W){W=W||2.8;const gy=meshH(px,pz)
     for(const sd of [-1,1]){const pc=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.08,0.07,6),snowCapMat);pc.position.set(sd*W*0.42,1.7+H+0.035,-0.05);g.add(pc);}}
   g.traverse(o=>{if(o.isMesh)o.castShadow=true;});grp.push(g);obst.push({x:px,z:pz,r:0.3});}
 // trail ruts, stones on the trails, fallen trunks in the woods and boulders beside them, made for the ground around the car
-function freeRoadChunk(ix,iz){const x0=ix*TILE,z0=iz*TILE,x1=x0+TILE,z1=z0+TILE,R=mulberry32((ix*7919)^(iz*104729)^31),TP=[],TC=[],TI=[],bumps=[],stones=[],logs=[],rocks=[],obst=[];
+function freeRoadChunk(ix,iz){const x0=ix*TILE,z0=iz*TILE,x1=x0+TILE,z1=z0+TILE,R=mulberry32((ix*7919)^(iz*104729)^31),TP=[],TC=[],TI=[],bumps=[],stones=[],logs=[],rocks=[],obst=[],edges=[];
   const inT=k=>FW.PX[k]>=x0&&FW.PX[k]<x1&&FW.PZ[k]>=z0&&FW.PZ[k]<z1;
   for(const T of FW.trails){let rows=0;for(let k=T.i0;k<=T.i1;k++){if(!(inT(k)||(k>T.i0&&inT(k-1)))){rows=0;continue;}
     const kp=Math.max(T.i0,k-1),kn=Math.min(T.i1,k+1),tx=FW.PX[kn]-FW.PX[kp],tz=FW.PZ[kn]-FW.PZ[kp],tl=Math.hypot(tx,tz)||1,nx=tz/tl,nz=-tx/tl,cx=FW.PX[k],cz=FW.PZ[k];
@@ -5724,11 +5747,13 @@ function freeRoadChunk(ix,iz){const x0=ix*TILE,z0=iz*TILE,x1=x0+TILE,z1=z0+TILE,
       const b={t:'log',ax:xx-dx*len/2,az:zz-dz*len/2,bx:xx+dx*len/2,bz:zz+dz*len/2,r};bumps.push(b);logs.push(b);}
     if(FW.dk&&FMAP==='bamir'&&FW.trails.length>1){const ring=T===FW.trails[1],rw=FW.rw,camp=FW.pois.find(Q=>/camp/.test(Q.k||'')&&Math.hypot(Q.x-cx,Q.z-cz)<45);
       const put=(o,sc)=>{const px=cx+nx*o,pz=cz+nz*o;rocks.push([px,meshH(px,pz)+sc*0.12,pz,sc]);obst.push({x:px,z:pz,r:sc*1.25});};
-      // one feature at most every 20 m along the trail, so two of them can never close the road between them
-      if(!camp&&k%10===0){const u=R()*0.2;
+      // one feature at most every 20 m along the trail, so two of them can never close the road between them (none on the narrow shelves)
+      if(!camp&&k%10===0&&!(ring&&FW.rwAt&&FW.rwAt(k)<FW.rw-0.05)){const u=R()*0.2;
         if(u<(ring?0.05:0.03)){const sd=R()<0.5?1:-1,o=rw-0.3+R()*1.3,sc=Math.min(0.7+R()*1.3,(o+rw-3.0)/1.25);if(sc>0.45)put(sd*o,sc);}
         else if(u<(ring?0.064:0.037)){const g=3.1+R()*0.5,c=(R()-0.5)*(2*rw-g-1.2),scL=0.8+R()*0.7,scR=0.8+R()*0.7;put(c-g/2-scL*1.25,scL);put(c+g/2+scR*1.25,scR);}
         else if(ring&&u<0.072){const sd=R()<0.5?1:-1,sc=0.6+R()*0.4;put(sd*(sc*1.25+0.05),sc);}}
+      if(ring&&k%2===0){const P=islDropSide(),ds=P[k]||0;if(ds){const rwk=FW.rwAt?FW.rwAt(k):rw,ox=cx+nx*ds*(rwk+0.55),oz=cz+nz*ds*(rwk+0.55),d2=meshH(cx,cz)-meshH(cx+nx*ds*(rwk+6),cz+nz*ds*(rwk+6));
+        if(d2>3)edges.push({x:ox,z:oz,r:0.24,h:0.3});}}
       // rubble: loose stones lying on the bed that jolt the car (you drive over them), thicker on the rim trail
       if(!camp&&R()<(ring?0.07:0.04)){const n=3+Math.floor(R()*7),c0=(R()-0.5)*1.6*rw;for(let q=0;q<n;q++){const o=clamp(c0+(R()-0.5)*2.4,-rw,rw),al=(R()-0.5)*2.5,b={t:'rock',x:cx+nx*o+tx/tl*al,z:cz+nz*o+tz/tl*al,r:0.18+R()*0.3,h:0.06+R()*0.16};bumps.push(b);stones.push(b);}}}
     if(!FW.dk&&R()<0.012*rough){const sd=R()<0.5?1:-1,o=sd*(4.4+R()*3),px=cx+nx*o,pz=cz+nz*o,sc=1+R()*1.8*rough;if(freeLat(px,pz)>3.6+sc){rocks.push([px,meshH(px,pz)+sc*0.15,pz,sc]);obst.push({x:px,z:pz,r:sc*1.25});}}}}
@@ -5752,6 +5777,7 @@ function freeRoadChunk(ix,iz){const x0=ix*TILE,z0=iz*TILE,x1=x0+TILE,z1=z0+TILE,
     im.userData.shared=true;im.castShadow=true;im.receiveShadow=true;im.frustumCulled=false;scene.add(im);meshes.push(im);return im;};
   inst(G.log,VMAT.log,logs,b=>{const dx=b.bx-b.ax,dz=b.bz-b.az,len=Math.hypot(dx,dz),mx=(b.ax+b.bx)/2,mz=(b.az+b.bz)/2;dummy.position.set(mx,meshH(mx,mz)+b.r*0.6,mz);dummy.quaternion.setFromUnitVectors(up,dir.set(dx/len,0,dz/len));dummy.scale.set(b.r,len,b.r);});
   inst(signPostG,VMAT.signPost,sposts,p=>{dummy.rotation.set(0,0,0);dummy.position.set(p[0],p[1]-0.1,p[2]);dummy.scale.setScalar(1);});
+  inst(G.stone,VMAT.edge||(VMAT.edge=new THREE.MeshLambertMaterial({color:'#f4f2ec'})),edges,b=>{dummy.rotation.set(0,(b.x*5.1+b.z)%6.28,0);dummy.position.set(b.x,meshH(b.x,b.z)+b.h*0.25,b.z);dummy.scale.set(b.r,b.h,b.r*1.3);});
   inst(FW.dk&&FMAP==='bamir'?G.rockL:G.stone,VMAT.stone,stones,b=>{dummy.rotation.set(0,(b.x*7.3+b.z)%6.28,0);dummy.position.set(b.x,meshH(b.x,b.z)-b.h*0.12,b.z);dummy.scale.set(b.r*1.02,b.h*1.05,b.r*1.02);});
   const im=inst(FW.dk&&FMAP==='bamir'?G.rockL:G.rock,VMAT.rock,rocks,(a,i)=>{dummy.rotation.set(R()*0.5,R()*6.28,R()*0.4);dummy.position.set(a[0],a[1],a[2]);dummy.scale.set(a[3]*(0.9+R()*0.4),a[3]*(0.7+R()*0.5),a[3]*(0.9+R()*0.4));});
   if(im){const zc=ZC[zoneOf(z0+TILE/2)],lime=FW.dk&&FMAP==='bamir';for(let i=0;i<rocks.length;i++){if(lime){const t=R();colT.setRGB(0.66+0.12*t,0.6+0.1*t,0.5+0.08*t).multiplyScalar(1.7);}else colT.copy(zc.r1).lerp(zc.r2,R()).multiplyScalar(1.2);im.setColorAt(i,colT);}im.instanceColor.needsUpdate=true;}
