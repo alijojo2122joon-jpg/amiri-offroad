@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=204</script>
+<script>window.GAME_CODE=205</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -4710,7 +4710,7 @@ const DKTREE=[['dkpop',0.62,0.85,1.25],['dkorch',0.38,0.8,1.2]];
 function dkConsts(){if(RMAP(FMAP)){DK=DKM[FMAP]||DK;DKS=DKSM[FMAP];FX=DK.cx;FZ=DK.cz;FR=DK.fr;FG=60;FSNOWH=DK.sn||1450;}else{FX=ISL.FX;FZ=ISL.FZ;FR=ISL.FR;FG=ISL.FG;FSNOWH=ISL.FSNOWH;}}
 // a real map's data: Daykundi is inside the page, the others are files next to it (loaded only when that map is chosen)
 function dkLoad(map){map=map||'dayk';const T=DKM[map]||(DKM[map]={vz:0});if(T.H)return Promise.resolve();
-  const src=map==='dayk'?Promise.resolve().then(()=>JSON.parse(document.getElementById('daykJSON').textContent)):fetch('maps/'+map+'.json').then(r=>{if(!r.ok)throw new Error('map '+map);return r.json();});
+  const src=map==='dayk'?Promise.resolve().then(()=>JSON.parse(document.getElementById('daykJSON').textContent)):(window.__maps&&window.__maps[map]?Promise.resolve(window.__maps[map]):fetch('maps/'+map+'.json').then(r=>{if(!r.ok)throw new Error('map '+map);return r.json();}));
   const pix=(url,w,h)=>new Promise((ok,bad)=>{const img=new Image();img.onload=()=>{try{const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0);ok(x.getImageData(0,0,w,h).data);}catch(e){bad(e);}};img.onerror=bad;img.src=url;});
   return src.then(D=>{Object.assign(T,D);return Promise.all([pix(T.dem,T.nx,T.nz),T.lg?pix(T.lg.img,T.lg.nx,T.lg.nz):null,T.drape?pix(T.drape.img,T.drape.nx,T.drape.nz):null,T.fdrape?pix(T.fdrape.img,T.fdrape.nx,T.fdrape.nz):null,T.fdem?pix(T.fdem.img,T.fdem.nx,T.fdem.nz):null,T.wide?pix(T.wide.img,T.wide.nx,T.wide.nz):null]);}).then(([px,lp,dp,fp,hp,wp])=>{
     if(wp){const m=T.wide.nx*T.wide.nz,H=new Float32Array(m);for(let i=0;i<m;i++)H[i]=wp[i*4]*256+wp[i*4+1]+1000-T.eb;T.wide.H=H;T.wide.img=null;}
@@ -4794,9 +4794,6 @@ function dkInit(){const t0=performance.now();
   const m=FW.PX.length;
   for(let k=0;k<m-1;k++){if(tid[k]!==tid[k+1])continue;for(const [x,z] of [[FW.PX[k],FW.PZ[k]],[FW.PX[k+1],FW.PZ[k+1]]]){const ck=Math.floor((x-FW.x0)/FCELL)*8192+Math.floor((z-FW.z0)/FCELL);let L=FW.cells.get(ck);if(!L){L=[];FW.cells.set(ck,L);}if(L[L.length-1]!==k)L.push(k);}}
   TRS.forEach(([a,b])=>FW.trails.push({a:0,b:DK.poi.length-1,i0:a,i1:b,L:(b-a+1)*2}));FW.trDone=true;FW.PS=null;
-  // the rim trail never dips into a lake: where it passes over water its bed is raised clear of it (a stone causeway)
-  if(FMAP==='bamir'&&FW.trails[1])for(let k=FW.trails[1].i0;k<=FW.trails[1].i1;k++){const w=freeWater(FW.PX[k],FW.PZ[k]);if(w>FW.PH[k]-0.6)FW.PH[k]=w+0.6;}
-  // and climbs at most about 1 in 4 (steep, but a Cruiser makes it)
   if(FMAP==='bamir'&&FW.trails[1]){const T=FW.trails[1];for(let it=0;it<6;it++){for(let k=T.i0+1;k<=T.i1;k++){const L=Math.hypot(FW.PX[k]-FW.PX[k-1],FW.PZ[k]-FW.PZ[k-1])*0.27+0.02;FW.PH[k]=clamp(FW.PH[k],FW.PH[k-1]-L,FW.PH[k-1]+L);}for(let k=T.i1-1;k>=T.i0;k--){const L=Math.hypot(FW.PX[k]-FW.PX[k+1],FW.PZ[k]-FW.PZ[k+1])*0.27+0.02;FW.PH[k]=clamp(FW.PH[k],FW.PH[k+1]-L,FW.PH[k+1]+L);}}}
   // the coarse height grid behind the map picture
   const G=FG,gx0=FX-FR-200,gz0=FZ-FR-200,n=Math.ceil((2*FR+400)/G)+1,H=new Float32Array(n*n);
@@ -4818,6 +4815,9 @@ function dkInit(){const t0=performance.now();
   FW.riv=(DK.riv||[]).map(Rv=>Rv.w>=30?Object.assign({},Rv,{w:58,c:4}):Rv);FW.rc=new Map();FW.riv.forEach((Rv,ri)=>{for(let k=0;k<Rv.x.length-1;k++){const x=(Rv.x[k]+Rv.x[k+1])/2,z=(Rv.z[k]+Rv.z[k+1])/2,r=Rv.w+140,i0=Math.floor((x-r)/32),i1=Math.floor((x+r)/32),j0=Math.floor((z-r)/32),j1=Math.floor((z+r)/32);
     for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const key=i*65536+j;let L=FW.rc.get(key);if(!L)FW.rc.set(key,L=[]);L.push(ri,k);}}});
   dkRoadBed();
+  // the rim trail never dips into a lake: where it passes over water its bed is raised clear of it (a stone causeway)
+  if(FMAP==='bamir'&&FW.trails[1])for(let k=FW.trails[1].i0;k<=FW.trails[1].i1;k++){const w=freeWater(FW.PX[k],FW.PZ[k]);if(!FW.span[k]&&w>FW.PH[k]-0.6)FW.PH[k]=w+0.6;}
+  // and climbs at most about 1 in 4 (steep, but a Cruiser makes it)
   for(const H of FW.houses){let s=0;for(const [u,w] of [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5],[0,0]])s+=freeHf(H.x+u*H.w*H.ca-w*H.d*H.sa,H.z+u*H.w*H.sa+w*H.d*H.ca);H.ph=s/5;}FW.pads=true;
   freeBuildScene();for(const B of FW.br)FW.group.add(B.mesh);dkRiverMeshes();if(FMAP==='dayk')dkSchoolWall();else FW.walls=[];dkLakeMeshes();dkFalls();dkAsphalt();dkBoats();dkSkyline();dkBuddhaCliff();if(FMAP==='bamir')bmStageBuild();if(DK.drape)dkFarMesh();FW.ms=Math.round(performance.now()-t0);}
 // the nearest river: distance to the bed's middle, to the water channel (which wanders inside the bed), and the bed height there
@@ -5177,6 +5177,10 @@ function dkRoadBed(){const n=FW.PX.length,cs=FW.cells;FW.cells=new Map();const r
   // where the road is over a river's bed it becomes a bridge: the spans, with a little more on each bank
   const inBed=new Uint8Array(n);for(let k=0;k<n;k++){const q=dkRiv(FW.PX[k],FW.PZ[k]);if(q&&q.dc<q.c+2.5&&q.d<q.w&&raw[k]<q.h+1.5)inBed[k]=1;}
   const runs=(DK.bridges||[]).map(b=>[Math.max(0,b[0]),Math.min(n-1,b[1])]);
+  // Band-e Amir's rim trail: where it would have to cross a ravine on a high bank, it crosses on a bridge instead
+  if(FMAP==='bamir'&&FW.trails[1]){const T=FW.trails[1],m=T.i1-T.i0+1,pr=new Float32Array(m);for(let k=0;k<m;k++){let s2=0,c=0;for(let q=Math.max(0,k-6);q<=Math.min(m-1,k+6);q++){s2+=raw[T.i0+q];c++;}pr[k]=s2/c;}
+    for(let it=0;it<6;it++){for(let k=1;k<m;k++)pr[k]=clamp(pr[k],pr[k-1]-0.55,pr[k-1]+0.55);for(let k=m-2;k>=0;k--)pr[k]=clamp(pr[k],pr[k+1]-0.55,pr[k+1]+0.55);}
+    let a0=-1;for(let k=0;k<=m;k++){const deep=k<m&&pr[k]-raw[T.i0+k]>3.2;if(deep&&a0<0)a0=k;if(!deep&&a0>=0){if(k-a0>=4&&k-a0<=16&&a0>20&&k<m-20)runs.push([T.i0+a0,T.i0+k-1]);a0=-1;}}}
   FW.br=[];const span=new Uint8Array(n);
   for(let [a,b] of runs){if(b-a<1)continue;a=Math.max(1,a-3);b=Math.min(n-2,b+3);const ha=raw[a],hb=raw[b];let rh=-1e9;
     for(let k=a;k<=b;k++){const q=dkRiv(FW.PX[k],FW.PZ[k]);rh=Math.max(rh,q?q.h:Math.min(...[raw[a],raw[b]])-4);}const lift=Math.max(0,rh+3.2-Math.min(ha,hb));
