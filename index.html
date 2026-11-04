@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=207</script>
+<script>window.GAME_CODE=208</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -5700,7 +5700,7 @@ function freeRoadChunk(ix,iz){const x0=ix*TILE,z0=iz*TILE,x1=x0+TILE,z1=z0+TILE,
     im.userData.shared=true;im.castShadow=true;im.receiveShadow=true;im.frustumCulled=false;scene.add(im);meshes.push(im);return im;};
   inst(G.log,VMAT.log,logs,b=>{const dx=b.bx-b.ax,dz=b.bz-b.az,len=Math.hypot(dx,dz),mx=(b.ax+b.bx)/2,mz=(b.az+b.bz)/2;dummy.position.set(mx,meshH(mx,mz)+b.r*0.6,mz);dummy.quaternion.setFromUnitVectors(up,dir.set(dx/len,0,dz/len));dummy.scale.set(b.r,len,b.r);});
   inst(signPostG,VMAT.signPost,sposts,p=>{dummy.rotation.set(0,0,0);dummy.position.set(p[0],p[1]-0.1,p[2]);dummy.scale.setScalar(1);});
-  inst(G.stone,VMAT.stone,stones,b=>{dummy.rotation.set(0,(b.x*7.3+b.z)%6.28,0);dummy.position.set(b.x,meshH(b.x,b.z)-b.h*0.12,b.z);dummy.scale.set(b.r*1.02,b.h*1.05,b.r*1.02);});
+  inst(FW.dk&&FMAP==='bamir'?G.rockL:G.stone,VMAT.stone,stones,b=>{dummy.rotation.set(0,(b.x*7.3+b.z)%6.28,0);dummy.position.set(b.x,meshH(b.x,b.z)-b.h*0.12,b.z);dummy.scale.set(b.r*1.02,b.h*1.05,b.r*1.02);});
   const im=inst(FW.dk&&FMAP==='bamir'?G.rockL:G.rock,VMAT.rock,rocks,(a,i)=>{dummy.rotation.set(R()*0.5,R()*6.28,R()*0.4);dummy.position.set(a[0],a[1],a[2]);dummy.scale.set(a[3]*(0.9+R()*0.4),a[3]*(0.7+R()*0.5),a[3]*(0.9+R()*0.4));});
   if(im){const zc=ZC[zoneOf(z0+TILE/2)],lime=FW.dk&&FMAP==='bamir';for(let i=0;i<rocks.length;i++){if(lime){const t=R();colT.setRGB(0.66+0.12*t,0.6+0.1*t,0.5+0.08*t).multiplyScalar(1.7);}else colT.copy(zc.r1).lerp(zc.r2,R()).multiplyScalar(1.2);im.setColorAt(i,colT);}im.instanceColor.needsUpdate=true;}
   return {meshes,bumps,obst};}
