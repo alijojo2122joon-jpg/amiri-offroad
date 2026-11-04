@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=212</script>
+<script>window.GAME_CODE=213</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -5708,26 +5708,45 @@ function bmStageBuild(){bmObst.length=0;if(!FW.trails[1])return;const T0=FW.trai
       if(wet)continue;const q=trailQ(cx,cz,40);if(q&&q.d<FW.rw+18)continue;const sc=hi-lo;if(!best||sc<best.sc)best={sc,k,cx,cz,sd};}}
     if(best&&best.sc<6){const {cx,cz}=best,g=new THREE.Group(),gy=freeHf(cx,cz);g.position.set(cx,gy,cz);g.rotation.y=Math.atan2(FW.PX[best.k]-cx,FW.PZ[best.k]-cz);
       const blk=new THREE.MeshLambertMaterial({color:'#2b2420',side:THREE.DoubleSide,flatShading:true}),wd=new THREE.MeshLambertMaterial({color:'#6b4a2e'});
-      const tent=new THREE.Mesh(new THREE.CylinderGeometry(0.02,1,1,4,1,true),blk);tent.rotation.y=Math.PI/4;tent.scale.set(4.2,2.1,2.6);tent.position.y=1.05;g.add(tent);
+      const tent=new THREE.Mesh(new THREE.CylinderGeometry(0.02,1,1,4,1,true),blk);tent.rotation.y=Math.PI/4;tent.scale.set(5.4,2.3,3.2);tent.position.y=1.15;g.add(tent);
       for(const x of [-2.6,0,2.6]){const po=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.05,2.3,5),wd);po.position.set(x*0.55,1.15,1.6);g.add(po);}
       const rug=new THREE.Mesh(new THREE.PlaneGeometry(2.2,1.4).rotateX(-Math.PI/2),new THREE.MeshLambertMaterial({color:'#8e2323'}));rug.position.set(0,0.04,2.6);g.add(rug);
       for(let a=0;a<8;a++){const st=new THREE.Mesh(G.rockL,new THREE.MeshLambertMaterial({color:'#9c9284',flatShading:true}));st.scale.setScalar(0.2);st.position.set(3.4+Math.cos(a*0.785)*0.6,0.1,3.6+Math.sin(a*0.785)*0.6);g.add(st);}
       const ash=new THREE.Mesh(new THREE.CircleGeometry(0.45,10).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:'#2a2522'}));ash.position.set(3.4,0.05,3.6);g.add(ash);
       const pot=new THREE.Mesh(new THREE.SphereGeometry(0.28,8,6,0,Math.PI*2,0,Math.PI/1.6),new THREE.MeshLambertMaterial({color:'#3a3a3a'}));pot.position.set(3.4,0.32,3.6);pot.rotation.x=Math.PI;g.add(pot);
       // the shepherd: long chapan, white turban, a staff
-      const sh=new THREE.Group();sh.position.set(-4.5,0,5.5);const chap=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.34,1.3,8),new THREE.MeshLambertMaterial({color:'#5b4a3a'}));chap.position.y=0.75;sh.add(chap);
-      const hd_=new THREE.Mesh(new THREE.SphereGeometry(0.15,8,6),new THREE.MeshLambertMaterial({color:'#b98c68'}));hd_.position.y=1.55;sh.add(hd_);const tb=new THREE.Mesh(new THREE.SphereGeometry(0.18,8,6,0,Math.PI*2,0,Math.PI/2),new THREE.MeshLambertMaterial({color:'#efebe2'}));tb.position.y=1.6;tb.scale.y=0.9;sh.add(tb);
-      const beard=new THREE.Mesh(new THREE.ConeGeometry(0.1,0.22,6),new THREE.MeshLambertMaterial({color:'#2b2622'}));beard.position.set(0,1.42,0.1);beard.rotation.x=Math.PI;sh.add(beard);
-      const staff=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,1.9,5),wd);staff.position.set(0.32,0.95,0.05);staff.rotation.z=-0.08;sh.add(staff);g.add(sh);
+      const sh=new THREE.Group();sh.position.set(-4.5,0,5.5);const chap=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.33,1.2,8),new THREE.MeshLambertMaterial({color:'#5b4a3a'}));chap.position.y=0.78;sh.add(chap);
+      const hd_=new THREE.Mesh(new THREE.SphereGeometry(0.15,8,6),new THREE.MeshLambertMaterial({color:'#b98c68'}));hd_.position.y=1.58;sh.add(hd_);const tb=new THREE.Mesh(new THREE.SphereGeometry(0.18,8,6,0,Math.PI*2,0,Math.PI/2),new THREE.MeshLambertMaterial({color:'#efebe2'}));tb.position.y=1.66;tb.scale.set(1.15,0.95,1.15);sh.add(tb);
+      const beard=new THREE.Mesh(new THREE.ConeGeometry(0.1,0.22,6),new THREE.MeshLambertMaterial({color:'#2b2622'}));beard.position.set(0,1.46,0.1);beard.rotation.x=Math.PI;sh.add(beard);
+      const staff=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,1.9,5),wd);staff.position.set(0.36,0.95,0.12);staff.rotation.z=-0.08;sh.add(staff);
+      {const cm=new THREE.MeshLambertMaterial({color:'#4f4134'}),wt=new THREE.MeshLambertMaterial({color:'#e9e4d8'}),sk=new THREE.MeshLambertMaterial({color:'#b98c68'});
+        const sho=new THREE.Mesh(new THREE.BoxGeometry(0.52,0.2,0.26),cm);sho.position.y=1.3;sh.add(sho);
+        const aL=new THREE.Mesh(new THREE.BoxGeometry(0.11,0.62,0.12),cm);aL.position.set(-0.29,1.0,0.02);aL.rotation.z=0.08;sh.add(aL);const aR=new THREE.Mesh(new THREE.BoxGeometry(0.11,0.5,0.12),cm);aR.position.set(0.3,1.08,0.1);aR.rotation.x=-0.5;sh.add(aR);
+        const hR=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.1,0.1),sk);hR.position.set(0.34,0.9,0.22);sh.add(hR);
+        for(const x of [-0.09,0.09]){const lg=new THREE.Mesh(new THREE.BoxGeometry(0.11,0.18,0.12),wt);lg.position.set(x,0.09,0);sh.add(lg);}
+        const nk=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.08,0.12,6),sk);nk.position.y=1.43;sh.add(nk);}
+      g.add(sh);
       g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});FW.group.add(g);
       const toW=(x,z)=>{const c=Math.cos(g.rotation.y),s2=Math.sin(g.rotation.y);return [cx+x*c+z*s2,cz-x*s2+z*c];};
       for(const x of [-2.4,0,2.4]){const [wx,wz]=toW(x,0);bmObst.push({x:wx,z:wz,r:1.5});}{const [wx,wz]=toW(3.4,3.6);bmObst.push({x:wx,z:wz,r:0.8});}{const [wx,wz]=toW(-4.5,5.5);FW.shep={x:wx,z:wz,g:sh};bmObst.push({x:wx,z:wz,r:0.4});}
       // the flock
       const N=22,wool=new THREE.MeshLambertMaterial({color:'#ebe4d6',flatShading:true}),dark=new THREE.MeshLambertMaterial({color:'#2e2925'});
-      const bG=new THREE.IcosahedronGeometry(0.5,1).scale(0.8,0.72,1.25),hG=new THREE.BoxGeometry(0.2,0.24,0.36),lG=(()=>{const P=[],Nn=[];for(const [x,z] of [[-0.15,-0.3],[0.15,-0.3],[-0.15,0.3],[0.15,0.3]]){const b=new THREE.BoxGeometry(0.09,0.48,0.09).translate(x,-0.24,z).toNonIndexed();P.push(...b.attributes.position.array);Nn.push(...b.attributes.normal.array);}const g2=new THREE.BufferGeometry();g2.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g2.setAttribute('normal',new THREE.Float32BufferAttribute(Nn,3));return g2;})();
+      const bG=mgeo([new THREE.IcosahedronGeometry(0.5,1).scale(0.8,0.72,1.25),new THREE.IcosahedronGeometry(0.16,0).translate(0,0.08,-0.62),new THREE.IcosahedronGeometry(0.2,0).scale(1,0.8,1).translate(0,0.3,0.45)]),hG=mgeo([new THREE.BoxGeometry(0.2,0.22,0.3),new THREE.BoxGeometry(0.15,0.13,0.14).translate(0,-0.04,0.18),new THREE.BoxGeometry(0.2,0.05,0.08).rotateZ(0.5).translate(0.15,0.06,-0.05),new THREE.BoxGeometry(0.2,0.05,0.08).rotateZ(-0.5).translate(-0.15,0.06,-0.05)]),lG=mgeo([[-0.15,-0.3],[0.15,-0.3],[-0.15,0.3],[0.15,0.3]].map(([x,z])=>new THREE.BoxGeometry(0.09,0.48,0.09).translate(x,-0.24,z)));
       const mk=(geo,mt)=>{const m=new THREE.InstancedMesh(geo,mt,N);m.castShadow=true;m.frustumCulled=false;FW.group.add(m);return m;};
-      const R=mulberry32(55),sheep=[];for(let i=0;i<N;i++){const [wx,wz]=toW(-8+R()*16,8+R()*14);const ob={x:wx,z:wz,r:0.55};bmObst.push(ob);sheep.push({x:wx,z:wz,h:R()*6.3,tx:wx,tz:wz,wait:R()*4,ob,ph:R()*6,run:0,col:i%7===0});}
+      const R=mulberry32(55),sheep=[];for(let i=0;i<N;i++){const [wx,wz]=toW(-8+R()*16,8+R()*14);const ob={x:wx,z:wz,r:0.55};bmObst.push(ob);sheep.push({x:wx,z:wz,h:R()*6.3,tx:wx,tz:wz,wait:R()*4,ob,ph:R()*6,run:0,col:i%7===0,sc:i%6===5?0.62:0.88+R()*0.24,bl:2+R()*14});}
       FW.flock={cx,cz,sheep,body:mk(bG,wool),head:mk(hG,dark),legs:mk(lG,dark),dm:new THREE.Object3D()};
+      // the camp dog, lying by the tent
+      {const dg=new THREE.Group(),fur=new THREE.MeshLambertMaterial({color:'#b89a72',flatShading:true}),drk=new THREE.MeshLambertMaterial({color:'#3a2e24'});
+        const bd=new THREE.Mesh(new THREE.BoxGeometry(0.36,0.36,0.95),fur);bd.position.y=0.62;dg.add(bd);const nk=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.32,0.3),fur);nk.position.set(0,0.82,0.5);dg.add(nk);
+        const hd2=new THREE.Mesh(new THREE.BoxGeometry(0.26,0.26,0.3),fur);hd2.position.set(0,0.95,0.68);dg.add(hd2);const mz=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.14,0.18),drk);mz.position.set(0,0.88,0.88);dg.add(mz);
+        for(const sx of [-1,1]){const er=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.1,0.08),drk);er.position.set(sx*0.1,1.1,0.62);dg.add(er);}
+        const legs=[];for(const [x,z] of [[-0.12,0.35],[0.12,0.35],[-0.12,-0.35],[0.12,-0.35]]){const lp=new THREE.Group();lp.position.set(x,0.5,z);const lm=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.5,0.1).translate(0,-0.25,0),fur);lp.add(lm);dg.add(lp);legs.push(lp);}
+        const tl=new THREE.Group();tl.position.set(0,0.75,-0.47);const tm=new THREE.Mesh(new THREE.BoxGeometry(0.07,0.07,0.4).translate(0,0,-0.2),fur);tl.add(tm);dg.add(tl);
+        dg.traverse(o=>{if(o.isMesh)o.castShadow=true;});FW.group.add(dg);const [hx,hz]=toW(1.8,2.6);FW.dog={g:dg,legs,tail:tl,x:hx,z:hz,hx,hz,h:g.rotation.y,bk:0,mv:0};}
+      // smoke from the fire: soft grey puffs rising and spreading
+      {const [fx,fz]=toW(3.4,3.6),sm=[],mt=new THREE.MeshBasicMaterial({color:'#cfc8bf',transparent:true,opacity:0.35,depthWrite:false});for(let i=0;i<7;i++){const m=new THREE.Mesh(new THREE.IcosahedronGeometry(0.35,1),mt.clone());FW.group.add(m);sm.push({m,t:i/7});}FW.smoke={x:fx,z:fz,y:gy,sm};}
+      // the tent's guy ropes, pegged out on both sides
+      {const rp=new THREE.LineBasicMaterial({color:'#8a7a63'}),P=[];for(const x of [-3.6,-1.2,1.2,3.6])for(const z of [-1,1]){P.push(new THREE.Vector3(x*0.85,1.7,z*1.3),new THREE.Vector3(x,0.02,z*3.4));}const ln=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(P),rp);g.add(ln);}
       sheep.forEach((s3,i)=>{if(s3.col)FW.flock.body.setColorAt(i,new THREE.Color('#6a5444'));else FW.flock.body.setColorAt(i,new THREE.Color('#ffffff'));});
       bmFlock(0,true);}}
   // red warning boards at the worst drops of the rim trail, on the safe side of the road, facing the driver
@@ -5784,6 +5803,25 @@ function bmParked(){FW.parked=true;const T=FW.trails[0],R=mulberry32(91),L=NPCV.
     const Vc=buildVehicle(spec,cu,null),x=FW.PX[k]+nx*side*7.5,z=FW.PZ[k]+nz*side*7.5,th=Math.atan2(tx,tz)+(R()<0.5?Math.PI:0);
     Vc.g.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(Vc.g);Vc.g.position.set(x,meshH(x,z)-bb.min.y,z);Vc.g.rotation.y=th;Vc.g.traverse(o=>{if(o.isMesh)o.castShadow=true;});FW.group.add(Vc.g);
     const hl=Math.max(0.6,(bb.max.z-bb.min.z)/2-0.9);for(const u of [-hl,0,hl])bmObst.push({x:x+Math.sin(th)*u,z:z+Math.cos(th)*u,r:1.0});n++;}FW.parkN=n;}
+// several small geometries as one (for instanced animals): positions and normals, non-indexed
+function mgeo(list){const P=[],Nn=[];for(const b0 of list){const b=b0.index?b0.toNonIndexed():b0;P.push(...b.attributes.position.array);Nn.push(...b.attributes.normal.array);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(Nn,3));return g;}
+// animal voices made on the spot: a sheep's wavering bleat and a big dog's bark, quieter with distance
+function animalSnd(kind,d){const ac=AU.ac;if(!ac||ac.state!=='running'||S.mode!=='play')return;const v=Math.max(0,1-d/120)*(kind==='bark'?0.5:0.32);if(v<0.02)return;
+  try{const t0=ac.currentTime,o=ac.createOscillator(),f=ac.createBiquadFilter(),g=ac.createGain();o.type='sawtooth';f.type='bandpass';g.gain.setValueAtTime(0.0001,t0);
+    if(kind==='bark'){const p=0.9+Math.random()*0.25;f.frequency.value=650*p;f.Q.value=1.4;for(const dt of [0,0.22]){o.frequency.setValueAtTime(300*p,t0+dt);o.frequency.exponentialRampToValueAtTime(150*p,t0+dt+0.13);g.gain.exponentialRampToValueAtTime(v,t0+dt+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t0+dt+0.15);}o.start(t0);o.stop(t0+0.42);}
+    else{const p=0.85+Math.random()*0.45,dur=0.55+Math.random()*0.3,l=ac.createOscillator(),lg=ac.createGain();f.frequency.value=1100*p;f.Q.value=2.2;o.frequency.setValueAtTime(330*p,t0);o.frequency.linearRampToValueAtTime(300*p,t0+dur);
+      l.frequency.value=26+Math.random()*8;lg.gain.value=22*p;l.connect(lg);lg.connect(o.frequency);g.gain.exponentialRampToValueAtTime(v,t0+0.05);g.gain.setValueAtTime(v,t0+dur*0.6);g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);l.start(t0);l.stop(t0+dur+0.05);o.start(t0);o.stop(t0+dur+0.05);}
+    o.connect(f);f.connect(g);g.connect(AU.master);}catch(e){}}
+// the camp dog: a big Kuchi dog lies by the tent; a car coming near brings it out barking, running beside the car,
+// never under the wheels, and it goes back to the tent when the car has gone
+function bmDog(dt){const D=FW.dog;if(!D)return;const dc=Math.hypot(S.x-D.hx,S.z-D.hz);if(dc>300)return;const tt=performance.now()/1000,sp=Math.hypot(S.vx,S.vz);
+  let tx=D.hx,tz=D.hz,run=0;if(dc<60){const a=Math.atan2(D.x-S.x,D.z-S.z),side=Math.sin(S.th)*(D.z-S.z)-Math.cos(S.th)*(D.x-S.x)>0?1:-1;tx=S.x+Math.cos(S.th)*side*5+Math.sin(S.th)*1.5;tz=S.z-Math.sin(S.th)*side*5+Math.cos(S.th)*1.5;run=1;
+    D.bk-=dt;if(D.bk<=0){D.bk=0.7+Math.random()*1.2;animalSnd('bark',Math.hypot(S.x-D.x,S.z-D.z));}}
+  const dx=tx-D.x,dz=tz-D.z,dl=Math.hypot(dx,dz),v=run?Math.min(Math.max(sp+2,6),13):2.2;
+  if(dl>0.6){const th=Math.atan2(dx,dz);let dh=((th-D.h+Math.PI*3)%(Math.PI*2))-Math.PI;D.h+=dh*Math.min(1,dt*7);let nx=D.x+Math.sin(D.h)*Math.min(v*dt,dl),nz=D.z+Math.cos(D.h)*Math.min(v*dt,dl);
+    if(Math.hypot(nx-S.x,nz-S.z)<3.4){const a=Math.atan2(nx-S.x,nz-S.z);nx=S.x+Math.sin(a)*3.4;nz=S.z+Math.cos(a)*3.4;}if(freeWater(nx,nz)<meshH(nx,nz)-0.3&&Math.hypot(nx-D.hx,nz-D.hz)<110){D.x=nx;D.z=nz;}D.mv=dl>1?(run?1:0.4):0;}else D.mv=0;
+  const y=meshH(D.x,D.z),gal=D.mv>0.5?Math.abs(Math.sin(tt*16))*0.12:0;D.g.position.set(D.x,y+gal,D.z);D.g.rotation.y=D.h;const sw=D.mv?Math.sin(tt*(D.mv>0.5?16:7))*0.6:0;
+  D.legs.forEach((L,i)=>{L.rotation.x=(i%2?sw:-sw)*(i<2?1:-1);});D.tail.rotation.x=-0.6+Math.sin(tt*9)*0.25;}
 // the flock: each sheep wanders to a new patch of grass near the camp, head down grazing; a car close by sends it running
 function bmFlock(dt,force){const F=FW.flock;if(!F)return;if(!force&&Math.hypot(S.x-F.cx,S.z-F.cz)>260)return;const tt=performance.now()/1000,dm=F.dm;
   F.sheep.forEach((s,i)=>{const dc=Math.hypot(S.x-s.x,S.z-s.z);let sp=0;
@@ -5795,10 +5833,11 @@ function bmFlock(dt,force){const F=FW.flock;if(!F)return;if(!force&&Math.hypot(S
     else{sp=s.run>0?4.2:0.55;const th=Math.atan2(dx,dz);let dh=((th-s.h+Math.PI*3)%(Math.PI*2))-Math.PI;s.h+=dh*Math.min(1,dt*(s.run>0?8:2.5));
       let nx=s.x+Math.sin(s.h)*sp*dt,nz=s.z+Math.cos(s.h)*sp*dt;const q=trailQ(nx,nz,20);
       if((q&&q.d<FW.rw+2.5)||freeWater(nx,nz)>meshH(nx,nz)-0.4||Math.hypot(nx-F.cx,nz-F.cz)>34){s.tx=F.cx+(Math.random()-0.5)*8;s.tz=F.cz+(Math.random()-0.5)*8;s.run=0;}else{s.x=nx;s.z=nz;}}
-    s.ob.x=s.x;s.ob.z=s.z;const y=meshH(s.x,s.z),graze=sp<0.1?Math.max(0,Math.sin(tt*0.7+s.ph))*0.18:0,bob=sp>1?Math.abs(Math.sin(tt*14+s.ph))*0.1:0;
-    dm.position.set(s.x,y+0.72+bob,s.z);dm.rotation.set(0,s.h,0);dm.scale.set(1,1,1);dm.updateMatrix();F.body.setMatrixAt(i,dm.matrix);
-    dm.position.set(s.x,y+0.5+bob,s.z);dm.updateMatrix();F.legs.setMatrixAt(i,dm.matrix);
-    const hx=Math.sin(s.h)*0.7,hz=Math.cos(s.h)*0.7;dm.position.set(s.x+hx,y+0.86+bob-graze*2.4,s.z+hz);dm.rotation.set(graze*3,s.h,0);dm.updateMatrix();F.head.setMatrixAt(i,dm.matrix);});
+    s.bl-=dt*(s.run>0?4:1);if(s.bl<=0){s.bl=6+Math.random()*16;animalSnd('bleat',dc);}
+    s.ob.x=s.x;s.ob.z=s.z;const k=s.sc||1;dm.scale.set(k,k,k);const y=meshH(s.x,s.z),graze=sp<0.1?Math.max(0,Math.sin(tt*0.7+s.ph))*0.18:0,bob=sp>1?Math.abs(Math.sin(tt*14+s.ph))*0.1:0;
+    dm.position.set(s.x,y+(0.72+bob)*k,s.z);dm.rotation.set(0,s.h,0);dm.updateMatrix();F.body.setMatrixAt(i,dm.matrix);
+    dm.position.set(s.x,y+(0.5+bob)*k,s.z);dm.updateMatrix();F.legs.setMatrixAt(i,dm.matrix);
+    const hx=Math.sin(s.h)*0.7*k,hz=Math.cos(s.h)*0.7*k;dm.position.set(s.x+hx,y+(0.86+bob-graze*2.4)*k,s.z+hz);dm.rotation.set(graze*3,s.h,0);dm.updateMatrix();F.head.setMatrixAt(i,dm.matrix);});
   F.body.instanceMatrix.needsUpdate=F.legs.instanceMatrix.needsUpdate=F.head.instanceMatrix.needsUpdate=true;if(force&&F.body.instanceColor)F.body.instanceColor.needsUpdate=true;}
 // rockfall: as the car comes near one of the faces, its rock comes down, bouncing, and stays on the edge of the trail
 function bmRockfall(dt){if(!FW.rockF||!FW.rockF.length)return;const q=trailQ(S.x,S.z,14);
@@ -5808,7 +5847,8 @@ function bmRockfall(dt){if(!FW.rockF||!FW.rockF.length)return;const q=trailQ(S.x
     F.m.position.set(x,meshH(x,z)+0.7+b,z);F.m.rotation.x+=dt*7;F.m.rotation.z+=dt*3;
     if(Math.random()<dt*3&&t<0.9){const d=Math.hypot(S.x-x,S.z-z);if(d<90)SFX.bump(Math.max(0.5,5-d/20));}
     if(t>=1){let x2=F.to[0],z2=F.to[1];if(Math.hypot(S.x-x2,S.z-z2)<3.2){x2+=F.side[0]*2.6;z2+=F.side[1]*2.6;F.m.position.set(x2,meshH(x2,z2)+0.7,z2);}F.st=2;bmObst.push({x:x2,z:z2,r:0.9});SFX.bump(4);}}}
-function bmStageStep(dt){bmFlock(dt);bmRockfall(dt);if(FW.mudDraw&&FREE){const f=FW.mudDraw;FW.mudDraw=null;f();}if(FW.lookFlag&&Math.hypot(S.x-FW.PX[FW.look],S.z-FW.PZ[FW.look])<300){const C=FW.lookFlag,pa=C.geometry.attributes.position,b=C.userData.base,tt=performance.now()/1000;for(let i=0;i<pa.count;i++){const px=b[i*3],py=b[i*3+1];pa.array[i*3+2]=Math.sin(px*4-tt*6+py*2)*0.12*px/1.8;}pa.needsUpdate=true;C.geometry.computeVertexNormals();}if(!FW.parked&&FREE&&window.__lateDone)bmParked();const G=FW.stg,T1=FW.trails[1];const q=trailQ(S.x,S.z,14);const on=q&&q.s>=T1.i0&&q.s<=T1.i1,idx=on?q.s-T1.i0:-1;
+function bmSmoke(dt){const M=FW.smoke;if(!M||Math.hypot(S.x-M.x,S.z-M.z)>350)return;for(const p of M.sm){p.t=(p.t+dt*0.12)%1;const t=p.t;p.m.position.set(M.x+Math.sin(t*5+p.m.id)*0.3*t+t*1.2,M.y+0.4+t*6,M.z+t*0.6);p.m.scale.setScalar(0.5+t*2.4);p.m.material.opacity=0.32*Math.sin(Math.PI*t);}}
+function bmStageStep(dt){bmFlock(dt);bmRockfall(dt);bmDog(dt);bmSmoke(dt);if(FW.mudDraw&&FREE){const f=FW.mudDraw;FW.mudDraw=null;f();}if(FW.lookFlag&&Math.hypot(S.x-FW.PX[FW.look],S.z-FW.PZ[FW.look])<300){const C=FW.lookFlag,pa=C.geometry.attributes.position,b=C.userData.base,tt=performance.now()/1000;for(let i=0;i<pa.count;i++){const px=b[i*3],py=b[i*3+1];pa.array[i*3+2]=Math.sin(px*4-tt*6+py*2)*0.12*px/1.8;}pa.needsUpdate=true;C.geometry.computeVertexNormals();}if(!FW.parked&&FREE&&window.__lateDone)bmParked();const G=FW.stg,T1=FW.trails[1];const q=trailQ(S.x,S.z,14);const on=q&&q.s>=T1.i0&&q.s<=T1.i1,idx=on?q.s-T1.i0:-1;
   const fmt=t=>{const m=Math.floor(t/60),s2=Math.floor(t%60);return fa(m)+':'+(s2<10?'۰':'')+fa(s2);};
   if(!G.on){if(on&&idx>14&&idx<30&&Math.abs(S.v)>1.5){G.on=true;G.t=0;G.mx=idx;G.cp=0;G.off=0;toast(tr_('مرحله شروع شد! دور بند هیبت را تا آخر برو و از همین دروازه برگرد'));}return;}
   G.t+=dt;if(on){G.off=0;if(idx>G.mx&&idx<G.mx+80)G.mx=idx;}else{G.off+=dt;if(G.off>25){G.on=false;toast(tr_('از راه بیرون رفتی؛ مرحله لغو شد. برای شروع دوباره از دروازه رد شو'));return;}}
