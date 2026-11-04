@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=205</script>
+<script>window.GAME_CODE=206</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -5613,7 +5613,7 @@ function pushSign(SF,SB,sposts,obst,px,pz,gy,hd,typ){sposts.push([px,gy,pz]);obs
     if(flip)arr.I.push(b,b+2,b+1,b,b+3,b+2);else arr.I.push(b,b+1,b+2,b,b+2,b+3);}}
 const boardMats={},boardWood=new THREE.MeshLambertMaterial({color:'#6b4a33'});
 function boardMat(text,style){const key=text+'|'+(style||'');if(boardMats[key])return boardMats[key];const c=document.createElement('canvas');c.width=640;c.height=180;const x=c.getContext('2d');
-  x.fillStyle=style==='green'?'#1f6b3a':'#8a5a36';x.fillRect(0,0,640,180);x.strokeStyle='#f3ead7';x.lineWidth=8;x.strokeRect(10,10,620,160);
+  x.fillStyle=style==='green'?'#1f6b3a':style==='red'?'#b3261e':'#8a5a36';x.fillRect(0,0,640,180);x.strokeStyle='#f3ead7';x.lineWidth=8;x.strokeRect(10,10,620,160);
   x.fillStyle='#fff8ea';x.textAlign='center';x.textBaseline='middle';x.direction=/[\u0600-\u06FF]/.test(text)?'rtl':'ltr';let fs=96;x.font='800 '+fs+'px Vazirmatn, Tahoma, sans-serif';while(x.measureText(text).width>590&&fs>34){fs-=4;x.font='800 '+fs+'px Vazirmatn, Tahoma, sans-serif';}x.fillText(text,320,94);
   const t=new THREE.CanvasTexture(c);if(FILMIC)t.encoding=THREE.sRGBEncoding;t.anisotropy=4;return boardMats[key]=new THREE.MeshLambertMaterial({map:t,side:THREE.DoubleSide});}
 // a board on two posts: its face toward someone coming along heading `hd`
@@ -5634,6 +5634,14 @@ function bmStageBuild(){bmObst.length=0;if(!FW.trails[1])return;const T0=FW.trai
   // the park's own sign on the road in, about 2 km before Band-e Haibat
   {const k=Math.max(T0.i0+10,T0.i1-1000);bmGate(FW.PX[k],FW.PZ[k],hd(k),tr_('پارک ملی بند امیر · خوش آمدید'),span);}
   {const k=T1.i0+14;bmGate(FW.PX[k],FW.PZ[k],hd(k),tr_('شروع و پایان · راه کوهستانی دور بند هیبت'),span);}
+  // red warning boards at the worst drops of the rim trail, on the safe side of the road, facing the driver
+  {const P=islDropSide(),wood=new THREE.MeshLambertMaterial({color:'#6b4a2e'});let last=-1e9;
+    for(let k=T1.i0+40;k<T1.i1-40;k+=6){const ds=P[k]||0;if(!ds||k-last<160)continue;const nx=(FW.PZ[k+2]-FW.PZ[k-2]),nz=-(FW.PX[k+2]-FW.PX[k-2]),nl=Math.hypot(nx,nz)||1,ux=nx/nl,uz=nz/nl;
+      let drop=0;for(const r of [12,20,30])drop=Math.max(drop,FW.PH[k]-freeHf(FW.PX[k]+ux*ds*r,FW.PZ[k]+uz*ds*r));if(drop<7)continue;last=k;
+      const px=FW.PX[k]-ux*ds*(FW.rw+0.9),pz=FW.PZ[k]-uz*ds*(FW.rw+0.9),gy=freeHf(px,pz),g=new THREE.Group();g.position.set(px,gy,pz);g.rotation.y=hd(k)+Math.PI;
+      const pl=new THREE.Mesh(new THREE.PlaneGeometry(1.9,0.55),boardMat(tr_('خطر! پرتگاه · آهسته'),'red'));pl.position.y=1.55;g.add(pl);
+      for(const sd of [-1,1]){const po=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.06,1.85,6),wood);po.position.set(sd*0.8,0.92,-0.04);g.add(po);}
+      g.traverse(o=>{if(o.isMesh)o.castShadow=true;});FW.group.add(g);bmObst.push({x:px,z:pz,r:0.3});}}
   let best=0;try{best=+(localStorage.getItem('amiri-bm-best')||0);}catch(e){}
   FW.stg={on:false,t:0,mx:0,len:T1.i1-T1.i0,best,cp:0,off:0};}
 function bmStageStep(dt){const G=FW.stg,T1=FW.trails[1];const q=trailQ(S.x,S.z,14);const on=q&&q.s>=T1.i0&&q.s<=T1.i1,idx=on?q.s-T1.i0:-1;
