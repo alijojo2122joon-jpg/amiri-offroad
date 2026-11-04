@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=211</script>
+<script>window.GAME_CODE=212</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -5188,7 +5188,7 @@ function dkRoadBed(){const n=FW.PX.length,cs=FW.cells;FW.cells=new Map();const r
   // Band-e Amir's rim trail: where it would have to cross a ravine on a high bank, it crosses on a bridge instead
   if(FMAP==='bamir'&&FW.trails[1]){const T=FW.trails[1],m=T.i1-T.i0+1,pr=new Float32Array(m);for(let k=0;k<m;k++){let s2=0,c=0;for(let q=Math.max(0,k-6);q<=Math.min(m-1,k+6);q++){s2+=raw[T.i0+q];c++;}pr[k]=s2/c;}
     for(let it=0;it<6;it++){for(let k=1;k<m;k++)pr[k]=clamp(pr[k],pr[k-1]-0.55,pr[k-1]+0.55);for(let k=m-2;k>=0;k--)pr[k]=clamp(pr[k],pr[k+1]-0.55,pr[k+1]+0.55);}
-    let a0=-1;for(let k=0;k<=m;k++){const deep=k<m&&pr[k]-raw[T.i0+k]>3.2;if(deep&&a0<0)a0=k;if(!deep&&a0>=0){if(k-a0>=4&&k-a0<=16&&a0>20&&k<m-20)runs.push([T.i0+a0,T.i0+k-1]);a0=-1;}}}
+    let a0=-1;for(let k=0;k<=m;k++){const deep=k<m&&pr[k]-raw[T.i0+k]>3.2;if(deep&&a0<0)a0=k;if(!deep&&a0>=0){const ia=T.i0+a0-5,ib=T.i0+k+4,h1=Math.atan2(FW.PX[ia+3]-FW.PX[ia],FW.PZ[ia+3]-FW.PZ[ia]),h2=Math.atan2(FW.PX[ib]-FW.PX[ib-3],FW.PZ[ib]-FW.PZ[ib-3]),bend=Math.abs(((h2-h1+Math.PI*3)%(Math.PI*2))-Math.PI);if(k-a0>=4&&k-a0<=16&&a0>20&&k<m-20&&bend<0.22)runs.push([T.i0+a0,T.i0+k-1]);a0=-1;}}}
   FW.br=[];const span=new Uint8Array(n);
   for(let [a,b] of runs){if(b-a<1)continue;a=Math.max(1,a-3);b=Math.min(n-2,b+3);const ha=raw[a],hb=raw[b];let rh=-1e9;
     for(let k=a;k<=b;k++){const q=dkRiv(FW.PX[k],FW.PZ[k]);rh=Math.max(rh,q?q.h:Math.min(...[raw[a],raw[b]])-4);}const lift=Math.max(0,rh+3.2-Math.min(ha,hb));
@@ -5621,10 +5621,14 @@ function pushSign(SF,SB,sposts,obst,px,pz,gy,hd,typ){sposts.push([px,gy,pz]);obs
     if(flip)arr.I.push(b,b+2,b+1,b,b+3,b+2);else arr.I.push(b,b+1,b+2,b,b+2,b+3);}}
 const boardMats={},boardWood=new THREE.MeshLambertMaterial({color:'#6b4a33'});
 function boardMat(text,style){const key=text+'|'+(style||'');if(boardMats[key])return boardMats[key];const c=document.createElement('canvas');c.width=640;c.height=180;const x=c.getContext('2d');
-  x.fillStyle=style==='green'?'#1f6b3a':style==='red'?'#b3261e':'#8a5a36';x.fillRect(0,0,640,180);x.strokeStyle='#f3ead7';x.lineWidth=8;x.strokeRect(10,10,620,160);
-  x.fillStyle='#fff8ea';x.textAlign='center';x.textBaseline='middle';x.direction=/[\u0600-\u06FF]/.test(text)?'rtl':'ltr';let fs=96;x.font='800 '+fs+'px Vazirmatn, Tahoma, sans-serif';while(x.measureText(text).width>590&&fs>34){fs-=4;x.font='800 '+fs+'px Vazirmatn, Tahoma, sans-serif';}x.fillText(text,320,94);
+  x.fillStyle=style==='green'?'#1f6b3a':style==='red'?'#b3261e':style==='yellow'?'#f2c230':'#8a5a36';x.fillRect(0,0,640,180);x.strokeStyle=style==='yellow'?'#1d1d1d':'#f3ead7';x.lineWidth=8;x.strokeRect(10,10,620,160);
+  x.fillStyle=style==='yellow'?'#1d1d1d':'#fff8ea';x.textAlign='center';x.textBaseline='middle';x.direction=/[\u0600-\u06FF]/.test(text)?'rtl':'ltr';let fs=96;x.font='800 '+fs+'px Vazirmatn, Tahoma, sans-serif';while(x.measureText(text).width>590&&fs>34){fs-=4;x.font='800 '+fs+'px Vazirmatn, Tahoma, sans-serif';}x.fillText(text,320,94);
   const t=new THREE.CanvasTexture(c);if(FILMIC)t.encoding=THREE.sRGBEncoding;t.anisotropy=4;return boardMats[key]=new THREE.MeshLambertMaterial({map:t,side:THREE.DoubleSide});}
 // a board on two posts: its face toward someone coming along heading `hd`
+// a red-and-white chevron board for the outside of a tight bend (the arrows point the way the road turns)
+let chevM=null;function chevMat(){if(chevM)return chevM;const c=document.createElement('canvas');c.width=256;c.height=128;const x=c.getContext('2d');x.fillStyle='#c62020';x.fillRect(0,0,256,128);x.fillStyle='#ffffff';
+  for(const o of [40,120,200]){x.beginPath();x.moveTo(o-34,64);x.lineTo(o+6,14);x.lineTo(o+34,14);x.lineTo(o-6,64);x.lineTo(o+34,114);x.lineTo(o+6,114);x.closePath();x.fill();}
+  const t=new THREE.CanvasTexture(c);if(FILMIC)t.encoding=THREE.sRGBEncoding;t.anisotropy=4;return chevM=new THREE.MeshLambertMaterial({map:t,side:THREE.DoubleSide});}
 /* Band-e Amir as a stage: the park's sign on the road in, and a start/finish gate where the mountain trail round
    Band-e Haibat begins. Drive the whole ring and come back through the gate: your time, your best, and a prize. */
 const bmObst=[];
@@ -5665,6 +5669,67 @@ function bmStageBuild(){bmObst.length=0;if(!FW.trails[1])return;const T0=FW.trai
     const fl=new THREE.Mesh(new THREE.PlaneGeometry(1.8,1.2,8,4).translate(0.9,0,0),new THREE.MeshLambertMaterial({map:flagTex('af3'),side:THREE.DoubleSide}));fl.position.y=6.0;fl.rotation.y=Math.atan2(ux,uz);g.add(fl);FW.lookFlag=fl;fl.userData.base=fl.geometry.attributes.position.array.slice();
     const bd=new THREE.Mesh(new THREE.PlaneGeometry(1.9,0.5),boardMat(tr_('نقطهٔ دید · بند هیبت'),'green'));bd.position.set(0,1.0,1.4);bd.rotation.y=Math.atan2(-ux*ds,-uz*ds);g.add(bd);
     FW.group.add(g);bmObst.push({x:px,z:pz,r:1.4});FW.look=k;}
+  const nrmAt=k=>{const ux=FW.PZ[k+2]-FW.PZ[k-2],uz=-(FW.PX[k+2]-FW.PX[k-2]),ul=Math.hypot(ux,uz)||1;return [ux/ul,uz/ul];};
+  const stones=[];// [x,y,z,scale,rot,squash] -> one instanced draw for every loose stone and cairn on the ring
+  const post2=(g,wood,w)=>{for(const sd of [-1,1]){const po=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.06,1.85,6),wood);po.position.set(sd*w,0.92,-0.04);g.add(po);}};
+  // the bends: where the trail turns hardest (the hairpins of the switchback descents) red-and-white chevrons stand on
+  // the outside of the bend, and a yellow board warns of the bends ahead
+  {const P=islDropSide(),wood=new THREE.MeshLambertMaterial({color:'#6b4a2e'}),cm=chevMat();FW.bends=[];let lastW=-1e9;
+    const turn=k=>{const a1=Math.atan2(FW.PX[k]-FW.PX[k-6],FW.PZ[k]-FW.PZ[k-6]),a2=Math.atan2(FW.PX[k+6]-FW.PX[k],FW.PZ[k+6]-FW.PZ[k]);return ((a2-a1+Math.PI*3)%(Math.PI*2))-Math.PI;};
+    for(let k=T1.i0+30;k<T1.i1-30;k++){if(Math.abs(turn(k))<0.8||(FW.span&&FW.span[k]))continue;let m=k;for(let q=k;q<k+14&&q<T1.i1-30;q++)if(Math.abs(turn(q))>Math.abs(turn(m)))m=q;k=m+12;FW.bends.push(m);
+      const so=turn(m)>0?-1:1;
+      for(const j of [m-5,m,m+5]){const [ux,uz]=nrmAt(j),rk=(FW.rwAt?FW.rwAt(j):FW.rw)+1.4,px=FW.PX[j]+ux*so*rk,pz=FW.PZ[j]+uz*so*rk,g=new THREE.Group();g.position.set(px,freeHf(px,pz),pz);g.rotation.y=hd(j)+Math.PI;
+        const pl=new THREE.Mesh(new THREE.PlaneGeometry(0.9,0.45),cm);pl.position.y=1.15;g.add(pl);const po=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.06,1.4,6),wood);po.position.set(0,0.7,-0.03);g.add(po);
+        FW.group.add(g);bmObst.push({x:px,z:pz,r:0.25});}
+      if(m-lastW>140){lastW=m;const k2=Math.max(T1.i0+8,m-24),ds=P[k2]||0,[ux,uz]=nrmAt(k2),sd=ds?-ds:-so,px=FW.PX[k2]+ux*sd*(FW.rw+1.1),pz=FW.PZ[k2]+uz*sd*(FW.rw+1.1),g=new THREE.Group();g.position.set(px,freeHf(px,pz),pz);g.rotation.y=hd(k2)+Math.PI;
+        const pl=new THREE.Mesh(new THREE.PlaneGeometry(1.9,0.55),boardMat(tr_('پیچ‌های تند · گردنه'),'yellow'));pl.position.y=1.55;g.add(pl);post2(g,wood,0.8);FW.group.add(g);bmObst.push({x:px,z:pz,r:0.3});}}}
+  // rockfall: under the steepest faces above the trail, loose rocks lie along the uphill edge, a yellow board warns,
+  // and as you come by one rock comes bouncing down the face and stays where it lands
+  {const P=islDropSide(),wood=new THREE.MeshLambertMaterial({color:'#6b4a2e'}),R=mulberry32(4242),rm=new THREE.MeshLambertMaterial({color:'#cbbb9c',flatShading:true});FW.rockF=[];let last=-1e9;
+    for(let k=T1.i0+60;k<T1.i1-60;k+=3){if(k-last<320||(FW.rwAt&&FW.rwAt(k)<FW.rw-0.05)||(FW.span&&FW.span[k]))continue;const ds=P[k]||0,[ux,uz]=nrmAt(k),h0=FW.PH[k];
+      let sd=ds?-ds:0;if(!sd)sd=freeHf(FW.PX[k]+ux*14,FW.PZ[k]+uz*14)>freeHf(FW.PX[k]-ux*14,FW.PZ[k]-uz*14)?1:-1;
+      const r1=freeHf(FW.PX[k]+ux*sd*14,FW.PZ[k]+uz*sd*14)-h0,r2=freeHf(FW.PX[k]+ux*sd*26,FW.PZ[k]+uz*sd*26)-h0;if(r1<5||r2<10)continue;last=k;
+      {const k2=Math.max(T1.i0+8,k-18),[vx,vz]=nrmAt(k2),px=FW.PX[k2]+vx*sd*(FW.rw+1.0),pz=FW.PZ[k2]+vz*sd*(FW.rw+1.0),g=new THREE.Group();g.position.set(px,freeHf(px,pz),pz);g.rotation.y=hd(k2)+Math.PI;
+        const pl=new THREE.Mesh(new THREE.PlaneGeometry(1.9,0.55),boardMat(tr_('ریزش سنگ · توقف نکنید'),'yellow'));pl.position.y=1.55;g.add(pl);post2(g,wood,0.8);FW.group.add(g);bmObst.push({x:px,z:pz,r:0.3});}
+      for(let i=0;i<9;i++){const j=k-6+Math.floor(R()*30),[vx,vz]=nrmAt(j),inRoad=i<2,o=inRoad?FW.rw-0.5-R()*0.4:FW.rw+0.4+R()*2.2,sc=inRoad?0.28+R()*0.12:0.35+R()*0.6,px=FW.PX[j]+vx*sd*o,pz=FW.PZ[j]+vz*sd*o;
+        stones.push([px,freeHf(px,pz)+sc*0.25,pz,sc,R()*6,0.7]);if(sc>0.3)bmObst.push({x:px,z:pz,r:sc*0.85});}
+      const kk=k+12,[vx,vz]=nrmAt(kk),from=[FW.PX[kk]+vx*sd*24,FW.PZ[kk]+vz*sd*24],to=[FW.PX[kk]+vx*sd*(FW.rw-1.2),FW.PZ[kk]+vz*sd*(FW.rw-1.2)],m=new THREE.Mesh(G.rockL,rm);
+      m.scale.set(0.95,0.75,0.95);m.castShadow=true;m.visible=false;FW.group.add(m);FW.rockF.push({k:kk,m,from,to,side:[vx*sd,vz*sd],st:0,t:0});}}
+  // cairns: little stacks of stones on the uphill side of the trail, the way shepherds mark a mountain path
+  {const P=islDropSide(),R=mulberry32(919);for(let k=T1.i0+70;k<T1.i1-70;k+=110+Math.floor(R()*60)){if(FW.span&&FW.span[k])continue;const ds=P[k]||0,[ux,uz]=nrmAt(k),sd=ds?-ds:(R()<0.5?1:-1),o=(FW.rwAt?FW.rwAt(k):FW.rw)+2.0+R(),px=FW.PX[k]+ux*sd*o,pz=FW.PZ[k]+uz*sd*o;
+      let y=freeHf(px,pz)-0.05;const n=3+Math.floor(R()*3);for(let i=0;i<n;i++){const sc=0.42-i*0.07+R()*0.04;y+=sc*0.55;stones.push([px+(R()-0.5)*0.08,y,pz+(R()-0.5)*0.08,sc,R()*6,0.55]);y+=sc*0.3;}bmObst.push({x:px,z:pz,r:0.45});}}
+  if(stones.length){const im=new THREE.InstancedMesh(G.rockL,new THREE.MeshLambertMaterial({color:'#d2c4a6',flatShading:true}),stones.length),dm=new THREE.Object3D(),cl=new THREE.Color();
+    stones.forEach((a,i)=>{dm.position.set(a[0],a[1],a[2]);dm.rotation.set(0,a[4],0);dm.scale.set(a[3],a[3]*a[5],a[3]);dm.updateMatrix();im.setMatrixAt(i,dm.matrix);cl.set('#d8cbb0').lerp(new THREE.Color('#a8957a'),(i*0.618)%1);im.setColorAt(i,cl);});
+    im.castShadow=true;im.receiveShadow=true;im.frustumCulled=false;FW.group.add(im);}
+  // a Kuchi shepherds' camp on a flat shelf above the trail: a black goat-hair tent, a fire ring, the shepherd with his
+  // staff, and his flock grazing; drive close and the sheep scatter
+  {let best=null;for(let k=T1.i0+120;k<T1.i1-120;k+=8){const [ux,uz]=nrmAt(k);for(const sd of [-1,1]){const cx=FW.PX[k]+ux*sd*34,cz=FW.PZ[k]+uz*sd*34;
+      let lo=1e9,hi=-1e9,wet=false;for(let a=0;a<8;a++)for(const r of [0,9,18]){const x=cx+Math.cos(a*0.785)*r,z=cz+Math.sin(a*0.785)*r,h=freeHf(x,z);lo=Math.min(lo,h);hi=Math.max(hi,h);if(freeWater(x,z)>h-0.3)wet=true;}
+      if(wet)continue;const q=trailQ(cx,cz,40);if(q&&q.d<FW.rw+18)continue;const sc=hi-lo;if(!best||sc<best.sc)best={sc,k,cx,cz,sd};}}
+    if(best&&best.sc<6){const {cx,cz}=best,g=new THREE.Group(),gy=freeHf(cx,cz);g.position.set(cx,gy,cz);g.rotation.y=Math.atan2(FW.PX[best.k]-cx,FW.PZ[best.k]-cz);
+      const blk=new THREE.MeshLambertMaterial({color:'#2b2420',side:THREE.DoubleSide,flatShading:true}),wd=new THREE.MeshLambertMaterial({color:'#6b4a2e'});
+      const tent=new THREE.Mesh(new THREE.CylinderGeometry(0.02,1,1,4,1,true),blk);tent.rotation.y=Math.PI/4;tent.scale.set(4.2,2.1,2.6);tent.position.y=1.05;g.add(tent);
+      for(const x of [-2.6,0,2.6]){const po=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.05,2.3,5),wd);po.position.set(x*0.55,1.15,1.6);g.add(po);}
+      const rug=new THREE.Mesh(new THREE.PlaneGeometry(2.2,1.4).rotateX(-Math.PI/2),new THREE.MeshLambertMaterial({color:'#8e2323'}));rug.position.set(0,0.04,2.6);g.add(rug);
+      for(let a=0;a<8;a++){const st=new THREE.Mesh(G.rockL,new THREE.MeshLambertMaterial({color:'#9c9284',flatShading:true}));st.scale.setScalar(0.2);st.position.set(3.4+Math.cos(a*0.785)*0.6,0.1,3.6+Math.sin(a*0.785)*0.6);g.add(st);}
+      const ash=new THREE.Mesh(new THREE.CircleGeometry(0.45,10).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:'#2a2522'}));ash.position.set(3.4,0.05,3.6);g.add(ash);
+      const pot=new THREE.Mesh(new THREE.SphereGeometry(0.28,8,6,0,Math.PI*2,0,Math.PI/1.6),new THREE.MeshLambertMaterial({color:'#3a3a3a'}));pot.position.set(3.4,0.32,3.6);pot.rotation.x=Math.PI;g.add(pot);
+      // the shepherd: long chapan, white turban, a staff
+      const sh=new THREE.Group();sh.position.set(-4.5,0,5.5);const chap=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.34,1.3,8),new THREE.MeshLambertMaterial({color:'#5b4a3a'}));chap.position.y=0.75;sh.add(chap);
+      const hd_=new THREE.Mesh(new THREE.SphereGeometry(0.15,8,6),new THREE.MeshLambertMaterial({color:'#b98c68'}));hd_.position.y=1.55;sh.add(hd_);const tb=new THREE.Mesh(new THREE.SphereGeometry(0.18,8,6,0,Math.PI*2,0,Math.PI/2),new THREE.MeshLambertMaterial({color:'#efebe2'}));tb.position.y=1.6;tb.scale.y=0.9;sh.add(tb);
+      const beard=new THREE.Mesh(new THREE.ConeGeometry(0.1,0.22,6),new THREE.MeshLambertMaterial({color:'#2b2622'}));beard.position.set(0,1.42,0.1);beard.rotation.x=Math.PI;sh.add(beard);
+      const staff=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,1.9,5),wd);staff.position.set(0.32,0.95,0.05);staff.rotation.z=-0.08;sh.add(staff);g.add(sh);
+      g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});FW.group.add(g);
+      const toW=(x,z)=>{const c=Math.cos(g.rotation.y),s2=Math.sin(g.rotation.y);return [cx+x*c+z*s2,cz-x*s2+z*c];};
+      for(const x of [-2.4,0,2.4]){const [wx,wz]=toW(x,0);bmObst.push({x:wx,z:wz,r:1.5});}{const [wx,wz]=toW(3.4,3.6);bmObst.push({x:wx,z:wz,r:0.8});}{const [wx,wz]=toW(-4.5,5.5);FW.shep={x:wx,z:wz,g:sh};bmObst.push({x:wx,z:wz,r:0.4});}
+      // the flock
+      const N=22,wool=new THREE.MeshLambertMaterial({color:'#ebe4d6',flatShading:true}),dark=new THREE.MeshLambertMaterial({color:'#2e2925'});
+      const bG=new THREE.IcosahedronGeometry(0.5,1).scale(0.8,0.72,1.25),hG=new THREE.BoxGeometry(0.2,0.24,0.36),lG=(()=>{const P=[],Nn=[];for(const [x,z] of [[-0.15,-0.3],[0.15,-0.3],[-0.15,0.3],[0.15,0.3]]){const b=new THREE.BoxGeometry(0.09,0.48,0.09).translate(x,-0.24,z).toNonIndexed();P.push(...b.attributes.position.array);Nn.push(...b.attributes.normal.array);}const g2=new THREE.BufferGeometry();g2.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g2.setAttribute('normal',new THREE.Float32BufferAttribute(Nn,3));return g2;})();
+      const mk=(geo,mt)=>{const m=new THREE.InstancedMesh(geo,mt,N);m.castShadow=true;m.frustumCulled=false;FW.group.add(m);return m;};
+      const R=mulberry32(55),sheep=[];for(let i=0;i<N;i++){const [wx,wz]=toW(-8+R()*16,8+R()*14);const ob={x:wx,z:wz,r:0.55};bmObst.push(ob);sheep.push({x:wx,z:wz,h:R()*6.3,tx:wx,tz:wz,wait:R()*4,ob,ph:R()*6,run:0,col:i%7===0});}
+      FW.flock={cx,cz,sheep,body:mk(bG,wool),head:mk(hG,dark),legs:mk(lG,dark),dm:new THREE.Object3D()};
+      sheep.forEach((s3,i)=>{if(s3.col)FW.flock.body.setColorAt(i,new THREE.Color('#6a5444'));else FW.flock.body.setColorAt(i,new THREE.Color('#ffffff'));});
+      bmFlock(0,true);}}
   // red warning boards at the worst drops of the rim trail, on the safe side of the road, facing the driver
   {const P=islDropSide(),wood=new THREE.MeshLambertMaterial({color:'#6b4a2e'});let last=-1e9;
     for(let k=T1.i0+40;k<T1.i1-40;k+=6){const ds=P[k]||0;if(!ds||k-last<160)continue;const nx=(FW.PZ[k+2]-FW.PZ[k-2]),nz=-(FW.PX[k+2]-FW.PX[k-2]),nl=Math.hypot(nx,nz)||1,ux=nx/nl,uz=nz/nl;
@@ -5719,7 +5784,31 @@ function bmParked(){FW.parked=true;const T=FW.trails[0],R=mulberry32(91),L=NPCV.
     const Vc=buildVehicle(spec,cu,null),x=FW.PX[k]+nx*side*7.5,z=FW.PZ[k]+nz*side*7.5,th=Math.atan2(tx,tz)+(R()<0.5?Math.PI:0);
     Vc.g.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(Vc.g);Vc.g.position.set(x,meshH(x,z)-bb.min.y,z);Vc.g.rotation.y=th;Vc.g.traverse(o=>{if(o.isMesh)o.castShadow=true;});FW.group.add(Vc.g);
     const hl=Math.max(0.6,(bb.max.z-bb.min.z)/2-0.9);for(const u of [-hl,0,hl])bmObst.push({x:x+Math.sin(th)*u,z:z+Math.cos(th)*u,r:1.0});n++;}FW.parkN=n;}
-function bmStageStep(dt){if(FW.mudDraw&&FREE){const f=FW.mudDraw;FW.mudDraw=null;f();}if(FW.lookFlag&&Math.hypot(S.x-FW.PX[FW.look],S.z-FW.PZ[FW.look])<300){const C=FW.lookFlag,pa=C.geometry.attributes.position,b=C.userData.base,tt=performance.now()/1000;for(let i=0;i<pa.count;i++){const px=b[i*3],py=b[i*3+1];pa.array[i*3+2]=Math.sin(px*4-tt*6+py*2)*0.12*px/1.8;}pa.needsUpdate=true;C.geometry.computeVertexNormals();}if(!FW.parked&&FREE&&window.__lateDone)bmParked();const G=FW.stg,T1=FW.trails[1];const q=trailQ(S.x,S.z,14);const on=q&&q.s>=T1.i0&&q.s<=T1.i1,idx=on?q.s-T1.i0:-1;
+// the flock: each sheep wanders to a new patch of grass near the camp, head down grazing; a car close by sends it running
+function bmFlock(dt,force){const F=FW.flock;if(!F)return;if(!force&&Math.hypot(S.x-F.cx,S.z-F.cz)>260)return;const tt=performance.now()/1000,dm=F.dm;
+  F.sheep.forEach((s,i)=>{const dc=Math.hypot(S.x-s.x,S.z-s.z);let sp=0;
+    if(dc<16&&Math.hypot(S.vx,S.vz)>1){s.run=2.5;const a=Math.atan2(s.x-S.x,s.z-S.z)+(Math.random()-0.5)*0.6;s.tx=s.x+Math.sin(a)*14;s.tz=s.z+Math.cos(a)*14;}
+    if(s.run>0)s.run-=dt;
+    const dx=s.tx-s.x,dz=s.tz-s.z,dl=Math.hypot(dx,dz);
+    if(dl<0.4){s.wait-=dt;if(s.wait<=0){s.wait=3+Math.random()*7;const a=Math.random()*6.283,r=Math.random()*16;s.tx=F.cx+Math.sin(a)*r;s.tz=F.cz+Math.cos(a)*r;
+      const q=trailQ(s.tx,s.tz,30);if(q&&q.d<FW.rw+5){s.tx=F.cx;s.tz=F.cz;}}}
+    else{sp=s.run>0?4.2:0.55;const th=Math.atan2(dx,dz);let dh=((th-s.h+Math.PI*3)%(Math.PI*2))-Math.PI;s.h+=dh*Math.min(1,dt*(s.run>0?8:2.5));
+      let nx=s.x+Math.sin(s.h)*sp*dt,nz=s.z+Math.cos(s.h)*sp*dt;const q=trailQ(nx,nz,20);
+      if((q&&q.d<FW.rw+2.5)||freeWater(nx,nz)>meshH(nx,nz)-0.4||Math.hypot(nx-F.cx,nz-F.cz)>34){s.tx=F.cx+(Math.random()-0.5)*8;s.tz=F.cz+(Math.random()-0.5)*8;s.run=0;}else{s.x=nx;s.z=nz;}}
+    s.ob.x=s.x;s.ob.z=s.z;const y=meshH(s.x,s.z),graze=sp<0.1?Math.max(0,Math.sin(tt*0.7+s.ph))*0.18:0,bob=sp>1?Math.abs(Math.sin(tt*14+s.ph))*0.1:0;
+    dm.position.set(s.x,y+0.72+bob,s.z);dm.rotation.set(0,s.h,0);dm.scale.set(1,1,1);dm.updateMatrix();F.body.setMatrixAt(i,dm.matrix);
+    dm.position.set(s.x,y+0.5+bob,s.z);dm.updateMatrix();F.legs.setMatrixAt(i,dm.matrix);
+    const hx=Math.sin(s.h)*0.7,hz=Math.cos(s.h)*0.7;dm.position.set(s.x+hx,y+0.86+bob-graze*2.4,s.z+hz);dm.rotation.set(graze*3,s.h,0);dm.updateMatrix();F.head.setMatrixAt(i,dm.matrix);});
+  F.body.instanceMatrix.needsUpdate=F.legs.instanceMatrix.needsUpdate=F.head.instanceMatrix.needsUpdate=true;if(force&&F.body.instanceColor)F.body.instanceColor.needsUpdate=true;}
+// rockfall: as the car comes near one of the faces, its rock comes down, bouncing, and stays on the edge of the trail
+function bmRockfall(dt){if(!FW.rockF||!FW.rockF.length)return;const q=trailQ(S.x,S.z,14);
+  for(const F of FW.rockF){if(F.st===2)continue;
+    if(F.st===0){if(q&&Math.abs(q.s-F.k)<34&&Math.abs(q.s-F.k)>12&&Math.hypot(S.vx,S.vz)>2){F.st=1;F.t=0;F.m.visible=true;}else continue;}
+    F.t+=dt/1.7;const t=Math.min(1,F.t),x=F.from[0]+(F.to[0]-F.from[0])*t,z=F.from[1]+(F.to[1]-F.from[1])*t,b=Math.abs(Math.sin(t*Math.PI*3.5))*(1-t)*2.4;
+    F.m.position.set(x,meshH(x,z)+0.7+b,z);F.m.rotation.x+=dt*7;F.m.rotation.z+=dt*3;
+    if(Math.random()<dt*3&&t<0.9){const d=Math.hypot(S.x-x,S.z-z);if(d<90)SFX.bump(Math.max(0.5,5-d/20));}
+    if(t>=1){let x2=F.to[0],z2=F.to[1];if(Math.hypot(S.x-x2,S.z-z2)<3.2){x2+=F.side[0]*2.6;z2+=F.side[1]*2.6;F.m.position.set(x2,meshH(x2,z2)+0.7,z2);}F.st=2;bmObst.push({x:x2,z:z2,r:0.9});SFX.bump(4);}}}
+function bmStageStep(dt){bmFlock(dt);bmRockfall(dt);if(FW.mudDraw&&FREE){const f=FW.mudDraw;FW.mudDraw=null;f();}if(FW.lookFlag&&Math.hypot(S.x-FW.PX[FW.look],S.z-FW.PZ[FW.look])<300){const C=FW.lookFlag,pa=C.geometry.attributes.position,b=C.userData.base,tt=performance.now()/1000;for(let i=0;i<pa.count;i++){const px=b[i*3],py=b[i*3+1];pa.array[i*3+2]=Math.sin(px*4-tt*6+py*2)*0.12*px/1.8;}pa.needsUpdate=true;C.geometry.computeVertexNormals();}if(!FW.parked&&FREE&&window.__lateDone)bmParked();const G=FW.stg,T1=FW.trails[1];const q=trailQ(S.x,S.z,14);const on=q&&q.s>=T1.i0&&q.s<=T1.i1,idx=on?q.s-T1.i0:-1;
   const fmt=t=>{const m=Math.floor(t/60),s2=Math.floor(t%60);return fa(m)+':'+(s2<10?'۰':'')+fa(s2);};
   if(!G.on){if(on&&idx>14&&idx<30&&Math.abs(S.v)>1.5){G.on=true;G.t=0;G.mx=idx;G.cp=0;G.off=0;toast(tr_('مرحله شروع شد! دور بند هیبت را تا آخر برو و از همین دروازه برگرد'));}return;}
   G.t+=dt;if(on){G.off=0;if(idx>G.mx&&idx<G.mx+80)G.mx=idx;}else{G.off+=dt;if(G.off>25){G.on=false;toast(tr_('از راه بیرون رفتی؛ مرحله لغو شد. برای شروع دوباره از دروازه رد شو'));return;}}
