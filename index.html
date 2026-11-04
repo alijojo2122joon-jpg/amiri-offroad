@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=199</script>
+<script>window.GAME_CODE=200</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -3462,7 +3462,7 @@ function applySettings(){if(SET.quality!=='auto'&&Q_LV[SET.quality]!==undefined&
 function refreshMenu(){$('msCamp').textContent=STAGES[S.stageCur||0].name;$('msCoins').textContent=fa(S.coins);$('msStars').textContent=fa(starTot());$('msBest').textContent=fa((S.stageMax||0)+1)+tr_(' از ۵۰');}
 function enterPlay(free,map){
   $('menu').hidden=true;$('hud').hidden=false;$('ctl').hidden=false;document.body.classList.add('playing');
-  S.mode='play';if(!(NET.on&&NET.code!==NET.me&&NET.peers.size)){const fw=true;setWorld(true,'island');if(fw)freeStart();else restartStage(S.stageCur||0,true);}S.camYaw=S.th;camPos.set(S.x-Math.sin(S.th)*9.5,S.y+4.2,S.z-Math.cos(S.th)*9.5);
+  S.mode='play';if(!(NET.on&&NET.code!==NET.me&&NET.peers.size)){const fw=true;setWorld(true,map&&RMAP(map)&&DKM[map]&&DKM[map].H?map:'island');if(fw)freeStart();else restartStage(S.stageCur||0,true);}S.camYaw=S.th;camPos.set(S.x-Math.sin(S.th)*9.5,S.y+4.2,S.z-Math.cos(S.th)*9.5);
   if(!AU.ac)initAudio();else audioWake();
   // get in: the door shuts, then the key turns
   S.engineOn=false;S.crank=0;S.crankOk=true;S.zone=-1;SFX.door();setTimeout(()=>{if(S.mode==='play'&&!S.engineOn&&S.crank<=0){S.crank=0.8;S.crankOk=true;}},650);
@@ -3477,7 +3477,7 @@ window.__appBack=()=>{if(S.modal==='pause')closeModal();else if(S.modal){const b
 window.__appPause=()=>{save();if(S.mode==='play'&&!S.modal&&!ADS.showing&&!DIR.asking&&!DIR.on&&!REC.native)openModal('pause');audioSleep();try{MUS.wasPlaying=!MUS.el.paused;MUS.el.pause();}catch(e){}};
 window.__appResume=()=>{setTimeout(audioWake,200);try{if(MUS.wasPlaying)MUS.el.play().catch(()=>{});}catch(e){}};
 $('byeBack').addEventListener('click',()=>{$('bye').hidden=true;$('menu').hidden=false;audioWake();refreshMenu();});
-$('playBtn').addEventListener('click',()=>{if(!AU.ac)initAudio();enterPlay(true,'island');});$('mFree').addEventListener('click',()=>enterPlay(true,'island'));$('mDayk').addEventListener('click',()=>{const b=$('mDayk');if(b.dataset.busy)return;b.dataset.busy='1';toast(tr_('در حال ساختن دایکندی واقعی…'));dkLoad().then(()=>{delete b.dataset.busy;enterPlay(true,'dayk');}).catch(e=>{delete b.dataset.busy;toast(tr_('بارگذاری نقشه نشد'));console.error(e);});});$('mBamir').addEventListener('click',()=>{const b=$('mBamir');if(b.dataset.busy)return;b.dataset.busy='1';toast(tr_('در حال ساختن راه بامیان تا بند امیر…'));dkLoad('bamir').then(()=>{delete b.dataset.busy;enterPlay(true,'bamir');}).catch(e=>{delete b.dataset.busy;toast(tr_('بارگذاری نقشه نشد'));console.error(e);});});$('mGarage').addEventListener('click',()=>{if(!AU.ac)initAudio();openGarage();});$('mSet').addEventListener('click',openSettings);$('mHelp').addEventListener('click',()=>openModal('help'));$('mQuit').addEventListener('click',exitGame);
+$('playBtn').addEventListener('click',()=>{if(!AU.ac)initAudio();const b=$('playBtn');if(b.dataset.busy)return;if(DKM.bamir&&DKM.bamir.H){enterPlay(true,'bamir');return;}b.dataset.busy='1';toast(tr_('در حال ساختن راه بند امیر…'));dkLoad('bamir').then(()=>{delete b.dataset.busy;enterPlay(true,'bamir');}).catch(e=>{delete b.dataset.busy;toast(tr_('بارگذاری نقشه نشد'));console.error(e);enterPlay(true,'island');});});$('mFree').addEventListener('click',()=>enterPlay(true,'island'));$('mDayk').addEventListener('click',()=>{const b=$('mDayk');if(b.dataset.busy)return;b.dataset.busy='1';toast(tr_('در حال ساختن دایکندی واقعی…'));dkLoad().then(()=>{delete b.dataset.busy;enterPlay(true,'dayk');}).catch(e=>{delete b.dataset.busy;toast(tr_('بارگذاری نقشه نشد'));console.error(e);});});$('mBamir').addEventListener('click',()=>{const b=$('mBamir');if(b.dataset.busy)return;b.dataset.busy='1';toast(tr_('در حال ساختن راه بامیان تا بند امیر…'));dkLoad('bamir').then(()=>{delete b.dataset.busy;enterPlay(true,'bamir');}).catch(e=>{delete b.dataset.busy;toast(tr_('بارگذاری نقشه نشد'));console.error(e);});});$('mGarage').addEventListener('click',()=>{if(!AU.ac)initAudio();openGarage();});$('mSet').addEventListener('click',openSettings);$('mHelp').addEventListener('click',()=>openModal('help'));$('mQuit').addEventListener('click',exitGame);
 $('helpClose').addEventListener('click',closeModal);$('pauseBtn').addEventListener('click',()=>openModal('pause'));$('pResume').addEventListener('click',closeModal);$('pLay').addEventListener('click',()=>{closeModal();startLayout();layFrom='pause';});$('pGarage').addEventListener('click',openGarage);$('pSet').addEventListener('click',openSettings);$('pMenu').addEventListener('click',toMenu);$('pQuit').addEventListener('click',exitGame);
 $('pRestart').addEventListener('click',()=>{const b=$('pRestart');if(!b.dataset.sure){b.dataset.sure='1';b.textContent=tr_('مطمئنی؟ دوباره بزن');setTimeout(()=>{delete b.dataset.sure;b.textContent=FREE?tr_('برگشت به اردوگاه'):tr_('شروع دوبارهٔ همین مرحله');},3000);return;}
   delete b.dataset.sure;b.textContent=FREE?tr_('برگشت به اردوگاه'):tr_('شروع دوبارهٔ همین مرحله');closeModal();S.vx=S.vz=S.vy=S.w=0;S.roll=S.pitch=0;S.engineOn=false;S.rpm=0;if(FREE)freeGo(0);else restartStage(STG.cur);});
@@ -4694,7 +4694,7 @@ function freeRescue(){const k=freeTrailNear(S.x,S.z);if(k>=0)placeAt(FW.PX[k],FW
    the samples and given fine relief of its own. The road, every house and the places come from OpenStreetMap
    (© OpenStreetMap contributors, ODbL): each house stands where it really stands, at its real size and turn. */
 const FWS={},ISL={FX:40000,FZ:-20000,FR:2600,FG:20,FSNOWH:230};
-const DKSM={};for(const m of ['dayk','bamir']){const o=Object.assign({found:[0],x:null,z:null,th:0},saved[m]&&typeof saved[m]==='object'?saved[m]:{});if(!Array.isArray(o.found))o.found=[0];DKSM[m]=o;}let DKS=DKSM.dayk;
+const DKSM={};for(const m of ['dayk','bamir']){const o=Object.assign({found:[0],x:null,z:null,th:0},saved[m]&&typeof saved[m]==='object'?saved[m]:{});if(!Array.isArray(o.found))o.found=[0];if(m==='bamir'&&o.v!==2){o.found=[0];o.x=null;o.z=null;o.v=2;}DKSM[m]=o;}let DKS=DKSM.dayk;
 function FSC(){return RMAP(FMAP)?DKS:FS;}
 function DKON(){return FREE&&RMAP(FMAP);}
 // top speed by map: the stages and the island as they are, Daykundi's mountain road slower, Bamiyan's highway much faster
@@ -5039,7 +5039,7 @@ const nicheTex=(function(){const c=document.createElement('canvas');c.width=128;
   g.beginPath();g.moveTo(8,256);g.lineTo(8,64);g.arc(64,64,56,Math.PI,0);g.lineTo(120,256);g.closePath();g.fill();
   g.fillStyle='rgba(120,98,80,.6)';g.beginPath();g.ellipse(64,250,44,14,0,0,6.283);g.fill();
   const t=new THREE.CanvasTexture(c);if(FILMIC)t.encoding=THREE.sRGBEncoding;return t;})();
-function dkBuddhaCliff(){if(FMAP!=='bamir'||!DK.lat0)return;const W=dkLL(34.8294679,67.8180135),E=dkLL(34.8316562,67.8266233);
+function dkBuddhaCliff(){if(FMAP!=='bamir'||!DK.lat0||DK.x0>20000)return;const W=dkLL(34.8294679,67.8180135),E=dkLL(34.8316562,67.8266233);
   let ux=E[0]-W[0],uz=E[1]-W[1];const L=Math.hypot(ux,uz);ux/=L;uz/=L;let nx=uz,nz=-ux;
   // the face looks down the valley: the side where the ground is lower
   const mx=(W[0]+E[0])/2,mz=(W[1]+E[1])/2;if(dkH(mx+nx*120,mz+nz*120)>dkH(mx-nx*120,mz-nz*120)){nx=-nx;nz=-nz;}
@@ -5060,13 +5060,13 @@ function dkBuddhaCliff(){if(FMAP!=='bamir'||!DK.lat0)return;const W=dkLL(34.8294
   // the cliff stands in the way: the car cannot drive into it
   for(let k=0;k<pts.length;k+=1)FW.extra.push({x:pts[k][0]-nx*20,z:pts[k][1]-nz*20,r:22});}
 function dkStart(){const ok=DKS.x!==null&&DKS.x>DK.x0&&DKS.x<DK.x0+DK.nx*DK.cell&&DKS.z>DK.z0&&DKS.z<DK.z0+DK.nz*DK.cell;
-  if(ok){placeAt(DKS.x,DKS.z,DKS.th);toast(tr_(FMAP==='bamir'?'بامیان · ':'دایکندی · ')+fa(FW.found.size)+tr_(' از ')+fa(FW.pois.length)+tr_(' جا رسیدی'));}
-  else{if(FMAP==='bamir'){const k=Math.min(FW.trails[0].i1,220);placeAt(FW.PX[k],FW.PZ[k],freeHeading(k));}else freeGo(0);toast(FMAP==='bamir'?tr_('بازار بامیان — راه واقعی تا بند امیر ۶۸ کیلومتر است: ۵۴ کیلومتر قیر، بعد راه خامه'):tr_('شیخ میران، اشترلی — راه واقعی تا نیلی ۵۶ کیلومتر است'));}}
+  if(ok){placeAt(DKS.x,DKS.z,DKS.th);toast(tr_(FMAP==='bamir'?'بند امیر · ':'دایکندی · ')+fa(FW.found.size)+tr_(' از ')+fa(FW.pois.length)+tr_(' جا رسیدی'));}
+  else{if(FMAP==='bamir'){const k=Math.min(FW.trails[0].i1,60);placeAt(FW.PX[k],FW.PZ[k],freeHeading(k));}else freeGo(0);toast(FMAP==='bamir'?tr_('پایان آسفالت — ۱۳ کیلومتر راه خامه تا بند امیر، بعد راه کوهستانی دور بند هیبت'):tr_('شیخ میران، اشترلی — راه واقعی تا نیلی ۵۶ کیلومتر است'));}}
 function dkPlaceName(){if(FMAP==='bamir')return bmPlaceName();const q=trailQ(S.x,S.z,400);const km=q?q.s*2/1000:-1;if(km<0)return tr_('کوه‌های دایکندی');if(km<6)return tr_('شیخ میران · اشترلی');if(km>49)return tr_('نیلی');
   return tr_('راه شیخ میران – نیلی · ')+fa(Math.round(km))+tr_(' کیلومتر');}
 function bmPlaceName(){const l=FW.lg?dkLake(S.x,S.z):null;if(l&&l.sd<120)return tr_(DK.lakes[l.i].n);const q=trailQ(S.x,S.z,400);if(!q)return tr_('کوه‌های بامیان');
-  const T=FW.trails.find(t=>q.s>=t.i0&&q.s<=t.i1)||FW.trails[0],km=(q.s-T.i0)*2/1000;if(T!==FW.trails[0])return tr_('راه خامهٔ بند امیر · ')+fa(Math.round(km))+tr_(' کیلومتر');
-  if(km<4)return tr_('شهر بامیان');if(km>63)return tr_('بند امیر');return tr_('راه بامیان – بند امیر · ')+fa(Math.round(km))+tr_(' کیلومتر');}
+  const T=FW.trails.find(t=>q.s>=t.i0&&q.s<=t.i1)||FW.trails[0],km=(q.s-T.i0)*2/1000;if(T!==FW.trails[0])return tr_('راه کوهستانی دور بند هیبت · ')+fa1(km)+tr_(' کیلومتر');
+  if(km<0.5)return tr_('پایان آسفالت');if(km>12.8)return tr_('بند امیر');return tr_('راه خامهٔ بند امیر · ')+fa1(km)+tr_(' کیلومتر');}
 // the map picture: the real land shaded, the villages as dots
 function dkMapImg(){const n=FW.gn,c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d'),id=x.createImageData(n,n),H=FW.H,col=new THREE.Color();
   for(let j=1;j<n-1;j++)for(let i=1;i<n-1;i++){const k=j*n+i,h=H[k],sh=clamp(1+((H[k-1])-(H[k+1])+(H[k-n])-(H[k+n]))*0.012,0.5,1.4);
@@ -5652,7 +5652,7 @@ function freeFrame(dt){if(FW.dk)dkFrame(dt);evtStep(dt);for(const Q of FW.pois){
     toast(tr_('پیدا شد: ')+Q.n+' · +'+fa(prize)+tr_(' سکه (')+fa(FW.found.size)+tr_(' از ')+fa(FW.pois.length)+')');if(FW.found.size===FW.pois.length){S.coins+=20000;setTimeout(()=>toast(FW.dk?tr_('از شیخ میران تا نیلی رسیدی! +۲۰٬۰۰۰ سکه'):tr_('همهٔ جاهای جزیره را پیدا کردی! +۲۰٬۰۰۰ سکه')),2600);}save();}}}
 function freeWx(dt){FW.wxT-=dt;if(FW.wxT<=0){const v=S.z-FZ,L=FW.dk?['clear']:v>900?['clear','snow','fog','clear','snow']:v<-900?['clear','rain','clear','fog','clear']:['clear','rain','fog','clear','hail','clear'];FW.wx=L[Math.floor(Math.random()*L.length)];FW.wxT=150+Math.random()*180;}return FW.wx;}
 function freeHUD(){const k=zoneOf(S.z);let near=null,bd=1e9;for(const Q of FW.pois){const d=Math.hypot(S.x-Q.x,S.z-Q.z);if(d<bd){bd=d;near=Q;}}
-  $('zoneName').textContent=(FW.dk?tr_(FMAP==='bamir'?'بامیان · ':'دایکندی · '):tr_('نقشهٔ آزاد · '))+(near&&bd<(FW.dk?600:160)&&FW.found.has(near.i)?near.n:FW.dk?dkPlaceName():ZB[k].n);$('km').textContent=fa(FW.found.size);$('kmTot').textContent=fa(FW.pois.length);$('kmU').textContent=tr_('جا پیدا شده');$('trackFill').style.width=(FW.found.size/FW.pois.length*100)+'%';}
+  $('zoneName').textContent=(FW.dk?tr_(FMAP==='bamir'?'بند امیر · ':'دایکندی · '):tr_('نقشهٔ آزاد · '))+(near&&bd<(FW.dk?600:160)&&FW.found.has(near.i)?near.n:FW.dk?dkPlaceName():ZB[k].n);$('km').textContent=fa(FW.found.size);$('kmTot').textContent=fa(FW.pois.length);$('kmU').textContent=tr_('جا پیدا شده');$('trackFill').style.width=(FW.found.size/FW.pois.length*100)+'%';}
 
 setTimeout(()=>{window.__FREE={setWorld,freeInit,get FW(){return FW;},freeHf,trailQ,FX,FZ,FR};},0);
 /* ---------- Traffic on the paved highway ----------
@@ -6327,7 +6327,7 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
 }
 rebuildEnv();scanTiles(true);processTiles(1e9);updateRoad(true);applyVehicle();applySettings();refreshMenu();updateGrass(0,true);
 setInterval(()=>{if(S.mode==='play')save();},10000);
-try{setWorld(true,'island');if(FS.x!==null)placeAt(FS.x,FS.z,FS.th);else freeGo(0);}catch(e){console.error(e);}
+try{dkLoad('bamir').then(()=>{if(S.mode!=='play'){setWorld(true,'bamir');dkStart();S.mode='menu';}}).catch(e=>{console.error(e);setWorld(true,'island');if(FS.x!==null)placeAt(FS.x,FS.z,FS.th);else freeGo(0);});}catch(e){console.error(e);}
 try{const dk=document.createElement('div');dk.className='gearDock';dk.appendChild(document.querySelector('.rightCtl .dash'));$('ctl').appendChild(dk);}catch(e){}try{layDefault();applyLayout();applyMv();}catch(e){}
 try{window.__loadS=(performance.now()/1000).toFixed(1);}catch(e){}
 $('loading').hidden=true;
