@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=198</script>
+<script>window.GAME_CODE=199</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1017,7 +1017,7 @@ function bumpH(x,z){const arr=bumpGrid.get(Math.floor(x/10)+','+Math.floor(z/10)
   for(const b of arr){if(b.t==='log'){const vx=b.bx-b.ax,vz=b.bz-b.az,L2=vx*vx+vz*vz;const t=clamp(((x-b.ax)*vx+(z-b.az)*vz)/L2,0,1);const d=Math.hypot(x-b.ax-vx*t,z-b.az-vz*t);if(d<b.r){const y=Math.sqrt(b.r*b.r-d*d)+b.r*0.6;if(y>m)m=y;}}
     else{const d=Math.hypot(x-b.x,z-b.z);if(d<b.r){const y=b.h*Math.sqrt(1-(d/b.r)*(d/b.r));if(b.t==='hole'){if(-y<m)m=-y;}else if(y>m)m=y;}}}return m;}
 function dipAt(ad,hw){return 0;}
-const mhCache=new Map(),MSTEP=256/72;
+const mhCache=new Map(),MSTEP=256/96;
 function mvH(i,j){const k=i*131071+j;let v=mhCache.get(k);if(v===undefined){const x=i*MSTEP,z=j*MSTEP;HFM=true;v=Hf(x,z);HFM=false;v-=dipAt(Math.abs(lateral(x,z)),HW(z));if(mhCache.size>90000)mhCache.clear();mhCache.set(k,v);}return v;}
 // height of the terrain exactly as the near terrain mesh draws it (same grid and triangle split), so wheels sit on what you see
 function meshH(x,z){const gx=x/MSTEP,gz=z/MSTEP,i=Math.floor(gx),j=Math.floor(gz),fx=gx-i,fz=gz-j;
@@ -1026,7 +1026,7 @@ function meshH(x,z){const gx=x/MSTEP,gz=z/MSTEP,i=Math.floor(gx),j=Math.floor(gz
 // the ground under a wheel; a bridge deck counts when the car is up at its level (not when it drives in the ravine below)
 let HREF=1e9,HSOLID=false;
 function onLedge(x,z){for(const E of fb(z).e){if((E.type==='ledge'||E.type==='ice'||E.type==='ridge'||E.type==='tunnel')&&z>E.z0-30&&z<E.z1+30&&Math.abs(lateral(x,z))<E.w/2+4)return true;}return false;}
-function groundAt(x,z){if(FREE)return freeLat(x,z)<5?Hf(x,z):meshH(x,z);return (fb(z).r.length&&riverNear(x,z,6))||(fb(z).e.length&&onLedge(x,z))?Hf(x,z):meshH(x,z);}
+function groundAt(x,z){if(FREE)return meshH(x,z);return (fb(z).r.length&&riverNear(x,z,6))||(fb(z).e.length&&onLedge(x,z))?Hf(x,z):meshH(x,z);}
 function Hd(x,z){const g=groundAt(x,z)+bumpH(x,z);if(FREE&&FW&&FW.br){const b=dkBridgeH(x,z);if(b!==null&&b>g-0.3)return b;}const Bl=fb(z).b;if(Bl.length)for(const B of Bl){const y=deckH(B,x,z,HSOLID);if(y>g&&y<HREF+1.3)return y;}return g;}
 const MU={bog:0.55,ice:0.2,asphalt:1.02,gravel:0.85,grass:0.74,rock:0.95,mud:0.42,sand:0.58,snow:0.46,wood:0.8,water:0.6};
 const LOOSE={bog:0.45,mud:1,sand:0.6,snow:0.55,grass:0.15};
@@ -1257,7 +1257,7 @@ function groundColor(x,z,h,ny,ad,out){if(FREE&&RMAP(FMAP))return dkGround(x,z,h,
 }
 
 /* ---------- Streaming terrain tiles with three levels of detail and skirts against cracks ---------- */
-const TILE=256,LODRES=[72,24,8];
+const TILE=256,LODRES=[96,24,8];
 const tiles=new Map(),treeCache=new Map();
 const tColTmp=new THREE.Color();
 function tileLod(ix,iz,pix,piz){const d=Math.max(Math.abs(ix-pix),Math.abs(iz-piz));return d<=1?0:d<=4?1:d<=QV([5,7,9,11])?2:-1;}
@@ -1435,7 +1435,7 @@ function buildTileVeg(T){
     const R=mulberry32((T.ix*91183)^(T.iz*71993)^4242),x0=T.ix*TILE,z0=T.iz*TILE,zc=z0+TILE/2,k=zoneOf(zc),rough=tab(tR,zc);
     for(let a=0;a<90*(rough+0.3)*(DKON()?(FMAP==='bamir'?0.22:0):1);a++){const x=x0+R()*TILE,z=z0+R()*TILE,ad=Math.abs(lateral(x,z));if((ad<HW(z)+1&&R()>0.35)||nearGorgeOrPad(z,ad)||(ad<AW+3&&paveF(z)>0.01))continue;const h=Hf(x,z);
       let s=(ad<40?0.6+R()*1.6:1.2+R()*R()*6)*(k===3||k===5?1.4:1);if(keepClear(x,z,2.5+s)||elemBlock(x,z,s+2))continue;if(ad-s*1.3<3.2){s=Math.min(s,(ad-3.2)/1.3);if(s<0.25)continue;}colT.setHSL(0.08,0.06,0.55+R()*0.1);
-      (M.rock=M.rock||[]).push([x,h-0.3*s,z,s,R()*6.28,k===3?0xd09070:colT.getHex(),R()*0.5,R()*0.5,s*(0.8+R()*0.5),s*(0.55+R()*0.4),s*(0.8+R()*0.5)]);if(s>0.5)obst.push({x,z,r:s*1.0});}
+      {const sx=s*(0.8+R()*0.5),sy=s*(0.55+R()*0.4),sz=s*(0.8+R()*0.5);(M.rock=M.rock||[]).push([x,h-0.3*s,z,s,R()*6.28,k===3?0xd09070:colT.getHex(),R()*0.5,R()*0.5,sx,sy,sz]);if(sy>0.28)obst.push({x,z,r:Math.max(sx,sz)*1.05});}}
     for(let a=0;a<75*tab(tGr,zc);a++){const x=x0+R()*TILE,z=z0+R()*TILE,ad=Math.abs(lateral(x,z));if(DKON())continue;if(paveF(z)>0.01&&ad<AW+1.2&&(RUTD(ad)<0.8||asphF(z)>0.01))continue;const h=Hf(x,z);if(h>SNL(z)-10)continue;if(waterAt(x,z)>h-0.3)continue;
       colT.setHSL(0.25+R()*0.06,0.4,0.4+R()*0.12);(M.bush=M.bush||[]).push([x,h-0.1,z,0.7+R()*1.1,R()*6.28,colT.getHex()]);}
     if(FREE&&FMAP==='bamir')for(let a=0,nS=QV([20,45,85,140]);a<nS;a++){const x=x0+R()*TILE,z=z0+R()*TILE,ad=Math.abs(lateral(x,z));if(ad<6.5)continue;const h=Hf(x,z);
@@ -3724,8 +3724,11 @@ function physics(dt){
   const depth=waterAt(S.x,S.z)-Math.max(Hf(S.x,S.z),S.y-0.3);if(depth>0.3&&wasDepth<=0.3&&Math.abs(S.v)>4)SFX.splash(Math.abs(S.v)*0.3);
   if(wasAir&&!S.air&&S.maxCd>4)SFX.hit(S.maxCd*0.4);
   if((S.wallHit||0)>2.5&&S.hitCd<=0){SFX.hit(S.wallHit*0.5);S.hitCd=0.35;brkHit(S.wallHit);}S.wallHit=0;brkStep(dt);
-  S.hitCd-=dt;const rad=1.3*V.camK,cu=cust(S.veh);
-  nearObst(S.x,S.z).forEach(arr=>arr.forEach(o=>{const dx=S.x-o.x,dz=S.z-o.z,rr=o.r+rad,dd=dx*dx+dz*dz;
+  S.hitCd-=dt;const cu=cust(S.veh),bp=V.bodyPts[0],cw=Math.abs(bp[1])+0.08,hl=Math.max(cw,Math.abs(bp[0])-cw*0.85),fwx=Math.sin(S.th),fwz=Math.cos(S.th);
+  nearObst(S.x,S.z).forEach(arr=>arr.forEach(o=>{if(Math.abs(S.x-o.x)>o.r+hl+cw+1||Math.abs(S.z-o.z)>o.r+hl+cw+1)return;
+    // the nearest of four circles laid along the car: nose, two in the middle, tail
+    let best=1e9,bx=S.x,bz=S.z;for(let q=0;q<4;q++){const u=-hl+q*(2*hl/3),cx=S.x+fwx*u,cz=S.z+fwz*u,d2=(cx-o.x)*(cx-o.x)+(cz-o.z)*(cz-o.z);if(d2<best){best=d2;bx=cx;bz=cz;}}
+    const dx=bx-o.x,dz=bz-o.z,rr=o.r+cw,dd=best;
     if(dd<rr*rr){const d=Math.sqrt(dd)||0.01,nx=dx/d,nz=dz/d;S.x+=nx*(rr-d);S.z+=nz*(rr-d);const vn=S.vx*nx+S.vz*nz;
       if(vn<0){S.vx-=1.3*vn*nx;S.vz-=1.3*vn*nz;S.w+=(Math.random()-.5)*Math.min(2,-vn*0.2);if(-vn>2.5&&S.hitCd<=0){SFX.hit(-vn*0.5);S.hitCd=0.35;brkHit(-vn);if(-vn>(cu.bar===2?11:8.5)&&Math.random()<0.55)stall(tr_('ضربه موتور را خاموش کرد'));}}}}));
   carBump();
@@ -5619,7 +5622,7 @@ function freeRoadChunk(ix,iz){const x0=ix*TILE,z0=iz*TILE,x1=x0+TILE,z1=z0+TILE,
     if(!FW.dk&&R()<0.04*rough){const o=(R()<0.5?-1:1)*(2.2+R()*0.8),b={t:'rock',x:cx+nx*o,z:cz+nz*o,r:0.2+R()*0.25*rough,h:0.05+R()*0.12*rough};bumps.push(b);stones.push(b);}
     if(false){const a=(R()-0.5)*1.1,len=4+R()*4,dx=nx*Math.cos(a)-nz*Math.sin(a),dz=nz*Math.cos(a)+nx*Math.sin(a),r=0.16+R()*0.14,xx=cx+nx*(R()*2-1)*0.8,zz=cz+nz*(R()*2-1)*0.8;
       const b={t:'log',ax:xx-dx*len/2,az:zz-dz*len/2,bx:xx+dx*len/2,bz:zz+dz*len/2,r};bumps.push(b);logs.push(b);}
-    if(!FW.dk&&R()<0.012*rough){const sd=R()<0.5?1:-1,o=sd*(4.4+R()*3),px=cx+nx*o,pz=cz+nz*o,sc=1+R()*1.8*rough;if(freeLat(px,pz)>3.6+sc){rocks.push([px,meshH(px,pz)+sc*0.15,pz,sc]);obst.push({x:px,z:pz,r:sc*0.95});}}}}
+    if(!FW.dk&&R()<0.012*rough){const sd=R()<0.5?1:-1,o=sd*(4.4+R()*3),px=cx+nx*o,pz=cz+nz*o,sc=1+R()*1.8*rough;if(freeLat(px,pz)>3.6+sc){rocks.push([px,meshH(px,pz)+sc*0.15,pz,sc]);obst.push({x:px,z:pz,r:sc*1.25});}}}}
   for(const o of FW.extra)if(o.x>=x0&&o.x<x1&&o.z>=z0&&o.z<z1)obst.push(o);
   const SF={P:[],U:[],I:[]},SB={P:[],U:[],I:[]},sposts=[],boards=[],hdAt=k=>{const a=Math.max(0,k-2),b=k+2;return Math.atan2(FW.PX[b]-FW.PX[a],FW.PZ[b]-FW.PZ[a]);};
   for(const T of FW.trails){const n=T.i1-T.i0;if(n<40)continue;
@@ -6253,6 +6256,17 @@ function SKY_DAYF(){const h=((S.tod%1)+1)%1;return h>0.27&&h<0.77?1:0;}
   document.addEventListener('pointerdown',e=>{if(DIR.on&&DIR.t>0.4){e.preventDefault();dirStop();}},true);})();
 window.__DIR={DIR,dirArm,dirStart,dirStop};
 
+/* The camera never goes into the ground, a rock wall or a big rock: from the car out to where it wants to be, it stops at
+   the last spot that is clear (with room round it), and it is never below the ground under it. */
+const CAMO=[];let CAMOT=-1;
+function camObsF(){const t=Math.floor(performance.now()/250);if(t===CAMOT)return;CAMOT=t;CAMO.length=0;for(const L of nearObst(S.x,S.z))for(const o of L)if(o.r>0.6&&Math.abs(o.x-S.x)<30&&Math.abs(o.z-S.z)<30)CAMO.push(o);}
+function camFree(x,y,z){const e=0.85;const g=Math.max(Hd(x,z),Hd(x+e,z),Hd(x-e,z),Hd(x,z+e),Hd(x,z-e),Hd(x+e*0.7,z+e*0.7),Hd(x-e*0.7,z-e*0.7),Hd(x+e*0.7,z-e*0.7),Hd(x-e*0.7,z+e*0.7));if(y<g+0.6)return false;
+  for(const o of CAMO){const dx=x-o.x,dz=z-o.z,rr=o.r+0.5;if(dx*dx+dz*dz<rr*rr&&y<Hd(o.x,o.z)+o.r*1.7+0.4)return false;}return true;}
+function camSafe(ox,oy,oz,p){const N=22;let last=0;const dx=p.x-ox,dy=p.y-oy,dz=p.z-oz;
+  for(let q=1;q<=N;q++){const f=q/N;if(!camFree(ox+dx*f,oy+dy*f,oz+dz*f))break;last=f;}
+  if(last<1){const f=Math.max(0.1,last);p.set(ox+dx*f,oy+dy*f,oz+dz*f);}
+  // never under the ground right below it
+  const e=0.85,g=Math.max(Hd(p.x,p.z),Hd(p.x+e,p.z),Hd(p.x-e,p.z),Hd(p.x,p.z+e),Hd(p.x,p.z-e));if(p.y<g+0.6)p.y=g+0.6;}
 function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.offset.y=(performance.now()/1000*0.007)%1;
   const rawDt=clock.getDelta(),dt=Math.min(rawDt,0.05);dirStep(dt);timeU.value+=dt;perfStep(rawDt);if(SET.fps){FPSC.n++;FPSC.t+=rawDt;FPSC.mx=Math.max(FPSC.mx||0,rawDt);if(FPSC.t>1){
     // the stats line: average fps, the slowest frame of the last second, what is drawn, memory, and how long loading took
@@ -6277,17 +6291,15 @@ function frame(){waterNrm.offset.x=(performance.now()/1000*0.012)%1;waterNrm.off
     camera.lookAt(S.x,S.y+1.3,S.z);camPos.copy(camera.position);fov=S.modal==='garage'?50:60;}
   else if(S.cam===4&&S.mode==='play'){V.g.updateMatrixWorld(true);const fx=(RIDE.pid?-V.fpp[0]:V.fpp[0])+CA.side*0.5,fy=V.fpp[1]+CA.up*0.25,fz=V.fpp[2]+(1-CA.zoom)*0.8;tmpV.set(fx,fy,fz);V.body.localToWorld(tmpV);camera.position.copy(tmpV);
     const yw=CA.yaw+S.steer*0.16,cp=Math.cos(CA.pitch);tmpV2.set(fx+Math.sin(yw)*10*cp,fy-0.3+Math.sin(CA.pitch)*10,fz+Math.cos(yw)*10*cp);V.body.localToWorld(tmpV2);camera.lookAt(tmpV2);camPos.copy(tmpV);fov=74;S.camYaw=S.th;}
-  else if(S.cam===2&&S.mode==='play'){orbit+=dt*0.08;const a=S.th+Math.PI*0.62+Math.sin(orbit)*0.9+CA.yaw,r=10.5*V.camK*CA.zoom;tmpV.set(S.x+Math.sin(a)*r,S.y+(2.4+CA.up+Math.sin(CA.pitch)*r*0.6)*V.camK,S.z+Math.cos(a)*r);tmpV.y=Math.max(tmpV.y,Hd(tmpV.x,tmpV.z)+1.2);
-    camPos.lerp(tmpV,1-Math.exp(-dt*3));camera.position.copy(camPos);camera.lookAt(S.x,S.y+1.1*V.camK+CA.up*0.4,S.z);fov=50;S.camYaw=S.th;}
+  else if(S.cam===2&&S.mode==='play'){orbit+=dt*0.08;const a=S.th+Math.PI*0.62+Math.sin(orbit)*0.9+CA.yaw,r=10.5*V.camK*CA.zoom;tmpV.set(S.x+Math.sin(a)*r,S.y+(2.4+CA.up+Math.sin(CA.pitch)*r*0.6)*V.camK,S.z+Math.cos(a)*r);camObsF();camSafe(S.x,S.y+1.3*V.camK,S.z,tmpV);
+    camPos.lerp(tmpV,1-Math.exp(-dt*3));camSafe(S.x,S.y+1.3*V.camK,S.z,camPos);camera.position.copy(camPos);camera.lookAt(S.x,S.y+1.1*V.camK+CA.up*0.4,S.z);fov=50;S.camYaw=S.th;}
   else if(S.cam===3){V.g.updateMatrixWorld(true);const hx=V.hood[0]+CA.side,hy=V.hood[1]+CA.up*0.5,hz=V.hood[2]+(1-CA.zoom)*2;tmpV.set(hx,hy,hz);V.body.localToWorld(tmpV);camera.position.copy(tmpV);const cp3=Math.cos(CA.pitch);tmpV2.set(hx+Math.sin(CA.yaw)*12*cp3,hy-0.4+Math.sin(CA.pitch)*12,hz+Math.cos(CA.yaw)*12*cp3);V.body.localToWorld(tmpV2);camera.lookAt(tmpV2);camPos.copy(tmpV);fov=72;S.camYaw=S.th;}
   else{let dyaw=S.th-S.camYaw;while(dyaw>Math.PI)dyaw-=Math.PI*2;while(dyaw<-Math.PI)dyaw+=Math.PI*2;S.camYaw+=dyaw*Math.min(1,dt*3.2);
     const far=S.cam===1,ck=V.camK,d0=(far?15:8.8)*ck*CA.zoom,cyw=S.camYaw+CA.yaw,pa=Math.atan2((far?7:3.6),(far?15:8.8))+CA.pitch,dist=d0*Math.cos(clamp(pa,-0.2,1.45))/Math.cos(Math.atan2((far?7:3.6),(far?15:8.8))),ht=Math.hypot(far?15:8.8,far?7:3.6)*ck*CA.zoom*Math.sin(clamp(pa,-0.2,1.45))+CA.up;
     const sdx=Math.cos(cyw)*CA.side,sdz=-Math.sin(cyw)*CA.side;
     tmpV.set(S.x-Math.sin(cyw)*dist+sdx,S.y+ht,S.z-Math.cos(cyw)*dist+sdz);
-    {const ox=S.x,oy=S.y+1.6*ck,oz=S.z;let tt=1;for(let q=1;q<=10;q++){const f=q/10,px=ox+(tmpV.x-ox)*f,py=oy+(tmpV.y-oy)*f,pz=oz+(tmpV.z-oz)*f;if(Hd(px,pz)+0.9>py){tt=Math.max(0.18,f-0.12);break;}}
-     if(tt<1){tmpV.set(ox+(tmpV.x-ox)*tt,oy+(tmpV.y-oy)*tt+0.8,oz+(tmpV.z-oz)*tt);}}
-    tmpV.y=Math.max(tmpV.y,Hd(tmpV.x,tmpV.z)+1.4);
-    camPos.lerp(tmpV,1-Math.exp(-dt*5));camPos.y=Math.max(camPos.y,Hd(camPos.x,camPos.z)+1.0);camera.position.copy(camPos);look.set(S.x+Math.sin(S.th)*3+sdx,S.y+1.5*ck+CA.up*0.5,S.z+Math.cos(S.th)*3+sdz);camera.lookAt(look);fov=58+Math.min(Math.abs(S.v),36)*0.33;}
+    camObsF();camSafe(S.x,S.y+1.6*ck,S.z,tmpV);
+    camPos.lerp(tmpV,1-Math.exp(-dt*5));camSafe(S.x,S.y+1.6*ck,S.z,camPos);camera.position.copy(camPos);look.set(S.x+Math.sin(S.th)*3+sdx,S.y+1.5*ck+CA.up*0.5,S.z+Math.cos(S.th)*3+sdz);camera.lookAt(look);fov=58+Math.min(Math.abs(S.v),36)*0.33;}
   {const wn=S.cam===4&&S.mode==='play'?0.12:0.3;if(camera.near!==wn){camera.near=wn;camera.updateProjectionMatrix();}}
   if(Math.abs(fov-lastFov)>0.05){lastFov+=(fov-lastFov)*Math.min(1,dt*4);camera.fov=lastFov;camera.updateProjectionMatrix();}
   if(SLEEP.on){const a=SLEEP.a0+SLEEP.t*0.32,cx=SLEEP.cx,cz=SLEEP.cz;camera.position.set(cx+Math.sin(a)*14,0,cz+Math.cos(a)*14);camera.position.y=Math.max(SLEEP.cy+5.5,Hd(camera.position.x,camera.position.z)+2);camera.lookAt(cx,SLEEP.cy+1,cz);}
