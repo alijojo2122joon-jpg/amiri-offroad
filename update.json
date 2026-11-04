@@ -1,13 +1,13 @@
 {
- "code": 203,
+ "code": 204,
  "minApk": 174,
  "apkUrl": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/AmiriOffroad.apk?v=174",
  "files": [
   {
    "path": "index.html",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html?v=203",
-   "sha256": "b83f08b5a4c135e44ea22271d2cd01b0534abc60bbfe720efae894b54207ee7e",
-   "size": 4880547
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html?v=204",
+   "sha256": "1d51824210045115b349514e94402a21fee69cf3186bb0fa0ad397784f718564",
+   "size": 4883773
   },
   {
    "path": "models/mech.glb",
