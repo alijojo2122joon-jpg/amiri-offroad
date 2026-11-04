@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=201</script>
+<script>window.GAME_CODE=202</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1372,6 +1372,8 @@ const G={};
     const tw=[];for(let k=0;k<4;k++){const a=R()*6.283,d=R()*0.35;tw.push(paintGeo(tr(new THREE.ConeGeometry(0.025,0.45+R()*0.35,3),Math.cos(a)*d,0.25,Math.sin(a)*d,(R()-0.5)*0.9,0,(R()-0.5)*0.9),(px,py,pz,c)=>{c.set('#8a7f68');}));}
     return mergeGeos(L.map(([x,y,z,r],k)=>paintGeo(jiggle(tr(new THREE.IcosahedronGeometry(r,0),x,y*0.8,z,0,0,0,1),0.5,k+20),(px,py,pz,c)=>{c.set(k%3===0?'#a3a88f':k%3===1?'#8f9a7c':'#b0a98e');c.lerp(_shB.set('#6a6452'),clamp(1-py/0.35,0,1)*0.6);})).concat(tw));})();
   G.rock=paintGeo(jiggle(new THREE.IcosahedronGeometry(1,1),0.45,9),(x,y,z,c)=>{c.set('#9a9188').lerp(new THREE.Color('#7f776e'),hash2(Math.floor(x*9),Math.floor(z*9)));if(y>0.55)c.lerp(new THREE.Color('#6f7f4a'),clamp((y-0.55)*2.2,0,0.6));});
+  // Band-e Amir's limestone: pale, no moss, a few rusty streaks
+  G.rockL=paintGeo(jiggle(new THREE.IcosahedronGeometry(1,1),0.45,9),(x,y,z,c)=>{c.set('#d8cdb6').lerp(new THREE.Color('#b3a487'),hash2(Math.floor(x*9),Math.floor(z*9)));if(hash2(Math.floor(y*6),Math.floor(x*3))>0.82)c.lerp(new THREE.Color('#a07850'),0.5);});
   G.stone=paintGeo(jiggle(new THREE.IcosahedronGeometry(1,0),0.35,4),(x,y,z,c)=>c.set('#8f877e').multiplyScalar(0.85+y*0.1));
   G.log=paintGeo(new THREE.CylinderGeometry(1,1,1,9,1),(x,y,z,c)=>{if(Math.abs(y)>0.49&&Math.hypot(x,z)<0.99)c.set('#c9a679');else c.set('#5e4532').multiplyScalar(0.85+0.2*hash2(Math.floor(x*20),Math.floor(y*12)));});
   G.post=paintGeo(new THREE.CylinderGeometry(0.09,0.11,1.1,6),(x,y,z,c)=>c.set(y>0.35?'#e8e2d6':'#6b4a33'));
@@ -1416,7 +1418,7 @@ function treeList(ix,iz){
   return out;
 }
 const dummy=new THREE.Object3D(),colT=new THREE.Color();
-G.pebble=G.stone;VMAT.pebble=VMAT.stone.clone();window.__G=G;
+G.pebble=G.stone;VMAT.pebble=VMAT.stone.clone();VMAT.rockL=VMAT.rock;window.__G=G;
 function boundGeo(base,arr){let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,z0=1e9,z1=-1e9,sm=0;for(const a of arr){x0=Math.min(x0,a[0]);x1=Math.max(x1,a[0]);y0=Math.min(y0,a[1]);y1=Math.max(y1,a[1]);z0=Math.min(z0,a[2]);z1=Math.max(z1,a[2]);sm=Math.max(sm,a[8]?Math.max(a[8],a[9],a[10]):a[3]);}
   if(!base.boundingSphere)base.computeBoundingSphere();const g=new THREE.BufferGeometry();for(const k in base.attributes)g.setAttribute(k,base.attributes[k]);if(base.index)g.setIndex(base.index);
   const c=new THREE.Vector3((x0+x1)/2,(y0+y1)/2,(z0+z1)/2);g.boundingSphere=new THREE.Sphere(c,Math.hypot(x1-x0,y1-y0,z1-z0)/2+sm*(base.boundingSphere.radius+Math.abs(base.boundingSphere.center.y)));return g;}
@@ -1434,8 +1436,8 @@ function buildTileVeg(T){
   if(!lo){
     const R=mulberry32((T.ix*91183)^(T.iz*71993)^4242),x0=T.ix*TILE,z0=T.iz*TILE,zc=z0+TILE/2,k=zoneOf(zc),rough=tab(tR,zc);
     for(let a=0;a<90*(rough+0.3)*(DKON()?(FMAP==='bamir'?0.22:0):1);a++){const x=x0+R()*TILE,z=z0+R()*TILE,ad=Math.abs(lateral(x,z));if((ad<HW(z)+1&&R()>0.35)||nearGorgeOrPad(z,ad)||(ad<AW+3&&paveF(z)>0.01))continue;const h=Hf(x,z);
-      let s=(ad<40?0.6+R()*1.6:1.2+R()*R()*6)*(k===3||k===5?1.4:1);if(keepClear(x,z,2.5+s)||elemBlock(x,z,s+2))continue;if(ad-s*1.3<3.2){s=Math.min(s,(ad-3.2)/1.3);if(s<0.25)continue;}colT.setHSL(0.08,0.06,0.55+R()*0.1);
-      {const sx=s*(0.8+R()*0.5),sy=s*(0.55+R()*0.4),sz=s*(0.8+R()*0.5);(M.rock=M.rock||[]).push([x,h-0.3*s,z,s,R()*6.28,k===3?0xd09070:colT.getHex(),R()*0.5,R()*0.5,sx,sy,sz]);if(sy>0.28)obst.push({x,z,r:Math.max(sx,sz)*1.05});}}
+      let s=(ad<40?0.6+R()*1.6:1.2+R()*R()*6)*(k===3||k===5?1.4:1);if(keepClear(x,z,2.5+s)||elemBlock(x,z,s+2))continue;if(ad-s*1.3<3.2){s=Math.min(s,(ad-3.2)/1.3);if(s<0.25)continue;}if(FREE&&FMAP==='bamir')colT.setHSL(0.1,0.15,0.62+R()*0.12);else colT.setHSL(0.08,0.06,0.55+R()*0.1);
+      {const sx=s*(0.8+R()*0.5),sy=s*(0.55+R()*0.4),sz=s*(0.8+R()*0.5),rk=FREE&&FMAP==='bamir'?'rockL':'rock';(M[rk]=M[rk]||[]).push([x,h-0.3*s,z,s,R()*6.28,k===3?0xd09070:colT.getHex(),R()*0.5,R()*0.5,sx,sy,sz]);if(sy>0.28)obst.push({x,z,r:Math.max(sx,sz)*1.05});}}
     for(let a=0;a<75*tab(tGr,zc);a++){const x=x0+R()*TILE,z=z0+R()*TILE,ad=Math.abs(lateral(x,z));if(DKON())continue;if(paveF(z)>0.01&&ad<AW+1.2&&(RUTD(ad)<0.8||asphF(z)>0.01))continue;const h=Hf(x,z);if(h>SNL(z)-10)continue;if(waterAt(x,z)>h-0.3)continue;
       colT.setHSL(0.25+R()*0.06,0.4,0.4+R()*0.12);(M.bush=M.bush||[]).push([x,h-0.1,z,0.7+R()*1.1,R()*6.28,colT.getHex()]);}
     if(FREE&&FMAP==='bamir')for(let a=0,nS=QV([20,45,85,140]);a<nS;a++){const x=x0+R()*TILE,z=z0+R()*TILE,ad=Math.abs(lateral(x,z));if(ad<6.5)continue;const h=Hf(x,z);
@@ -4762,8 +4764,8 @@ function dkGroundSat(x,z,h,ny,ad,out){const c=dkSat(x,z);if(!c){out.copy(DKC.dry
     out.setHSL(veg?_hsl.h:0.04+_hsl.h*0.35,_hsl.s*(veg?0.95:0.64),veg?0.17+_hsl.l*1.05:Math.max(0.3+_hsl.l*0.22,Math.pow(_hsl.l,1.3)*0.98));out.multiplyScalar(0.78);
     if(ny<0.62&&h>760){dkT.setRGB(0.33,0.2,0.15).multiplyScalar(0.85+0.3*vnoise(h*0.4,x*0.01));out.lerp(dkT,sstep(0.62,0.45,ny)*sstep(760,860,h));}}
   else{out.setRGB(Math.pow(c[0]/255,2.3)*0.74,Math.pow(c[1]/255,2.3)*0.74,Math.pow(c[2]/255,2.3)*0.74);out.offsetHSL(0,0.1,0);}
-  if(DK.fdem&&ny<0.7){const F=DK.fdem;if(x>F.x0&&z>F.z0&&x<F.x0+F.nx*F.c&&z<F.z0+F.nz*F.c){const b1=vnoise(h*0.31,x*0.002+z*0.002),b2=vnoise(h*1.3+3,x*0.01),w=sstep(0.7,0.45,ny)*0.8;
-      dkT.setRGB(0.6,0.56,0.48).lerp(_trv.setRGB(0.44,0.42,0.39),sstep(0.4,0.7,b1)).lerp(_trv.setRGB(0.5,0.4,0.3),sstep(0.62,0.85,b2)*0.5).multiplyScalar(0.9+0.2*vnoise(h*2.1,x*0.05));out.lerp(dkT,w*0.75);}}
+  if(DK.fdem&&ny<0.7){const F=DK.fdem;if(x>F.x0&&z>F.z0&&x<F.x0+F.nx*F.c&&z<F.z0+F.nz*F.c){const b1=vnoise(h*0.11,x*0.002+z*0.002),b2=vnoise(h*0.23+3,x*0.006),w=sstep(0.7,0.45,ny)*0.8;
+      dkT.setRGB(0.6,0.56,0.48).lerp(_trv.setRGB(0.44,0.42,0.39),sstep(0.4,0.7,b1)).lerp(_trv.setRGB(0.5,0.4,0.3),sstep(0.62,0.85,b2)*0.5).multiplyScalar(0.9+0.2*vnoise(h*0.3,x*0.02));out.lerp(dkT,w*0.75);}}
   if(FW&&FW.lg){const l=dkLake(x,z);if(l&&l.sd<0){dkT.set('#c9d2c8');out.lerp(dkT,sstep(0,-6,l.sd));}
     else if(l&&l.sd<16&&ny<0.75){const st=vnoise(x*0.9,z*0.9+h*0.05),rs=vnoise(x*0.25+h*0.3,z*0.25);dkT.setRGB(0.62,0.56,0.45).lerp(_trv.setRGB(0.5,0.33,0.18),sstep(0.55,0.8,rs)*0.6).multiplyScalar(0.85+0.3*st);out.lerp(dkT,sstep(16,8,l.sd)*sstep(0.75,0.5,ny));}
     // the white travertine of the shores, and the pale sinter flats spread below the dams where the spilled water runs
@@ -5632,7 +5634,9 @@ function freeRoadChunk(ix,iz){const x0=ix*TILE,z0=iz*TILE,x1=x0+TILE,z1=z0+TILE,
       if(!camp){const u=R();
         if(u<(ring?0.05:0.014)){const sd=R()<0.5?1:-1,o=rw-0.3+R()*1.3,sc=Math.min(0.7+R()*1.3,(o+rw-3.0)/1.25);if(sc>0.45)put(sd*o,sc);}
         else if(ring&&u<0.064){const g=3.1+R()*0.5,c=(R()-0.5)*(2*rw-g-1.2),scL=0.8+R()*0.7,scR=0.8+R()*0.7;put(c-g/2-scL*1.25,scL);put(c+g/2+scR*1.25,scR);}
-        else if(ring&&u<0.072){const sd=R()<0.5?1:-1,sc=0.6+R()*0.4;put(sd*(sc*1.25+0.05),sc);}}}
+        else if(ring&&u<0.072){const sd=R()<0.5?1:-1,sc=0.6+R()*0.4;put(sd*(sc*1.25+0.05),sc);}}
+      // rubble: loose stones lying on the bed that jolt the car (you drive over them), thicker on the rim trail
+      if(!camp&&R()<(ring?0.07:0.025)){const n=3+Math.floor(R()*7),c0=(R()-0.5)*1.6*rw;for(let q=0;q<n;q++){const o=clamp(c0+(R()-0.5)*2.4,-rw,rw),al=(R()-0.5)*2.5,b={t:'rock',x:cx+nx*o+tx/tl*al,z:cz+nz*o+tz/tl*al,r:0.18+R()*0.3,h:0.06+R()*0.16};bumps.push(b);stones.push(b);}}}
     if(!FW.dk&&R()<0.012*rough){const sd=R()<0.5?1:-1,o=sd*(4.4+R()*3),px=cx+nx*o,pz=cz+nz*o,sc=1+R()*1.8*rough;if(freeLat(px,pz)>3.6+sc){rocks.push([px,meshH(px,pz)+sc*0.15,pz,sc]);obst.push({x:px,z:pz,r:sc*1.25});}}}}
   for(const o of FW.extra)if(o.x>=x0&&o.x<x1&&o.z>=z0&&o.z<z1)obst.push(o);
   const SF={P:[],U:[],I:[]},SB={P:[],U:[],I:[]},sposts=[],boards=[],hdAt=k=>{const a=Math.max(0,k-2),b=k+2;return Math.atan2(FW.PX[b]-FW.PX[a],FW.PZ[b]-FW.PZ[a]);};
@@ -5655,8 +5659,8 @@ function freeRoadChunk(ix,iz){const x0=ix*TILE,z0=iz*TILE,x1=x0+TILE,z1=z0+TILE,
   inst(G.log,VMAT.log,logs,b=>{const dx=b.bx-b.ax,dz=b.bz-b.az,len=Math.hypot(dx,dz),mx=(b.ax+b.bx)/2,mz=(b.az+b.bz)/2;dummy.position.set(mx,meshH(mx,mz)+b.r*0.6,mz);dummy.quaternion.setFromUnitVectors(up,dir.set(dx/len,0,dz/len));dummy.scale.set(b.r,len,b.r);});
   inst(signPostG,VMAT.signPost,sposts,p=>{dummy.rotation.set(0,0,0);dummy.position.set(p[0],p[1]-0.1,p[2]);dummy.scale.setScalar(1);});
   inst(G.stone,VMAT.stone,stones,b=>{dummy.rotation.set(0,(b.x*7.3+b.z)%6.28,0);dummy.position.set(b.x,meshH(b.x,b.z)-b.h*0.12,b.z);dummy.scale.set(b.r*1.02,b.h*1.05,b.r*1.02);});
-  const im=inst(G.rock,VMAT.rock,rocks,(a,i)=>{dummy.rotation.set(R()*0.5,R()*6.28,R()*0.4);dummy.position.set(a[0],a[1],a[2]);dummy.scale.set(a[3]*(0.9+R()*0.4),a[3]*(0.7+R()*0.5),a[3]*(0.9+R()*0.4));});
-  if(im){const zc=ZC[zoneOf(z0+TILE/2)];for(let i=0;i<rocks.length;i++){colT.copy(zc.r1).lerp(zc.r2,R()).multiplyScalar(1.2);im.setColorAt(i,colT);}im.instanceColor.needsUpdate=true;}
+  const im=inst(FW.dk&&FMAP==='bamir'?G.rockL:G.rock,VMAT.rock,rocks,(a,i)=>{dummy.rotation.set(R()*0.5,R()*6.28,R()*0.4);dummy.position.set(a[0],a[1],a[2]);dummy.scale.set(a[3]*(0.9+R()*0.4),a[3]*(0.7+R()*0.5),a[3]*(0.9+R()*0.4));});
+  if(im){const zc=ZC[zoneOf(z0+TILE/2)],lime=FW.dk&&FMAP==='bamir';for(let i=0;i<rocks.length;i++){if(lime){const t=R();colT.setRGB(0.66+0.12*t,0.6+0.1*t,0.5+0.08*t).multiplyScalar(1.7);}else colT.copy(zc.r1).lerp(zc.r2,R()).multiplyScalar(1.2);im.setColorAt(i,colT);}im.instanceColor.needsUpdate=true;}
   return {meshes,bumps,obst};}
 // finding the places, the weather that comes and goes, and keeping the car on the island
 function freeFrame(dt){if(FW.dk)dkFrame(dt);evtStep(dt);for(const Q of FW.pois){if(FW.found.has(Q.i))continue;if(Math.hypot(S.x-Q.x,S.z-Q.z)<26){FSC().found.push(Q.i);updateFreeFlags();const prize=1500;S.coins+=prize;SFX.whoosh();
