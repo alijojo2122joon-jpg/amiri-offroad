@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=900,user-scalable=no,viewport-fit=cover">
 <link rel="stylesheet" href="fonts.css">
 <script>window.__loopO={"e_ci": 3.177959,"e_c1": 1.176848,"e_c2": 0.775374,"e_c3": 0.900907,"e_c4": 0.985215,"r_idle": 6.583424,"r_fast": 7.602336,"r_high": 1.514036,"r_high2": 0.790068,"rain": 15.4,"rainroof": 11.4,"wind": 19.4,"forest": 23.4,"night": 21.4,"stream": 11.4,"gravel": 5.2,"road": 5.4,"skid": 2.04,"horn": 0.563061,"crank": 1.445011,"gulls": 15.4,"frogs": 17.4,"flock": 17.4,"r_gravel": 5.4,"r_gravin": 5.4,"r_roadin": 6.4,"r_windin": 7.4,"r_snow": 5.2,"r_reverse": 1.706054}</script>
-<script>window.GAME_CODE=208</script>
+<script>window.GAME_CODE=209</script>
 <title>Amiri Offroad</title>
 <style>
 /* Layout: landscape full-screen 3D world; steering wheel bottom-left, pedals and car buttons bottom-right, route bar and map up top */
@@ -1031,9 +1031,12 @@ function Hd(x,z){const g=groundAt(x,z)+bumpH(x,z);if(FREE&&FW&&FW.br){const b=dk
 const MU={bog:0.55,ice:0.2,asphalt:1.02,gravel:0.85,grass:0.74,rock:0.95,mud:0.42,sand:0.58,snow:0.46,wood:0.8,water:0.6};
 const LOOSE={bog:0.45,mud:1,sand:0.6,snow:0.55,grass:0.15};
 function surfaceAt(x,z){
+  if(FREE&&FW&&FW.mud){for(const m of FW.mud){const dx=x-m.x,dz=z-m.z;if(dx*dx+dz*dz<m.r*m.r)return 'mud';}}
   const h=Hf(x,z);
   if(bridgeH(x,z)>h+0.3)return 'wood';
   if(waterAt(x,z)-h>0.15)return 'water';
+  // the real maps: asphalt only where the road really is paved, loose rock on steep faces, gravel and dirt elsewhere
+  if(FREE&&FW&&FW.dk){if(FW.pv){const q=trailQ(x,z,6);if(q&&q.d<(FW.rw||3.2)&&FW.pv[Math.floor(q.s)])return 'asphalt';}if(snowU.value>0.45)return 'snow';return slopeAt(x,z)>0.6?'rock':'gravel';}
   const ad=Math.abs(lateral(x,z)),k=zoneOf(z);
   // the island's trails are packed dirt: they hold the tyres on a climb
   // the Bamiyan highway is asphalt where the real road is
@@ -5642,9 +5645,29 @@ function bmStageBuild(){bmObst.length=0;if(!FW.trails[1])return;const T0=FW.trai
       const pl=new THREE.Mesh(new THREE.PlaneGeometry(1.9,0.55),boardMat(tr_('خطر! پرتگاه · آهسته'),'red'));pl.position.y=1.55;g.add(pl);
       for(const sd of [-1,1]){const po=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.06,1.85,6),wood);po.position.set(sd*0.8,0.92,-0.04);g.add(po);}
       g.traverse(o=>{if(o.isMesh)o.castShadow=true;});FW.group.add(g);bmObst.push({x:px,z:pz,r:0.3});}}
+  // mud holes: in the dips of the rim trail (and now and then on the road in) the bed holds water and turns to deep mud:
+  // the wheels spin and the car slows; a dark wet patch with a puddle in the middle shows where
+  {FW.mud=[];const Rm=mulberry32(77);
+    // the patches are laid once the map is the live world (they follow the drawn ground exactly)
+    FW.mudDraw=()=>{
+      // one soft mud texture: dark wet mud with ruts, a grey sheen of water in the middle, fading out at the edge
+      const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d'),R2=mulberry32(5);
+      const gr=x.createRadialGradient(128,128,10,128,128,128);gr.addColorStop(0,'rgba(58,46,34,1)');gr.addColorStop(0.62,'rgba(70,55,40,0.95)');gr.addColorStop(0.85,'rgba(96,78,58,0.55)');gr.addColorStop(1,'rgba(110,92,70,0)');x.fillStyle=gr;x.fillRect(0,0,256,256);
+      for(let i=0;i<220;i++){const a=R2()*6.28,r=R2()*100,px=128+Math.cos(a)*r,py=128+Math.sin(a)*r,sz=2+R2()*7;x.fillStyle='rgba('+(40+R2()*40|0)+','+(32+R2()*30|0)+','+(24+R2()*20|0)+','+(0.25+R2()*0.35)+')';x.beginPath();x.ellipse(px,py,sz,sz*0.6,R2()*3,0,6.3);x.fill();}
+      x.strokeStyle='rgba(30,24,18,0.55)';x.lineWidth=9;for(const o of [-26,26]){x.beginPath();x.moveTo(128+o,20);x.bezierCurveTo(128+o+14,90,128+o-14,170,128+o,236);x.stroke();}
+      const wg=x.createRadialGradient(128,128,4,128,128,58);wg.addColorStop(0,'rgba(92,104,110,0.8)');wg.addColorStop(0.7,'rgba(80,88,90,0.55)');wg.addColorStop(1,'rgba(90,90,85,0)');x.fillStyle=wg;x.beginPath();x.ellipse(128,128,62,44,0.3,0,6.3);x.fill();
+      const t=new THREE.CanvasTexture(c);if(FILMIC)t.encoding=THREE.sRGBEncoding;
+      const mt=new THREE.MeshPhongMaterial({map:t,transparent:true,depthWrite:false,shininess:60,specular:0x333333,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
+      for(const M of FW.mud){const n=14,g=new THREE.PlaneGeometry(M.r*2.3,M.r*2.3,n,n).rotateX(-Math.PI/2),P=g.attributes.position,a=Math.random()*6.28,ca=Math.cos(a),sa=Math.sin(a);
+        for(let i=0;i<P.count;i++){const lx=P.getX(i),lz=P.getZ(i),vx=M.x+lx*ca-lz*sa,vz=M.z+lx*sa+lz*ca;P.setXYZ(i,vx,meshH(vx,vz)+0.05,vz);}g.computeVertexNormals();
+        const m=new THREE.Mesh(g,mt);m.receiveShadow=true;m.renderOrder=1;FW.group.add(m);}};
+    const patch=(x,z,r)=>{FW.mud.push({x,z,r});};
+    const pick=(T,step,first)=>{for(let k=T.i0+first;k<T.i1-60;k+=step){let lo=k;for(let q=k-20;q<=k+20;q++)if(FW.PH[q]<FW.PH[lo])lo=q;if(FW.span&&FW.span[lo])continue;
+        const ux=FW.PX[lo+2]-FW.PX[lo-2],uz=FW.PZ[lo+2]-FW.PZ[lo-2],ul=Math.hypot(ux,uz)||1,o=(Rm()-0.5)*1.2;patch(FW.PX[lo]+uz/ul*o,FW.PZ[lo]-ux/ul*o,3.2+Rm()*2.6);}};
+    pick(T1,170,120);pick(T0,700,500);}
   let best=0;try{best=+(localStorage.getItem('amiri-bm-best')||0);}catch(e){}
   FW.stg={on:false,t:0,mx:0,len:T1.i1-T1.i0,best,cp:0,off:0};}
-function bmStageStep(dt){const G=FW.stg,T1=FW.trails[1];const q=trailQ(S.x,S.z,14);const on=q&&q.s>=T1.i0&&q.s<=T1.i1,idx=on?q.s-T1.i0:-1;
+function bmStageStep(dt){if(FW.mudDraw&&FREE){const f=FW.mudDraw;FW.mudDraw=null;f();}const G=FW.stg,T1=FW.trails[1];const q=trailQ(S.x,S.z,14);const on=q&&q.s>=T1.i0&&q.s<=T1.i1,idx=on?q.s-T1.i0:-1;
   const fmt=t=>{const m=Math.floor(t/60),s2=Math.floor(t%60);return fa(m)+':'+(s2<10?'۰':'')+fa(s2);};
   if(!G.on){if(on&&idx>14&&idx<30&&Math.abs(S.v)>1.5){G.on=true;G.t=0;G.mx=idx;G.cp=0;G.off=0;toast(tr_('مرحله شروع شد! دور بند هیبت را تا آخر برو و از همین دروازه برگرد'));}return;}
   G.t+=dt;if(on){G.off=0;if(idx>G.mx&&idx<G.mx+80)G.mx=idx;}else{G.off+=dt;if(G.off>25){G.on=false;toast(tr_('از راه بیرون رفتی؛ مرحله لغو شد. برای شروع دوباره از دروازه رد شو'));return;}}
