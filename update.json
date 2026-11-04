@@ -1,13 +1,13 @@
 {
- "code": 216,
+ "code": 217,
  "minApk": 174,
  "apkUrl": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/AmiriOffroad.apk?v=174",
  "files": [
   {
    "path": "index.html",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html?v=216",
-   "sha256": "a9c9a48c13121cfd243c222b02b5b1c29d1a32a332a92def2af8c33ebe43d21d",
-   "size": 4932333
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/index.html?v=217",
+   "sha256": "ab13b634a7d5b4626e43393f232bb520c8281f4d7f2ecf5f4e380a7037a00d82",
+   "size": 4940394
   },
   {
    "path": "models/mech.glb",
@@ -65,9 +65,9 @@
   },
   {
    "path": "models/cruiser.glb",
-   "sha256": "f20af153ce338b4102afde76934c48b694b26b11969fe2b52abf94070b5d3df4",
-   "size": 7933240,
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/cruiser.glb?v=215"
+   "sha256": "27b11361ca7e65d073d97f409f6ca5f6dfffa70633c08f12f6e096947c8c109e",
+   "size": 7966212,
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/cruiser.glb?v=217"
   },
   {
    "path": "models/cruiser_lo.glb",
@@ -173,9 +173,9 @@
   },
   {
    "path": "models/cruiser_mid.glb",
-   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/cruiser_mid.glb?v=215",
-   "sha256": "4bc503ab43f317922f277cf751f9d1001b923ab335e451595e1b307b20cbd0be",
-   "size": 4482448
+   "url": "https://raw.githubusercontent.com/alijojo2122joon-jpg/amiri-offroad/main/models/cruiser_mid.glb?v=217",
+   "sha256": "5a7bdd20a43c39933982f37e984ee76da1ac3ae4da49bd6d2edde551d0cc1534",
+   "size": 4494016
   },
   {
    "path": "snd/blackbird1.ogg",
